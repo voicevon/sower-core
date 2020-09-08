@@ -1,0 +1,83 @@
+@startuml
+title         系统架构 V1.0\n
+package             Brain-Python{
+node EmptyCellFinder
+note right of EmptyCellFinder:纯软件分离行列
+node Manager
+agent Opencv
+node XYZhost
+node 路径翻译
+node ServoArrayHost[
+<b>ServoArrayHost
+---
+舵机动作计划表
+]
+}
+package              传感器{
+component 皮带输送编码器
+component PositionSensors[
+<b>PositionSensors
+---
+反射式光电开关
+]
+}
+package             吸种控制器{
+  agent Marlin2.0
+}
+component XY运动机构
+package             补种控制器{
+rectangle Main
+card 舵机矩阵驱动[
+<b>舵机矩阵驱动
+---
+共24个
+]
+rectangle 皮带转动解码
+}
+component 交流固态继电器
+component Z轴电磁阀
+component 气缸
+component 舵机0
+component 舵机1
+component 舵机2
+component 舵机24
+component 摄像头
+component 负压泵
+摄像头-->Opencv:VideoStream 
+PositionSensors-->Main:g.row=0
+舵机矩阵驱动-->舵机0:PWM
+舵机矩阵驱动-->舵机1
+舵机矩阵驱动-->舵机2
+舵机矩阵驱动-->舵机24
+皮带输送编码器-->皮带转动解码
+皮带转动解码-->Main:g.row++
+Main-->ServoArrayHost :已完成元素
+Opencv-->EmptyCellFinder:Image
+EmptyCellFinder-->Manager:CellMap
+note on link
+SeedsInCell[row,col]={-1,0,1}
+row=[0..7]
+----
+col=[0..25]
+end note
+Manager-->ServoArrayHost:补种计划B
+Manager-->路径翻译:补种计划A
+路径翻译-->XYZhost:路径
+XYZhost-->Marlin2.0:mCode/gCode
+Marlin2.0-->>XY运动机构
+Marlin2.0-->>交流固态继电器
+交流固态继电器-->负压泵
+Marlin2.0-->Z轴电磁阀
+Z轴电磁阀-->气缸
+ServoArrayHost ~~Manager:已完成元素
+ServoArrayHost ~~XYZhost:已完成元素
+ServoArrayHost-->Main:ServoMap
+note on link
+CellMap[Row,col]={-1,0,1}
+Protocol-Download
+<b>AA</b>:RowID,Flag,Count,Sum
+Protocol-upload
+<b>AB</b><&check>RowID <b>AC</b><&x>RowID <b>AF完成</b>RowID
+end note
+Main-->舵机矩阵驱动
+@enduml
