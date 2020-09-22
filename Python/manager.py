@@ -6,7 +6,7 @@ sys.path.append(app_config.path.text_color)
 from color_print import const
 
 from robot_eye import RobotEye
-from robot_arm import RobotArm
+from robot_arm import RobotArms
 from servo_array_driver import ServoArrayDriver
 import paho.mqtt.client as mqtt
 
@@ -37,7 +37,7 @@ class SowerManager():
     
     def __init__(self):
         self.__eye = RobotEye()
-        self.__arm = RobotArm()
+        self.__arm = RobotArms()
         self.__servos = ServoArrayDriver()
 
         self.__goto = self.__on_state_begin
@@ -45,7 +45,7 @@ class SowerManager():
         self.__mqtt = mqtt
         self.__mqtt = mqtt.Client("sower-2039-1004")  # create new instance
         self.__mqtt_system_turn_on = False
-        self.__eye.set_service_saw_caves(self.__servos.update_caves)
+        self.__eye.set_service_saw_caves(self.__arm.set_new_plate)
 
         self.__YELLOW = const.print_color.fore.yellow
         self.__GREEN = const.print_color.fore.green

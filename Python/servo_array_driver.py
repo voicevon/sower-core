@@ -49,7 +49,7 @@ class ServoArrayDriver():
                     print("<<< " + response)
 
     def __init__(self):
-        pass
+        self.__layout = [([0] * 8) for i in range(16)]
 
     def __send_command(self, code):
         waitting_mil_second = 0
@@ -59,5 +59,14 @@ class ServoArrayDriver():
                 return 'the response here'
         return 'No response'
 
-    def update_caves(self, caves):
-        pass
+    def send_some_command(self, command):
+        self.__send_command(command)
+
+
+
+    
+
+
+
+if __name__ == "__main__":
+    tester = ServoArrayDriver()
