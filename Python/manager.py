@@ -8,15 +8,20 @@ from color_print import const
 
 
 
-class Manager():
+class SowerManager():
     def __init__(self):
         self.__eye = None
 
         self.__YELLOW = const.print_color.fore.yellow
+    def start(self):
+        self.hello_world()
+
+    def main_loop(self):
+        pass
 
     def hello_world(self):
         print(self.__YELLOW + 'Hello team!')
 
 if __name__ == "__main__":
-    runner = Manager()
+    runner = SowerManager()
     runner.hello_world()
