@@ -7,7 +7,9 @@ sys.path.append(app_config.path.text_color)
 from color_print import const
 
 
-class RobotArm():
+from reprap_robot_arm import ReprapRobot
+
+class RobotArm(ReprapRobot):
     
     def __init__(self):
         pass
