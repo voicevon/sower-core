@@ -2,3 +2,4 @@
 .vscode/*
 *.pyc
 *.json
+Python/__pycache__/*

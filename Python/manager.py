@@ -6,35 +6,14 @@ sys.path.append(app_config.path.text_color)
 from color_print import const
 
 from robot_eye import RobotEye
-from robot_arm import RobotArms
+from robot_arms import RobotArms
 from servo_array_driver import ServoArrayDriver
-import paho.mqtt.client as mqtt
-
-#
-#         |-----------> ??? ----------->|
-#         ^                             |
-#         |-----------> ??? ----------->|
-#         ^                             |
-#         |-----------> ??? ----------->|
-#         ^                             |
-#         |-----------> ??? ----------->|
-#         ^
-#         |           |--->--->--->--->--->--->---|
-#         ^           |                           |
-#        begin ---> idle ---> working ------> EmergencyStop
-#         ^           ^          |                 |
-#         |           |--<---<---|                 |
-#         ^                      |                 |
-#         |<---<---<---<---<---<--                 |
-#         ^                                        |
-#         |<---<---<---<---<---<---<---<---<---<----
-#   
-#
-#        idle, EmergencyStop: are not avaliable before version 1.0
+# import paho.mqtt.client as mqtt
+from mqtt_agent import MqttAgent
 
 
 class SowerManager():
-    
+
     def __init__(self):
         self.__eye = RobotEye()
         self.__arm = RobotArms()
@@ -42,10 +21,8 @@ class SowerManager():
 
         self.__goto = self.__on_state_begin
 
-        self.__mqtt = mqtt
-        self.__mqtt = mqtt.Client("sower-2039-1004")  # create new instance
+        self.__mqtt_agent = MqttAgent()
         self.__mqtt_system_turn_on = False
-        self.__eye.set_service_saw_caves(self.__arm.set_new_plate)
 
         self.__YELLOW = const.print_color.fore.yellow
         self.__GREEN = const.print_color.fore.green
@@ -79,7 +56,7 @@ class SowerManager():
             self.__goto = self.__on_state_begin
 
     def start(self):
-        self.__start_mqtt()
+        self.__mqtt_agent.connect()
 
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
@@ -93,31 +70,32 @@ class SowerManager():
             print(self.__goto.__name__)
             print(self.__RESET)
 
-    def __start_mqtt(self):
-        broker = app_config.server.mqtt.broker_addr
-        uid = app_config.server.mqtt.username
-        psw = app_config.server.mqtt.password
-        self.__mqtt.username_pw_set(username=uid, password=psw)
-        self.__mqtt.connect(broker)
-        print(self.__GREEN + '[Info]: MQTT has connected to: %s' % broker + self.__RESET)
-
-        self.__mqtt.loop_start()
-        # self.__mqtt.subscribe("house/bulbs/bulb1")
-        self.__mqtt.publish(topic="fishtank/switch/r4/command", payload="OFF", retain=True)
-        self.__mqtt.on_message = self.__mqtt_on_message
-        # self.__mqtt.loop_stop()
-
-    def __mqtt_on_message(self, client, userdata, message):
-        print("message received ", str(message.payload.decode("utf-8")))
-        print("message topic=", message.topic)
-        print("message qos=", message.qos)
-        print("message retain flag=", message.retain)
-
-        if True:
-            self.__mqtt_system_turn_on = True
 
 if __name__ == "__main__":
     runner = SowerManager()
     runner.start()
     while True:
         runner.main_loop()
+
+
+#
+#         |-----------> ??? ----------->|
+#         ^                             |
+#         |-----------> ??? ----------->|
+#         ^                             |
+#         |-----------> ??? ----------->|
+#         ^                             |
+#         |-----------> ??? ----------->|
+#         ^
+#         |           |--->--->--->--->--->--->---|
+#         ^           |                           |
+#        begin ---> idle ---> working ------> EmergencyStop
+#         ^           ^          |                 |
+#         |           |--<---<---|                 |
+#         ^                      |                 |
+#         |<---<---<---<---<---<--                 |
+#         ^                                        |
+#         |<---<---<---<---<---<---<---<---<---<----
+#   
+#
+#        idle, EmergencyStop: are not avaliable before version 1.0
