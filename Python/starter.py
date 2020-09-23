@@ -73,7 +73,6 @@ if True:
     print_welcome(get_welcome_b())
     print_welcome(get_legs())
 
-
     from manager import SowerManager
     system = SowerManager()
     system.setup()
