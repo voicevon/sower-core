@@ -37,7 +37,7 @@ class MqttAgent():
         self.__mqtt.publish(topic="fishtank/switch/r4/command", payload="OFF", retain=True)
         self.__mqtt.on_message = self.__mqtt_on_message
         # self.__mqtt.loop_stop()
-
+        return self.__mqtt
 
     def __mqtt_on_message(self, client, userdata, message):
         print("message received ", str(message.payload.decode("utf-8")))
@@ -51,10 +51,10 @@ class MqttAgent():
         if True:
             self.__eye.on_mqtt_message(message.topic, payload)
 
-
     def publish_init(self):
         #  traverse app_config, publish all elements to broker.
         pass
+
 
 if __name__ == "__main__":
     test = MqttAgent()

@@ -8,7 +8,7 @@ from color_print import const
 from robot_eye import RobotEye
 from robot_arms import RobotArms
 from servo_array_driver import ServoArrayDriver
-# import paho.mqtt.client as mqtt
+import paho.mqtt.client as mqtt
 from mqtt_agent import MqttAgent
 
 
@@ -20,7 +20,7 @@ class SowerManager():
         self.__servos = ServoArrayDriver()
 
         self.__goto = self.__on_state_begin
-
+        self.__matt = mqtt
         self.__mqtt_agent = MqttAgent()
         self.__mqtt_system_turn_on = False
 
@@ -32,8 +32,10 @@ class SowerManager():
         if self.__mqtt_system_turn_on:
             # Turn on light
             # Trun on main motor
-            self.__mqtt.publish('sower/light/command', 'ON')
-            self.__mqtt.publish('sower/motor/command', 'ON')
+            # Trun on vaccum motor
+            self.__mqtt.publish('sower/switch/light/command', 'ON')
+            self.__mqtt.publish('sower/switch/motor/command', 'ON')
+            self.__mqtt.publish('sower/switch/vaccum/command', 'ON')
             self.__goto = self.__on_state_working
 
     def __on_state_idle(self):
@@ -55,9 +57,9 @@ class SowerManager():
         if self.__mqtt_system_on:
             self.__goto = self.__on_state_begin
 
-    def start(self):
-        self.__mqtt_agent.connect()
-
+    def setup(self):
+        self.__mqtt = self.__mqtt_agent.connect()
+        self.__eye.setup(self.__mqtt)
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
         print(self.__RESET)
@@ -73,7 +75,7 @@ class SowerManager():
 
 if __name__ == "__main__":
     runner = SowerManager()
-    runner.start()
+    runner.setup()
     while True:
         runner.main_loop()
 

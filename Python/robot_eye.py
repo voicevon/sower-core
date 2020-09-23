@@ -28,9 +28,9 @@ class RobotEye():
         # Try to get a plate map, When it happened, invoke the callback
         pass
 
-    # def set_service_saw_caves(self, matt, on_message_callback):
-    #     self.__on_saw_caves = on_message_callback
     def on_mqtt_message(self, topic, payload):
+        # will be invoked from manager, not mqtt_client directly
+        # only the topic like "sower/eye/*" would trigger the invoking.
         pass
 
 
