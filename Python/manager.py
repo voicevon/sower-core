@@ -22,14 +22,14 @@ class SowerManager():
         self.__goto = self.__on_state_begin
         self.__matt = mqtt
         self.__mqtt_agent = MqttAgent()
-        self.__mqtt_system_turn_on = False
+        self.__system_turn_on = False
 
         self.__YELLOW = const.print_color.fore.yellow
         self.__GREEN = const.print_color.fore.green
         self.__RESET = const.print_color.control.reset
 
     def __on_state_begin(self):
-        if self.__mqtt_system_turn_on:
+        if self.__system_turn_on:
             # Turn on light
             # Trun on main motor
             # Trun on vaccum motor
@@ -43,7 +43,7 @@ class SowerManager():
             self.__goto = self.__on_state_working
 
     def __on_state_working(self):
-        if self.__mqtt_system_turn_on:
+        if self.__system_turn_on:
             # Turn off light
             # Trun off main motor
             self.__mqtt.publish('sower/light/command', 'OFF')
@@ -57,9 +57,15 @@ class SowerManager():
         if self.__mqtt_system_on:
             self.__goto = self.__on_state_begin
 
+    def __on_eye_got_new_plate(self, plate_array, image):
+        self.__arm.set_new_plate(plate_array)
+
+        # flask return image to web ui
+
+            
     def setup(self):
         self.__mqtt = self.__mqtt_agent.connect()
-        self.__eye.setup(self.__mqtt)
+        self.__eye.setup(self.__mqtt, self.__on_eye_got_new_plate)
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
         print(self.__RESET)
