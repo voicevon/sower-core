@@ -5,3 +5,6 @@
 - opencv `pip install opency-python3`
 - mqtt `pip install paho-mqtt`
 
+# VScode:
+- Sublime
+- Python (Mirosoft)

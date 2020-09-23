@@ -1,4 +1,8 @@
 
+from datetime import datetime
+import cv2
+
+
 class app_config:
 
     class path:
@@ -35,6 +39,17 @@ class app_config:
             cols = 8
 
 
+class CvDebugger():
+    @staticmethod
+    def show_debug_image(window_name, soure_img, debug_text):
+        if app_config.robot_eye.board_scanner.show_board_image:
+            cp = soure_img.copy()
+            debug_text += '  ' + datetime.now().strftime('%s')
+            cv2.putText(cp, debug_text, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)
+            cv2.imshow(window_name, cp)
+            cv2.waitKey(1)
+
+
 if __name__ == "__main__":
     global_config = app_config
     s1 = global_config.robot_arm.name
@@ -42,4 +57,5 @@ if __name__ == "__main__":
 
     global_config.robot_arm.name = 'test'
     s1 = global_config.robot_arm.name
-    print(s1)  
+    print(s1)
+ 

@@ -73,6 +73,10 @@ if True:
     print_welcome(get_welcome_b())
     print_welcome(get_legs())
 
+    print('sys.version = %s' % sys.version)
+    print('sys.executable = %s' % sys.executable)
+    print('-----------------------------------------------------------')
+
     from manager import SowerManager
     system = SowerManager()
     system.setup()
