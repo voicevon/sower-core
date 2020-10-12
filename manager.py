@@ -36,16 +36,15 @@ class SowerManager():
             self.__mqtt.publish('sower/switch/motor/command', 'ON')
             self.__mqtt.publish('sower/switch/vaccum/command', 'ON')
             self.__goto = self.__on_state_working
-            print('begin begin')
+            #print('begin begin')
 
     def __on_state_idle(self):
         if False:
             self.__goto = self.__on_state_working
 
     def __on_state_working(self):
-        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
         if self.__system_turn_on:
-            print('bbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
+            #print('bbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
             # Turn off light
             # Trun off main motor
             self.__mqtt.publish('sower/light/command', 'OFF')
