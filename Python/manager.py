@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 
 from global_const import app_config
-
+import time
 import sys
 sys.path.append(app_config.path.text_color)
 from color_print import const
@@ -20,6 +21,7 @@ class SowerManager():
         self.__servos = ServoArrayDriver()
 
         self.__goto = self.__on_state_begin
+        self.__goto = self.__on_state_test_mqtt
         self.__mqtt_agent = MqttAgent()
         self.__system_turn_on = False
 
@@ -27,6 +29,16 @@ class SowerManager():
         self.__GREEN = const.print_color.fore.green
         self.__RESET = const.print_color.control.reset
 
+    def __on_state_test_mqtt(self):
+        # return image as mqtt message payload
+        # f= open("Python/test.jpg")
+        # content = f.read()
+        # byte_im = bytearray(content)
+
+        with open('test.jpg', 'rb') as f:
+            byte_im = f.read()
+        self.__mqtt.publish('sower/img/bin',byte_im )
+        time.sleep(100)
     def __on_state_begin(self):
         if self.__system_turn_on:
             # Turn on light
@@ -67,7 +79,8 @@ class SowerManager():
 
             
     def setup(self):
-        self.__mqtt = self.__mqtt_agent.connect(self.__eye.on_mqtt_message)
+        self.__mqtt = self.__mqtt_agent.connect()
+        self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
         self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')

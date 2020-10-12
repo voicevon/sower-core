@@ -21,23 +21,8 @@ class MqttAgent(mqtt.Client):
         self.mqtt_system_turn_on = True
         self.__invoke_eye = None
 
-    def connect(self, invoke_eye, broker='', port=0, uid='', psw=''):
+    def connect_eye(self, invoke_eye):
         self.__invoke_eye = invoke_eye
-
-        if broker == '':
-            broker = app_config.server.mqtt.broker_addr
-        if uid == '':
-            uid = app_config.server.mqtt.username
-        if psw == '':
-            psw = app_config.server.mqtt.password
-        if port == 0:
-            port = app_config.server.mqtt.port
-
-        self.__mqtt.username_pw_set(username=uid, password=psw)
-        self.__mqtt.connect(broker)
-        print(self.__GREEN + '[Info]: MQTT has connected to: %s' % broker + self.__RESET)
-
-        self.__mqtt.loop_start()
         self.__mqtt.subscribe("sower/outside/system/state")
         self.__mqtt.subscribe("sower/eye/outside/width")
         self.__mqtt.subscribe("sower/eye/outside/height")
@@ -56,6 +41,23 @@ class MqttAgent(mqtt.Client):
         self.__mqtt.subscribe("sower/eye/inside/detect/roi/width")
         self.__mqtt.subscribe("sower/eye/inside/detect/roi/height")
         self.__mqtt.publish(topic="fishtank/switch/r4/command", payload="OFF", retain=True)
+        
+    def connect(self, broker='', port=0, uid='', psw=''):
+
+        if broker == '':
+            broker = app_config.server.mqtt.broker_addr
+        if uid == '':
+            uid = app_config.server.mqtt.username
+        if psw == '':
+            psw = app_config.server.mqtt.password
+        if port == 0:
+            port = app_config.server.mqtt.port
+
+        self.__mqtt.username_pw_set(username=uid, password=psw)
+        self.__mqtt.connect(broker)
+        print(self.__GREEN + '[Info]: MQTT has connected to: %s' % broker + self.__RESET)
+
+        self.__mqtt.loop_start()
         self.__mqtt.on_message = self.__mqtt_on_message
         # self.__mqtt.loop_stop()
         return self.__mqtt
@@ -84,3 +86,4 @@ class MqttAgent(mqtt.Client):
 if __name__ == "__main__":
     test = MqttAgent()
     test.connect()
+    # test.connect_eye()
