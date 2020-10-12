@@ -124,6 +124,7 @@ class myCamera(object):
         self.frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
                                     1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
         self.frame_id += 1
+        #cv2.imshow('bai cap', self.frame)
         print('got image')
 
     def release(self):
@@ -146,14 +147,18 @@ class corn_detection(object):
         self.tray_height = tray_height  # 穴盘规格
         self.tray_width = tray_width
         self.corn_img = None  # 有效玉米区域
+        self.capture_img = None
 
     def extractROI(self, raw_img):
         # 检测穴盘外围轮廓
+        print("detect tray contour....")
         try:
             raw_img.shape
         except:
             self.ROI = None
             return self.ROI
+        #cv2.imshow('bai extract roi', raw_img)
+        #cv2.waitKey(0)
 
         H_img = cv2.cvtColor(raw_img, cv2.COLOR_RGB2GRAY)
         res, img_detected = cv2.threshold(H_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
@@ -177,6 +182,11 @@ class corn_detection(object):
     def corn_recognition(self, raw_img, ROI=None, display=False, theshold_R=200, theshold_G=200, theshold_B=150,
                          theshold_size=8):
         # 检测玉米
+        #print('detect corn...')
+        #cv2.imshow('bai corn detect', raw_img)
+        #cv2.waitKey(0)
+
+        
         try:
             raw_img.shape
         except:
@@ -188,10 +198,14 @@ class corn_detection(object):
         corn_result = np.zeros((self.tray_height, self.tray_width)).astype(bool)
         if self.ROI is not None:
             self.corn_img = raw_img[self.ROI[1]:(self.ROI[1] + self.ROI[3]), self.ROI[0]:(self.ROI[0] + self.ROI[2])]
-            img_mask = self.corn_img
+            #cv2.imshow('bai corn_img', self.corn_img)
+            #cv2.waitKey(0)
+            img_mask = self.corn_img.copy()
             img_mask[(self.corn_img[:, :, 0] < theshold_R) | (self.corn_img[:, :, 1] < theshold_G) |
                                      (self.corn_img[:, :, 2] > theshold_B)] = 0  # make mask | (self.corn_img[:, :, 2] < 100)
-            print(img_mask.shape)
+            #cv2.imshow('bai corn_img2', self.corn_img)
+            #cv2.waitKey(0)
+            #print(img_mask.shape)
             img_gray = cv2.cvtColor(img_mask, cv2.COLOR_RGB2GRAY)
             res, img_binary = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)  # 分割
             element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20, 20))  # 形态学去噪
@@ -238,7 +252,7 @@ class RobotEye(object):
         self.__camera = myCamera()
         self.__corn_detect = corn_detection()
         self.__camera_config = dict()
-        self.__detect_config = dict()
+        self.__detect_config = {'ROI': [80,405,1872,975]}
         self.__tray_config = dict()
 
     def start_with_new_thread(self, mqtt):
@@ -302,18 +316,20 @@ class RobotEye(object):
                     last_frame_id = self.__camera.frame_id
                     if self.__detect_config.get('ROI', []):
                         if len(self.__detect_config['ROI']) == 4 and self.__detect_config['ROI'][0] != 0 \
-                                and self.__detect_config['ROI'][1] !=0 and self.__detect_config['ROI'][2] !=0 and self.__detect_config[3] != 0:
+                                and self.__detect_config['ROI'][1] !=0 and self.__detect_config['ROI'][2] !=0 and self.__detect_config['ROI'][3] != 0:
                             roi = self.__detect_config['ROI']
                         else:
                             print('invalid ROI')
                             continue
                     else:
+                        cap_img = self.__camera.frame.copy()
                         roi = self.__corn_detect.extractROI(self.__camera.frame)
                         if roi is None:
                             print("extract tray contour failed!")
                             continue
-                    thres_R = self.__detect_config.get('threshold_R', 200)
-                    thres_G = self.__detect_config.get('threshold_G', 200)
+                    print('roi:', roi)
+                    thres_R = self.__detect_config.get('threshold_R', 190)
+                    thres_G = self.__detect_config.get('threshold_G', 190)
                     thres_B = self.__detect_config.get('threshold_B', 150)
                     thres_size = self.__detect_config.get('threshold_size', 8)
                     display = self.__detect_config.get('display', False)
@@ -323,6 +339,7 @@ class RobotEye(object):
                     print("corn result: ", result)
                     self.__mqtt.publish("sower/eye/detect", result.tostring())
                     self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
+                    #self.__on_got_new_plate_callback(result, cap_img)
 
 
     def on_mqtt_message(self, topic, payload):
