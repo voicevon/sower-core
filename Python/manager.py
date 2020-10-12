@@ -35,6 +35,12 @@ class SowerManager():
         # content = f.read()
         # byte_im = bytearray(content)
 
+
+        # im = cv2.imread('test.jpg')
+        # im_resize = cv2.resize(im, (500, 500))
+        # is_success, im_buf_arr = cv2.imencode(".jpg", im_resize)
+        # byte_im = im_buf_arr.tobytes()
+
         with open('test.jpg', 'rb') as f:
             byte_im = f.read()
         self.__mqtt.publish('sower/img/bin',byte_im )
