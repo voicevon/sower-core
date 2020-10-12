@@ -18,7 +18,7 @@ class MqttAgent(mqtt.Client):
         self.__YELLOW = const.print_color.fore.yellow
         self.__GREEN = const.print_color.fore.green
         self.__RESET = const.print_color.control.reset
-        self.mqtt_system_turn_on = False
+        self.mqtt_system_turn_on = True
         self.__invoke_eye = None
 
     def connect(self, invoke_eye, broker='', port=0, uid='', psw=''):
