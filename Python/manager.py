@@ -20,7 +20,6 @@ class SowerManager():
         self.__servos = ServoArrayDriver()
 
         self.__goto = self.__on_state_begin
-        self.__matt = mqtt
         self.__mqtt_agent = MqttAgent()
         self.__system_turn_on = False
 
@@ -37,6 +36,7 @@ class SowerManager():
             self.__mqtt.publish('sower/switch/motor/command', 'ON')
             self.__mqtt.publish('sower/switch/vaccum/command', 'ON')
             self.__goto = self.__on_state_working
+            #print('begin begin')
 
     def __on_state_idle(self):
         if False:
@@ -44,10 +44,13 @@ class SowerManager():
 
     def __on_state_working(self):
         if self.__system_turn_on:
+            #print('bbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
             # Turn off light
             # Trun off main motor
             self.__mqtt.publish('sower/light/command', 'OFF')
             self.__mqtt.publish('sower/motor/command', 'OFF')
+            self.__eye.main_loop()
+        else:
             self.__goto = self.__on_state_begin
 
         if False:
@@ -64,13 +67,14 @@ class SowerManager():
 
             
     def setup(self):
-        self.__mqtt = self.__mqtt_agent.connect()
-        self.__eye.setup(self.__mqtt, self.__on_eye_got_new_plate)
+        self.__mqtt = self.__mqtt_agent.connect(self.__eye.on_mqtt_message)
+        self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
         print(self.__RESET)
 
     def main_loop(self):
+        self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 
         last_function = self.__goto
         self.__goto()
         if last_function != self.__goto:
