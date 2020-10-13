@@ -52,7 +52,7 @@ class XyzArm(ReprapArm):
         self.lift_warehouse()
         time.sleep(WAREHOUSE_MOVEMENT_TIME)
         self.drop_warehouse()
-        time.sleep(WAREHOUSE_MOVEMENT_TIME)
+        time.sleep(WAREHOUSE_MOVEMENT_TIME /3 )
 
     def place_to_cell(self, col, row):
         '''
@@ -79,8 +79,8 @@ class XyzArm(ReprapArm):
     def setup(self, mqtt, feeding_buffer):
         self.__feeding_buffer = feeding_buffer
         self.__mqtt = mqtt
-        for col in range(0,3):
-            for row in range(0,8):
+        for row in range(0,8):
+            for col in range(0,3):
                 print('pickup and place %i %i' %(col,row))
                 self.pickup_from_warehouse(row)
                 self.place_to_cell(col,row)
