@@ -2,4 +2,5 @@
 .vscode/*
 *.pyc
 *.json
+*.mvdat
 Python/__pycache__/*

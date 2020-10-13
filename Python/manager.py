@@ -7,21 +7,24 @@ sys.path.append(app_config.path.text_color)
 from color_print import const
 
 from robot_eye import RobotEye
-from robot_arms import RobotArms
+# from robot_arms import RobotArms
 from servo_array_driver import ServoArrayDriver
 import paho.mqtt.client as mqtt
 from mqtt_agent import MqttAgent
-
+from xyz_arm import XyzArm
 
 class SowerManager():
 
     def __init__(self):
         self.__eye = RobotEye()
-        self.__arm = RobotArms()
+        # self.__arm = RobotArms()
+        self.__xyz_arm = XyzArm()
+        self.__xyz_arm.init_and_home()
+        self.__xyz_arm.setup()
         self.__servos = ServoArrayDriver()
 
         self.__goto = self.__on_state_begin
-        self.__goto = self.__on_state_test_mqtt
+        # self.__goto = self.__on_state_test_mqtt
         self.__mqtt_agent = MqttAgent()
         self.__system_turn_on = False
 

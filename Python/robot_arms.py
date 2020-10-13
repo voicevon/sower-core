@@ -13,8 +13,11 @@ from xyz_arm import XyzArm
 from threading import Thread
 
 
-class RobotArms():
 
+class RobotArms():
+    '''
+    There are  two arms:  xyz_arm and servos
+    '''
     def __init__(self):
         self.__servos = ServoArrayDriver()
         self.__robot = XyzArm()
@@ -45,7 +48,7 @@ class RobotArms():
         # Check feeding_buffer is there any cave is empty
         cell = self.__target_plate.find_empty_cell()
         if cell is not None:
-            self.__robot.place_to_cell(cell.cell_name)
+            self.__robot.place_to_cell(cell.)
             self.__robot.pickup_from_warehouse()
         pass
 
