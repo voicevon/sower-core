@@ -20,11 +20,11 @@ class SowerManager():
         # self.__arm = RobotArms()
         self.__xyz_arm = XyzArm()
         self.__xyz_arm.init_and_home()
-        self.__xyz_arm.setup()
         self.__servos = ServoArrayDriver()
 
         self.__goto = self.__on_state_begin
         # self.__goto = self.__on_state_test_mqtt
+        # self.__mqtt = None
         self.__mqtt_agent = MqttAgent()
         self.__system_turn_on = False
 
@@ -48,14 +48,15 @@ class SowerManager():
             byte_im = f.read()
         self.__mqtt.publish('sower/img/bin',byte_im )
         time.sleep(100)
+
     def __on_state_begin(self):
         if self.__system_turn_on:
             # Turn on light
             # Trun on main motor
             # Trun on vaccum motor
-            self.__mqtt.publish('sower/switch/light/command', 'ON')
-            self.__mqtt.publish('sower/switch/motor/command', 'ON')
-            self.__mqtt.publish('sower/switch/vaccum/command', 'ON')
+            # self.__mqtt.publish('sower/switch/light/command', 'ON')
+            # self.__mqtt.publish('sower/switch/motor/command', 'ON')
+            # self.__mqtt.publish('sower/switch/vaccum/command', 'ON')
             self.__goto = self.__on_state_working
             #print('begin begin')
 
@@ -88,9 +89,11 @@ class SowerManager():
 
             
     def setup(self):
-        self.__mqtt = self.__mqtt_agent.connect()
+        mqtt = self.__mqtt_agent.connect()
         self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
         self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
+        self.__xyz_arm.setup(None, mqtt)
+
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
         print(self.__RESET)
