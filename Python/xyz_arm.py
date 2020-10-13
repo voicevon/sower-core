@@ -73,8 +73,8 @@ class XyzArm(ReprapArm):
     def pickup_then_place_to_cell(self, col, row):
         self.pickup_from_warehouse(row)
         self.place_to_cell(col, row)
-        
-    def setup(self, feeding_buffer, mqtt):
+
+    def setup(self, mqtt, feeding_buffer):
         self.__feeding_buffer = feeding_buffer
         self.__mqtt = mqtt
         for col in range(0,3):

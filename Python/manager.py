@@ -92,7 +92,8 @@ class SowerManager():
         mqtt = self.__mqtt_agent.connect()
         self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
         self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
-        self.__xyz_arm.setup(None, mqtt)
+        self.__eye.setup(mqtt, self.__on_eye_got_new_plate)
+        self.__xyz_arm.setup(mqtt, None)
         self.__servos.setup(self.__xyz_arm.pickup_then_place_to_cell)
 
         print(const.print_color.background.blue + self.__YELLOW)

@@ -264,22 +264,22 @@ class RobotEye(object):
     def setup(self, mqtt, callback):
         self.__mqtt = mqtt
         self.__on_got_new_plate_callback = callback
-        #self.__mqtt.subscribe("sower/eye/outside/width")
-        #self.__mqtt.subscribe("sower/eye/outside/height")
-        #self.__mqtt.subscribe("sower/eye/inside/camera/config_file")
-        #self.__mqtt.subscribe("sower/eye/inside/camera/trigger_mode")
-        #self.__mqtt.subscribe("sower/eye/inside/camera/trigger_type")
-        #self.__mqtt.subscribe("sower/eye/inside/camera/aestate")
-        #self.__mqtt.subscribe("sower/eye/inside/camera/exposure_time")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_r")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_g")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_b")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_size")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/display")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/x")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/y")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/width")
-        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/height")
+        # self.__mqtt.subscribe("sower/eye/outside/width")
+        # self.__mqtt.subscribe("sower/eye/outside/height")
+        # self.__mqtt.subscribe("sower/eye/inside/camera/config_file")
+        # self.__mqtt.subscribe("sower/eye/inside/camera/trigger_mode")
+        # self.__mqtt.subscribe("sower/eye/inside/camera/trigger_type")
+        # self.__mqtt.subscribe("sower/eye/inside/camera/aestate")
+        # self.__mqtt.subscribe("sower/eye/inside/camera/exposure_time")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_r")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_g")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_b")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_size")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/display")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/x")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/y")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/width")
+        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/height")
 
         self.__camera.open()  # open camera
         if self.__camera.isopen:
