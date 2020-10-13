@@ -74,7 +74,7 @@ class MqttAgent(mqtt.Client):
                 self.mqtt_system_turn_on = True
             else:
                 self.mqtt_system_turn_on = False
-        else:
+        elif self.__invoke_eye is not None:
             #self.__eye.on_mqtt_message(message.topic, payload)
             self.__invoke_eye(message.topic, payload)
 
@@ -82,8 +82,34 @@ class MqttAgent(mqtt.Client):
         #  traverse app_config, publish all elements to broker.
         pass
 
+    def publish_image(self, flag):
 
+      # return image as mqtt message payload
+        # f= open("Python/test.jpg")
+        # content = f.read()
+        # byte_im = bytearray(content)
+
+
+        # im = cv2.imread('test.jpg')
+        # im_resize = cv2.resize(im, (500, 500))
+        # is_success, im_buf_arr = cv2.imencode(".jpg", im_resize)
+        # byte_im = im_buf_arr.tobytes()
+        filename = 'test.jpg'
+        if flag:
+            filename = 'star.png'
+
+        with open(filename, 'rb') as f:
+            byte_im = f.read()
+        self.__mqtt.publish('sower/img/bin',byte_im )
+
+import time
 if __name__ == "__main__":
     test = MqttAgent()
     test.connect()
-    # test.connect_eye()
+    # test.connect_eye(None)
+    flag = False
+    while True:
+        print(flag)
+        test.publish_image(flag)
+        time.sleep(5)
+        flag = not flag
