@@ -113,7 +113,7 @@ if __name__ == "__main__":
     my_arm = XyzArm()
     my_arm.init_and_home()
     if False:
-        my_arm.calibrate_cor_row(2,7)
+        my_arm.calibrate_col_row(2,7)
 
     if False:
         # moves a big squre
