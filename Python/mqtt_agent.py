@@ -23,14 +23,17 @@ class MqttAgent(mqtt.Client):
 
     def connect_eye(self, invoke_eye):
         self.__invoke_eye = invoke_eye
-        self.__mqtt.subscribe("sower/outside/system/state")
+        a,b = self.__mqtt.subscribe("sower/outside/system/state")
+        print('333333333333333333333333333333333')
+        print(a,b)
         self.__mqtt.subscribe("sower/eye/outside/width")
         self.__mqtt.subscribe("sower/eye/outside/height")
         self.__mqtt.subscribe("sower/eye/inside/camera/config_file")
         self.__mqtt.subscribe("sower/eye/inside/camera/trigger_mode")
         self.__mqtt.subscribe("sower/eye/inside/camera/trigger_type")
         self.__mqtt.subscribe("sower/eye/inside/camera/aestate")
-        self.__mqtt.subscribe("sower/eye/inside/camera/exposure_time")
+        a,b = self.__mqtt.subscribe("sower/eye/inside/camera/exposure_time")
+        print(a,b)
         self.__mqtt.subscribe("sower/eye/inside/detect/threshold_r")
         self.__mqtt.subscribe("sower/eye/inside/detect/threshold_g")
         self.__mqtt.subscribe("sower/eye/inside/detect/threshold_b")
@@ -106,7 +109,7 @@ import time
 if __name__ == "__main__":
     test = MqttAgent()
     test.connect()
-    # test.connect_eye(None)
+    test.connect_eye(None)
     flag = False
     while True:
         print(flag)
