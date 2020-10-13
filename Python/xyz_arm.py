@@ -33,9 +33,11 @@ class XyzArm(ReprapArm):
         '''
         Wiring:  fan interface to control warehouse
         '''
+        self.wait_for_movement_finsished()
         self.bridge_send_gcode_mcode('M106 S255')
 
     def drop_warehouse(self):
+        self.wait_for_movement_finsished()
         self.bridge_send_gcode_mcode('M106 S0')
 
     def __move_to_warehouse(self, row):

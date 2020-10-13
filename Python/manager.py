@@ -68,8 +68,8 @@ class SowerManager():
             #print('bbbbbbbbbbbbbbbbbbbbbbbbbbbbb')
             # Turn off light
             # Trun off main motor
-            self.__mqtt.publish('sower/light/command', 'OFF')
-            self.__mqtt.publish('sower/motor/command', 'OFF')
+            # self.__mqtt.publish('sower/light/command', 'OFF')
+            # self.__mqtt.publish('sower/motor/command', 'OFF')
             self.__eye.main_loop()
         else:
             self.__goto = self.__on_state_begin
