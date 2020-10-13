@@ -8,7 +8,8 @@ from color_print import const
 
 from servo_array_driver import ServoArrayDriver
 from plate_and_cell import Cell, Plate, FeedingBuffer
-from human_level_robot import HumanLevelRobot
+# from human_level_robot import HumanLevelRobot
+from xyz_arm import XyzArm
 from threading import Thread
 
 
@@ -16,7 +17,7 @@ class RobotArms():
 
     def __init__(self):
         self.__servos = ServoArrayDriver()
-        self.__robot = HumanLevelRobot()
+        self.__robot = XyzArm()
 
         self.__feeding_buffer = FeedingBuffer()
         self.__plate_from_eye = Plate()
