@@ -5,6 +5,8 @@ sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano
 
 from reprap_arm import ReprapArm
 
+import time
+
 class XyzArm(ReprapArm):
     '''
     This robot arm is a human level robot.
@@ -12,13 +14,35 @@ class XyzArm(ReprapArm):
     '''
     def __init__(self):
         ReprapArm.__init__(self)
+        self.__current_x = 0
+        self.__current_y = 0
+        self.__current_z = 0
+
         # self.__feeding_buffer = FeedingBuffer()
 
+    def __lift_warehouse(self):
+        '''
+        Wiring:  fan interface to control warehouse
+        '''
+        self.bridge_send_gcode_mcode('M106 S0')
+
+    def __drop_warehouse(self):
+        self.bridge_send_gcode_mcode('M106 S255')
+
+    def __move_to_warehouse(self, row):
+        y = 120 * row
+        self.move_to_xyz(self.__current_x, y, self.__current_z)
+        self.__current_y = y
+
     def pickup_from_warehouse(self):
-        self.goto('warehouse')
-        self.warehouse_move_up()
-        self.eef_pick_up()
-        self.warehouse_move_down()
+        WAREHOUSE_MOVEMENT_TIME = 1.5   # when warehouse moves from bottom to top(or reverse), will cost some time. 
+
+        self.__move_to_warehouse(3)
+        self.__lift_warehouse()
+        time.sleep(WAREHOUSE_MOVEMENT_TIME)
+        self.__drop_warehouse()
+        time.sleep(WAREHOUSE_MOVEMENT_TIME)
+
 
     def place_to_cell(self, cell_name):
         # a certain path, that based on cell position
@@ -42,12 +66,23 @@ class XyzArm(ReprapArm):
 if __name__ == "__main__":
     my_arm = XyzArm()
     my_arm.init_and_home()
-    while True:
-        my_arm.move_to_xyz(0, 0, 0, 18000)
-        my_arm.move_to_xyz(0, 280, 0, 18000)
-        my_arm.move_to_xyz(180, 280, 0, 18000)
-        my_arm.move_to_xyz(180, 0, 0, 18000)
+    if False:
+        # moves a big squre
+        while True:
+            my_arm.move_to_xyz(0, 0, 0, 18000)
+            my_arm.move_to_xyz(0, 280, 0, 18000)
+            my_arm.move_to_xyz(180, 280, 0, 18000)
+            my_arm.move_to_xyz(180, 0, 0, 18000)
 
+    if True:
+        # my_arm.pickup_from_warehouse()
+        while True:
+            my_arm.bridge_send_gcode_mcode('M106 S0')
+            print('s0')
+            time.sleep(2)
+            my_arm.bridge_send_gcode_mcode('M106 S255')
+            print('s80')
+            time.sleep(3)
 
     
 
