@@ -104,7 +104,7 @@ class XyzArm(ReprapArm):
             self.__robot.pickup_from_warehouse(row)
         pass
 
-    def calibrate_cor_row(self, col, row):
+    def calibrate_col_row(self, col, row):
         x, y = self.__get_xy_from_col_row(col, row)
         # x, y = (180,180)
         self.move_to_xyz(x, y, speed_mm_per_min=18000)
