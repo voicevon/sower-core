@@ -50,6 +50,7 @@ class ServoArrayDriver():
 
     def __init__(self):
         self.__layout = [([0] * 8) for i in range(16)]
+        self.__callback_fill_cell = None
 
     def __send_command(self, code):
         waitting_mil_second = 0
@@ -61,6 +62,20 @@ class ServoArrayDriver():
 
     def send_some_command(self, command):
         self.__send_command(command)
+
+    def send_new_platmap(self, plate_map):
+        # send map via serial port
+        pass
+
+    def on_servo_updated(self, top_buffer_map):
+        if True:
+            # one or more cells are empty now, place a seed to the cell with xyz_arm
+            col = top_buffer_map.col
+            row = top_buffer_map.row
+            self.__callback_fill_cell(col, row)
+
+    def setup(self, callback_xyz):
+        self.__callback_fill_cell = callback_xyz
 
 
 

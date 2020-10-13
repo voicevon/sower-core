@@ -17,7 +17,6 @@ class SowerManager():
 
     def __init__(self):
         self.__eye = RobotEye()
-        # self.__arm = RobotArms()
         self.__xyz_arm = XyzArm()
         self.__xyz_arm.init_and_home()
         self.__servos = ServoArrayDriver()
@@ -83,7 +82,8 @@ class SowerManager():
             self.__goto = self.__on_state_begin
 
     def __on_eye_got_new_plate(self, plate_array, image):
-        self.__arm.set_new_plate(plate_array)
+        self.__servos.send_new_platmap(plate_array)
+
 
         # flask return image to web ui
 
@@ -93,6 +93,7 @@ class SowerManager():
         self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
         self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
         self.__xyz_arm.setup(None, mqtt)
+        self.__servos.setup(self.__xyz_arm.pickup_then_place_to_cell)
 
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')

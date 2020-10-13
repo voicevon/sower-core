@@ -52,7 +52,6 @@ class XyzArm(ReprapArm):
         self.drop_warehouse()
         time.sleep(WAREHOUSE_MOVEMENT_TIME)
 
-
     def place_to_cell(self, col, row):
         '''
         A certain path, that based on cell position.
@@ -71,6 +70,10 @@ class XyzArm(ReprapArm):
         self.__placed_counter += 1
         self.__mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)
 
+    def pickup_then_place_to_cell(self, col, row):
+        self.pickup_from_warehouse(row)
+        self.place_to_cell(col, row)
+        
     def setup(self, feeding_buffer, mqtt):
         self.__feeding_buffer = feeding_buffer
         self.__mqtt = mqtt
