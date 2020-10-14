@@ -43,7 +43,7 @@ class MqttAgent(mqtt.Client):
         self.__mqtt.subscribe("sower/eye/inside/detect/roi/y")
         self.__mqtt.subscribe("sower/eye/inside/detect/roi/width")
         self.__mqtt.subscribe("sower/eye/inside/detect/roi/height")
-        self.__mqtt.publish(topic="fishtank/switch/r4/command", payload="OFF", retain=True)
+        self.__mqtt.publish(topic="fishtank/switch/r4/command", payload="ON", retain=True)
         
     def connect(self, broker='', port=0, uid='', psw=''):
 
