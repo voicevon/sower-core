@@ -79,11 +79,13 @@ class XyzArm(ReprapArm):
     def setup(self, mqtt, feeding_buffer):
         self.__feeding_buffer = feeding_buffer
         self.__mqtt = mqtt
-        for row in range(0,8):
-            for col in range(0,3):
-                print('pickup and place %i %i' %(col,row))
-                self.pickup_from_warehouse(row)
-                self.place_to_cell(col,row)
+        if False:
+            # Fill one seed into each cell
+            for row in range(0,8):
+                for col in range(0,3):
+                    print('pickup and place %i %i' %(col,row))
+                    self.pickup_from_warehouse(row)
+                    self.place_to_cell(col,row)
 
 
     def init_and_home(self):

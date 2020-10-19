@@ -11,7 +11,7 @@ import platform
 import cv2
 import threading
 import json
-
+import time
 
 
 
@@ -233,11 +233,11 @@ class corn_detection(object):
                     tray_rect = [self.ROI[0] + interval_w * col, self.ROI[1] + interval_h * row]
                     # 遍历找到的所有玉米粒
                     for cont in cont_res:
-                        rect = cv2.boundingRect(cont)  # 提取矩形坐标
+                        x,y,w,h = cv2.boundingRect(cont)  # 提取矩形坐标
                         if display:
-                            cv2.rectangle(self.corn_img, rect, (0, 0, 255), 5)  # 绘制矩形
-                        if rect[0] + rect[2] > tray_rect[0] and tray_rect[0] + interval_w > rect[0] and \
-                                rect[1] + rect[3] > tray_rect[1] and tray_rect[1] + interval_h > rect[1]:
+                            cv2.rectangle(self.corn_img, (x,y),(x+w,y+h), (0, 0, 255), 5)  # 绘制矩形
+                        if x + w > tray_rect[0] and tray_rect[0] + interval_w >x and \
+                                y+ h > tray_rect[1] and tray_rect[1] + interval_h > y:
                             corn_result[row, col] = True
                             break
             return corn_result
@@ -264,22 +264,22 @@ class RobotEye(object):
     def setup(self, mqtt, callback):
         self.__mqtt = mqtt
         self.__on_got_new_plate_callback = callback
-        # self.__mqtt.subscribe("sower/eye/outside/width")
-        # self.__mqtt.subscribe("sower/eye/outside/height")
-        # self.__mqtt.subscribe("sower/eye/inside/camera/config_file")
-        # self.__mqtt.subscribe("sower/eye/inside/camera/trigger_mode")
-        # self.__mqtt.subscribe("sower/eye/inside/camera/trigger_type")
-        # self.__mqtt.subscribe("sower/eye/inside/camera/aestate")
-        # self.__mqtt.subscribe("sower/eye/inside/camera/exposure_time")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_r")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_g")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_b")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/threshold_size")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/display")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/x")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/y")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/width")
-        # self.__mqtt.subscribe("sower/eye/inside/detect/roi/height")
+        #self.__mqtt.subscribe("sower/eye/outside/width")
+        #self.__mqtt.subscribe("sower/eye/outside/height")
+        #self.__mqtt.subscribe("sower/eye/inside/camera/config_file")
+        #self.__mqtt.subscribe("sower/eye/inside/camera/trigger_mode")
+        #self.__mqtt.subscribe("sower/eye/inside/camera/trigger_type")
+        #self.__mqtt.subscribe("sower/eye/inside/camera/aestate")
+        #self.__mqtt.subscribe("sower/eye/inside/camera/exposure_time")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_r")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_g")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_b")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/threshold_size")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/display")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/x")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/y")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/width")
+        #self.__mqtt.subscribe("sower/eye/inside/detect/roi/height")
 
         self.__camera.open()  # open camera
         if self.__camera.isopen:
@@ -337,8 +337,21 @@ class RobotEye(object):
                     result = self.__corn_detect.corn_recognition(self.__camera.frame, roi, display, thres_R, thres_G,
                                                                  thres_B, thres_size)
                     print("corn result: ", result)
-                    self.__mqtt.publish("sower/eye/detect", result.tostring())
+                    self.__mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
                     self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
+                    if display:
+                        # img_show = cv2.resize(self.__corn_detect.corn_img, (400, 200))
+                        # is_success, img_encode = cv2.imencode(".jpg", img_show)
+                        # if is_success:
+                        #     img_pub = img_encode.tobytes()
+                        #     self.__mqtt.publish("sower/img/bin", img_pub)
+                        #     print("show image")
+                        with open('test.jpg', 'rb') as f:
+                            byte_im = f.read()
+                        self.__mqtt.publish('sower/img/bin', byte_im )
+                        time.sleep(100)
+                        print("show image")
+
                     #self.__on_got_new_plate_callback(result, cap_img)
 
 
@@ -353,8 +366,8 @@ class RobotEye(object):
         #    if topic == 'sower/eye/outside/' + k
         #    self.__tray_config[topic] = int (payload)
         
-        print(topic, payload)
-        self.__detect_config['ROI'] = [0,0,0,0]
+        print("robot_eye:",topic, payload)
+        #self.__detect_config['ROI'] = [0,0,0,0]
         if topic == "sower/eye/outside/width":
             self.__tray_config['width'] = int(payload)
         elif topic == "sower/eye/outside/height":
@@ -382,12 +395,16 @@ class RobotEye(object):
                 self.__detect_config['display'] = False
         elif topic == "sower/eye/inside/detect/roi/x":
             self.__detect_config['ROI'][0] = int(payload)
+            print("ROI.x:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/y":
             self.__detect_config['ROI'][1] = int(payload)
+            print("ROI.y:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/width":
             self.__detect_config['ROI'][2] = int(payload)
+            print("ROI.w:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/height":
             self.__detect_config['ROI'][3] = int(payload)
+            print("ROI.h:",int(payload))
 
 
         if self.__tray_config.get('width') is not None and self.__tray_config.get('height') is not None:

@@ -45,7 +45,7 @@ class SowerManager():
 
         with open('test.jpg', 'rb') as f:
             byte_im = f.read()
-        self.__mqtt.publish('sower/img/bin',byte_im )
+        self.__mqtt.publish('sower/img/bin', byte_im )
         time.sleep(100)
 
     def __on_state_begin(self):
@@ -92,7 +92,7 @@ class SowerManager():
         mqtt = self.__mqtt_agent.connect()
         self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
         self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
-        self.__eye.setup(mqtt, self.__on_eye_got_new_plate)
+        # self.__eye.setup(mqtt, self.__on_eye_got_new_plate)
         self.__xyz_arm.setup(mqtt, None)
         self.__servos.setup(self.__xyz_arm.pickup_then_place_to_cell)
 
