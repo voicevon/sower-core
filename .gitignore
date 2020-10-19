@@ -4,3 +4,4 @@
 *.json
 *.mvdat
 Python/__pycache__/*
+error*.*

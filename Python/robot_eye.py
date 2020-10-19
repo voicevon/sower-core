@@ -310,7 +310,8 @@ class RobotEye(object):
         message_id = 0
         last_frame_id = 0
         if self.__camera.isopen:
-            while self.__mqtt.mqtt_system_turn_on:
+            # while self.__mqtt.mqtt_system_turn_on:
+            while True:   #TODO
                 if self.__camera.frame_id != last_frame_id:
                     print('capture image done')
                     last_frame_id = self.__camera.frame_id
@@ -340,18 +341,12 @@ class RobotEye(object):
                     self.__mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
                     self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
                     if display:
-                        # img_show = cv2.resize(self.__corn_detect.corn_img, (400, 200))
-                        # is_success, img_encode = cv2.imencode(".jpg", img_show)
-                        # if is_success:
-                        #     img_pub = img_encode.tobytes()
-                        #     self.__mqtt.publish("sower/img/bin", img_pub)
-                        #     print("show image")
-                        with open('test.jpg', 'rb') as f:
-                            byte_im = f.read()
-                        self.__mqtt.publish('sower/img/bin', byte_im )
-                        time.sleep(100)
-                        print("show image")
-
+                        img_show = cv2.resize(self.__corn_detect.corn_img, (400, 200))
+                        is_success, img_encode = cv2.imencode(".jpg", img_show)
+                        if is_success:
+                            img_pub = img_encode.tobytes()
+                            self.__mqtt.publish("sower/img/bin", img_pub, retain=True)
+                            print("show image")
                     #self.__on_got_new_plate_callback(result, cap_img)
 
 
