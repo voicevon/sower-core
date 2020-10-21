@@ -10,6 +10,7 @@ class Sower_component : public Component {
   char plate[16];
   char plate_index = 0;
   char plate_index_last = 0;
+  char crossed_row_map[3];
   
 
   void setup() override {
@@ -18,7 +19,12 @@ class Sower_component : public Component {
 
 
   void loop() override {
+    char plate_projection[3];
+    for(i = 0, i < current_row, i++){
+        plate_projection[i] = plate_map[current_row + i]
+    }
 
+    
     if (global.on_press){
         // 
         current_row = 0;
@@ -30,7 +36,7 @@ class Sower_component : public Component {
 
         // try to release rows from the first, to the second, to the third
         for(iRow=0, iRow<3, iRow++){ 
-            release[iRow]= top_buffer[iRow] && current_row_of_plate
+            release[iRow]= top_buffer[iRow] && crossed_row_map[iRow] 
         }
 
 
