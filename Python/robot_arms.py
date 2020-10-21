@@ -36,7 +36,11 @@ class Servos():
     def publish_planning(self):
         app_config.mqtt.publish('sower/servo/plan', planning)
 
-class Buffer():
+class Chessboard():
+    '''
+    The Chessboard is a 2D  array .
+
+    '''
     def __init__(self):
         self.map = list(bytes)
         self.map.append (0x00)
@@ -57,18 +61,52 @@ class Buffer():
              empty_col_id =7
         
         return empty_col_id
+
     def set_one_cell(self, row_id, col_id):
         rowl_map = self.map[row_id]
         rowl_map |= 1 << col_id
         self.map[row_id]= rowl_map
 
+
+class Plate():
+    '''
+    A plate is composed by 2D array of cells
+
+    StateMachine of a plate:
+          started ------->   mapped  ---------> armed  --------> finished
+          ^                                                                                                  |
+          |----------------------------------------------------------------|
+
+    '''
+    enumerate PlateState:
+        Started = 1
+        Mapped = 2
+        Armed = 3
+        Finished = 4 
+
+    def __init__(self):
+        self.cells = list(Cell)
+        self.state = Started
+
+    def find_empty_cells_in_one_row(self, row_id):
+        '''
+        return an array of empty cells in a row
+        '''
+        result = list(Cell)
+        return result
+ 
+    def from_map(self, cells_map):
+        self.cells[0][0] = cells_map
+        self.state = Armed
+
+
 class Planner():
     def __init__(self):
         self.__servos = Servos(self.on_servos_finished_one_row)
         self.__robot = XyzArm()
-        self.__current_plate_map = None
-        self.__next_plate_map = None
-        self.__buffer = Buffer()
+        self.__current_plate = Plate()
+        self.__next_plate = Plate()
+        self.__chessboard = Chessboard()
  
 
     def connect(self):
@@ -77,14 +115,18 @@ class Planner():
         self.__servos.connect()
     
     def on_servos_finished_one_row(self, row_id):
-        if row_id == 15:
-            # finished current plate
-            self.__current_plate_map = self.__next_plate_map
-            self.__next_plate_map = None
+        # update the chessboard, might be 3 rows will be effected.
+        self.__chessboard.update_releasing(row_id)
 
+        if row_id == 15:
+            # finished current plate, point to next plate
+            self.__current_plate.to_finished()
+
+    def __create_servos_plan(self):
         # try a batch of  new plan, utill one or more cols in buffer is empty.
-        while True:
-            empty_col_id = self.__buffer.get_one_empty_col_id()
+        empty_col_id = self.__chessboard.get_one_empty_col_id()
+        while empty_col_id >=0 :
+            empty_col_id = self.__chessboard.get_one_empty_col_id()
             if empty_col_id  == -1:
                 # No col is continuously empty. can create plan now.
                 action = Servos_action()
@@ -92,24 +134,30 @@ class Planner():
                 action.row_action = 6
                 self.__servos.append_planned_action(action)
 
-        # send plan to servo
+    def main_loop(self):
+        self.__create_servos_plan()
+        self.__xyz_arm_fill_buffer()
 
+        #Check whether current plate is finished
+        if self.__current_plate.state == Finished:
+            map = self.__next_plate.to_map()
+            self.__current_plate.from_map(map)
+            self.__next_plate.to_state_begin()
 
-    def fill_buffer(self):
-        row, col = self.__buffer.get_one_empty_cell()
+    def __xyz_arm_fill_buffer(self):
+        row, col = self.__chessboard.get_one_empty_cell()
         if row == -1:
             return
         self.xyz_arm.pickup_from_warehouse()
         self.xyz_arm.place_to_cell(row, col)
-        self.__buffer.set_one_cell(row, col)
+        self.__chessboard.set_one_cell(row, col)
 
 
     def set_new_plate(self, plate_map):
-        if self.__current_plate_map is None:
-            self.__current_plate_map = plate_map
-        else:
-            self.__next_plate_map = plate_map
-
+        '''
+        This will be invoked when camera got a new plate.
+        '''
+        self.__next_plate.from_map(plate_map)
 
 class RobotArms():
     '''
