@@ -2,8 +2,10 @@ from enum import Enum
 
 class CHESSBOARD_CELL_STATE(Enum):
     Empty = 1
-    ForPlanning = 2
+    Unplanned = 2
     PlannedToDrop = 3
+    Executing = 4
+    Executed = 5
 
 class ChessboardCell():
     '''
@@ -14,15 +16,12 @@ class ChessboardCell():
     def __init__(self):
         self.state = CHESSBOARD_CELL_STATE.Empty # Empty, filled_no_plan, planned_to_drop, 
 
-class CHESSBOARD_ROW_STATE(Enum):
-    Unplanned = 1
-    PlannedToDrop = 2
-    Executing = 3
-    Executed = 4
+# class CHESSBOARD_ROW_STATE(Enum):
+
 
 class ChessboardRow():
     def __init__(self):
-        self.state = CHESSBOARD_ROW_STATE.Unplanned  # Unplanned, Planed, Executing, Executed
+        # self.state = CHESSBOARD_ROW_STATE.Unplanned  # Unplanned, Planed, Executing, Executed
         self.planned_action = 0
         
     def set_plan(self,action):
@@ -42,6 +41,7 @@ class Chessboard():
     def __init__(self):
         # self.rows = list(ChessboardRow)
         self.rows = []
+        self.__row_id_to_be_planned = 0
 
     def get_one_empty_cell(self):
         row_id = 0
@@ -51,7 +51,10 @@ class Chessboard():
         
         return None
 
-    def get_one_empty_row_id(self):
+    def get_row_to_plan(self):
+        return self.rows[self.__row_id_to_be_planned]
+
+    def get_next_empty_row_id_in_plan(self):
         empty_col_id = -1
         if True:
              empty_col_id =7

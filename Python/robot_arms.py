@@ -10,7 +10,7 @@
 # from plate_and_cell import Cell, Plate, FeedingBuffer
 # from human_level_robot import HumanLevelRobot
 from xyz_arm import XyzArm
-from chessboard import ChessboardRow
+from chessboard import ChessboardRow, Chessboard, ChessboardCell
 from threading import Thread
 from enum import Enum
 
@@ -129,9 +129,23 @@ class Planner():
         # When need a feeding plan?
         #   1. empty cell need to be filled.
         #   2. chessboard cell is avaliable to drop
-        if self.__chessboard.get_one_empty_row_id() == -1:
-            # chessboard is full, no empty cell ??????
+        row = self.__chessboard.get_row_to_plan()
+        
+        if row == -1:
+            # chessboard is full, no empty cell
             return
+        row_map = self.__chessboard.rows[row]
+        
+        if True:
+            # need to be filled.
+            if True:
+                # chessbord is avaliable
+                
+                # planed to drop
+                row_map.cell[x].plan_to_drop()
+                
+
+
         if empty_col_id  == -1:
             # No col is continuously empty. can create plan now.
             action = Servos_action()
