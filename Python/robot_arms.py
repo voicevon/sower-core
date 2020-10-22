@@ -1,28 +1,82 @@
 
 
-from global_const import app_config
+# from global_const import app_config
 
-import sys
-sys.path.append(app_config.path.text_color)
-from color_print import const
+# import sys
+# sys.path.append(app_config.path.text_color)
+# from color_print import const
 
-from servo_array_driver import ServoArrayDriver
-from plate_and_cell import Cell, Plate, FeedingBuffer
+# from servo_array_driver import ServoArrayDriver
+# from plate_and_cell import Cell, Plate, FeedingBuffer
 # from human_level_robot import HumanLevelRobot
-from xyz_arm import XyzArm
-from threading import Thread
+# from xyz_arm import XyzArm
+# from threading import Thread
+from enum import Enum
+
+class ChessboardCell():
+    '''
+    Empty  ---> filled_no_plan ---> planed_to_drop
+     ^                                   |
+     |-----------------------------------|    
+    '''
+    def __init__():
+        self.state = 'Empty' # Empty, filled_no_plan, planned_to_drop, 
+        
+class ChessboardRow():
+    def __init__(self):
+        self.state = Unplanned  # Unplanned, Planed, Executing, Executed
+        self.planned_action = 0
+    def set_plan(self,action):
+        self.planned_action = action
+
+class Chessboard():
+    '''
+    The Chessboard is a 2D  array .
+        Rows from right to left
+        Cols from top to bottom
+             (3,0), (2,0), (1,0), (0,0)   
+                                  (0,1)
+                                  (0,2)
+                                 ......
+                                  (0,7)
+    '''
+    def __init__(self):
+        # self.rows = list(ChessboardRow)
+        self.rows = []
+
+    def get_one_empty_cell(self):
+        row_id = 0
+        col_id = 2
+        if True:
+            return row_id, col_id
+        
+        return None
+
+    def get_one_empty_row_id(self):
+        empty_col_id = -1
+        if True:
+             empty_col_id =7
+        
+        return empty_col_id
+
+    def set_one_cell(self, row_id, col_id):
+
+        rowl_map = self.rows[row_id]
+        rowl_map |= 1 << col_id
+        self.rows[row_id]= rowl_map
+
 
 class Servos_action():
     def __init__(self):
         self.row_id = 0
         self.row_action = list(bytes)
 
-
 class Servos():
     def __init__(self, callback_on_finished_one_row):
-        self.last_finished_row
+        self.last_finished_row = 0
         self.__callback = callback_on_finished_one_row
-        self.__planned_actions = list(Servos_action)
+        # self.__planned_actions = list(Servos_action)
+        self.__planned_actions = []
 
     def append_planned_action(self, servos_action):
             self.__planned_actions.append(servos_action)
@@ -36,79 +90,78 @@ class Servos():
     def publish_planning(self):
         app_config.mqtt.publish('sower/servo/plan', planning)
 
-class Chessboard():
+class PlateRow():
     '''
-    The Chessboard is a 2D  array .
-
+    Composed by an array of cells
+    cell == True: means empty. 
     '''
     def __init__(self):
-        self.map = list(bytes)
-        self.map.append (0x00)
-        self.map.append (0x00)
-        self.map.append (0x00)
+        # self.cells=list(bool)
+        self.cells=[]
+        self.config_cols_lenth = 8
+        for i in range(0, self.config_cols_lenth):
+            self.cells.append(True)
 
-    def get_one_empty_cell(self):
-        row_id = 0
-        col_id = 2
-        if True:
-            return row_id, col_id
-        
-        return None
+    def from_row_map(self, row_map):
+        for i in range(0,8):
+            self.cells[i] = row_map[i]
+    
+    def print_out(self):
+        print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+        out = ''
+        for c in self.cells:
+            if c:
+                out += 'O'
+            else:
+                out += '.'
+        print(out)
 
-    def get_one_empty_col_id(self):
-        empty_col_id = -1
-        if True:
-             empty_col_id =7
-        
-        return empty_col_id
-
-    def set_one_cell(self, row_id, col_id):
-        rowl_map = self.map[row_id]
-        rowl_map |= 1 << col_id
-        self.map[row_id]= rowl_map
-
+class PLATE_STATE(Enum):
+    Started = 1
+    Mapped = 2
+    Armed = 3
+    Finished = 4 
 
 class Plate():
     '''
-    A plate is composed by 2D array of cells
+    A plate is composed by array of PlateRows
 
     StateMachine of a plate:
           started ------->   mapped  ---------> armed  --------> finished
           ^                                                                                                  |
           |----------------------------------------------------------------|
-
     '''
-    enumerate PlateState:
-        Started = 1
-        Mapped = 2
-        Armed = 3
-        Finished = 4 
-
     def __init__(self):
-        self.cells = list(Cell)
-        self.state = Started
+        # self.rows = list(PlateRow)
+        self.rows = []
+        self.state = PLATE_STATE.Started
 
-    def find_empty_cells_in_one_row(self, row_id):
+    def get_row_map(self, row_id):
         '''
         return an array of empty cells in a row
         '''
-        result = list(Cell)
-        return result
- 
+        return self.rows[row_id]
+
     def from_map(self, cells_map):
-        self.cells[0][0] = cells_map
-        self.state = Armed
+        self.rows=[]
+        for i in range(0,8):
+            row = PlateRow()
+            row.from_row_map(cells_map[i])
+            self.rows.append(row)
+        self.state = PLATE_STATE.Mapped
 
-
+    def print_out_map(self):
+        for row in self.rows:
+            print('##################################')
+            row.print_out()
 class Planner():
     def __init__(self):
         self.__servos = Servos(self.on_servos_finished_one_row)
-        self.__robot = XyzArm()
-        self.__current_plate = Plate()
+        # self.__robot = XyzArm()
+        self.current_plate = Plate()
         self.__next_plate = Plate()
         self.__chessboard = Chessboard()
  
-
     def connect(self):
         self.__robot.connect_to_marlin()
         self.__robot.Init_Marlin()
@@ -120,28 +173,31 @@ class Planner():
 
         if row_id == 15:
             # finished current plate, point to next plate
-            self.__current_plate.to_finished()
+            self.current_plate.to_finished()
 
-    def __create_servos_plan(self):
-        # try a batch of  new plan, utill one or more cols in buffer is empty.
-        empty_col_id = self.__chessboard.get_one_empty_col_id()
-        while empty_col_id >=0 :
-            empty_col_id = self.__chessboard.get_one_empty_col_id()
-            if empty_col_id  == -1:
-                # No col is continuously empty. can create plan now.
-                action = Servos_action()
-                action.row_id = 5
-                action.row_action = 6
-                self.__servos.append_planned_action(action)
+    def __create_servos_plan_for_next_row(self):
+        # try a new plan, only for one row.
+        # When need a feeding plan?
+        #   1. empty cell need to be filled.
+        #   2. chessboard cell is avaliable to drop
+        if self.__chessboard.get_one_empty_row_id() == -1:
+            # chessboard is full, no empty cell ??????
+            return
+        if empty_col_id  == -1:
+            # No col is continuously empty. can create plan now.
+            action = Servos_action()
+            action.row_id = 5
+            action.row_action = 6
+            self.__servos.append_planned_action(action)
 
     def main_loop(self):
-        self.__create_servos_plan()
+        self.__create_servos_plan_for_next_row()
         self.__xyz_arm_fill_buffer()
 
         #Check whether current plate is finished
-        if self.__current_plate.state == Finished:
+        if self.current_plate.state == PLATE_STATE.Finished:
             map = self.__next_plate.to_map()
-            self.__current_plate.from_map(map)
+            self.current_plate.from_map(map)
             self.__next_plate.to_state_begin()
 
     def __xyz_arm_fill_buffer(self):
@@ -158,6 +214,8 @@ class Planner():
         This will be invoked when camera got a new plate.
         '''
         self.__next_plate.from_map(plate_map)
+
+        
 
 class RobotArms():
     '''
@@ -194,10 +252,33 @@ class RobotArms():
         # Check feeding_buffer is there any cave is empty
         cell = self.__target_plate.find_empty_cell()
         if cell is not None:
-            self.__robot.place_to_cell(cell.)
+            # self.__robot.place_to_cell(cell.)
             self.__robot.pickup_from_warehouse()
         pass
 
 
 if __name__ == "__main__":
-    test = RobotArms()
+    runner = Planner()
+    map = [[True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True],
+    [True,True,True,True,True,True,True,True]]
+    runner.set_new_plate(map)
+    runner.main_loop()
+    runner.main_loop()
+    runner.main_loop()
+    runner.main_loop()
+    runner.current_plate.print_out_map()
+
