@@ -4,14 +4,13 @@ class CHESSBOARD_CELL_STATE(Enum):
     Empty = 1
     Unplanned = 2
     PlannedToDrop = 3
-    Executing = 4
-    Executed = 5
+    Dropping = 4
 
 class ChessboardCell():
     '''
-    Empty  ---> filled_no_plan ---> planed_to_drop
-     ^                                   |
-     |-----------------------------------|    
+    Empty  ---> Unplanned ---> planed_to_drop  ---> dropping
+     ^                                                |
+     |------------------------------------------------|    
     '''
     def __init__(self):
         self.state = CHESSBOARD_CELL_STATE.Empty # Empty, filled_no_plan, planned_to_drop, 
@@ -32,11 +31,11 @@ class Chessboard():
     The Chessboard is a 2D  array .
         Rows from right to left
         Cols from top to bottom
-             (3,0), (2,0), (1,0), (0,0)   
-                                  (0,1)
-                                  (0,2)
-                                 ......
-                                  (0,7)
+            (2,7), (1,7), (0,7)   
+                   ......
+                          (0,2)
+                          (0,1)
+            (2,0), (1,0), (0,0)   
     '''
     def __init__(self):
         # self.rows = list(ChessboardRow)

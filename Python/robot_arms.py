@@ -1,108 +1,20 @@
 
 
-# from global_const import app_config
+from global_const import app_config
 
-# import sys
-# sys.path.append(app_config.path.text_color)
-# from color_print import const
+import sys
+sys.path.append(app_config.path.text_color)
+from color_print import const
 
 # from servo_array_driver import ServoArrayDriver
-# from plate_and_cell import Cell, Plate, FeedingBuffer
-# from human_level_robot import HumanLevelRobot
+
 from xyz_arm import XyzArm
-from chessboard import ChessboardRow, Chessboard, ChessboardCell
+from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
+from servos import Servos
 from threading import Thread
-from enum import Enum
-
-class Servos_action():
-    def __init__(self):
-        self.row_id = 0
-        self.row_action = list(bytes)
-
-class Servos():
-    # https://maker.pro/nvidia-jetson/tutorial/how-to-use-gpio-pins-on-jetson-nano-developer-kit
-    def __init__(self, callback_on_finished_one_row):
-        self.last_finished_row = 0
-        self.__callback = callback_on_finished_one_row
-        # self.__planned_actions = list(Servos_action)
-        self.__planned_actions = []
-
-    def append_planned_action(self, servos_action):
-            self.__planned_actions.append(servos_action)
 
 
-    def on_finished_one_row(self, row_id):
-        self.last_finished_row = row_id
-        self.__planned_actions.remove[0]
-        self.__callback()
 
-    def publish_planning(self):
-        app_config.mqtt.publish('sower/servo/plan', planning)
-
-class PlateRow():
-    '''
-    Composed by an array of cells
-    cell == True: means empty. 
-    '''
-    def __init__(self):
-        # self.cells=list(bool)
-        self.cells=[]
-        self.config_cols_lenth = 8
-        for i in range(0, self.config_cols_lenth):
-            self.cells.append(True)
-
-    def from_row_map(self, row_map):
-        for i in range(0,8):
-            self.cells[i] = row_map[i]
-    
-    def print_out(self):
-        print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-        out = ''
-        for c in self.cells:
-            if c:
-                out += 'O'
-            else:
-                out += '.'
-        print(out)
-
-class PLATE_STATE(Enum):
-    Started = 1
-    Mapped = 2
-    Armed = 3
-    Finished = 4 
-
-class Plate():
-    '''
-    A plate is composed by array of PlateRows
-
-    StateMachine of a plate:
-          started ------->   mapped  ---------> armed  --------> finished
-          ^                                                                                                  |
-          |----------------------------------------------------------------|
-    '''
-    def __init__(self):
-        # self.rows = list(PlateRow)
-        self.rows = []
-        self.state = PLATE_STATE.Started
-
-    def get_row_map(self, row_id):
-        '''
-        return an array of empty cells in a row
-        '''
-        return self.rows[row_id]
-
-    def from_map(self, cells_map):
-        self.rows=[]
-        for i in range(0,8):
-            row = PlateRow()
-            row.from_row_map(cells_map[i])
-            self.rows.append(row)
-        self.state = PLATE_STATE.Mapped
-
-    def print_out_map(self):
-        for row in self.rows:
-            print('##################################')
-            row.print_out()
 class Planner():
     def __init__(self):
         self.__servos = Servos(self.on_servos_finished_one_row)
@@ -110,6 +22,7 @@ class Planner():
         self.current_plate = Plate()
         self.__next_plate = Plate()
         self.__chessboard = Chessboard()
+        self.__coming_row_id_of_current_plate = 0
  
     def connect(self):
         self.__robot.connect_to_marlin()
@@ -118,23 +31,68 @@ class Planner():
     
     def on_servos_finished_one_row(self, row_id):
         # update the chessboard, might be 3 rows will be effected.
-        self.__chessboard.update_releasing(row_id)
+        self.__coming_row_id_of_current_plate = row_id + 1
 
         if row_id == 15:
             # finished current plate, point to next plate
             self.current_plate.to_finished()
 
     def __create_servos_plan_for_next_row(self):
-        # try a new plan, only for one row.
+        '''
+        # try a new plan, only for one row entering
         # When need a feeding plan?
-        #   1. empty cell need to be filled.
-        #   2. chessboard cell is avaliable to drop
-        row = self.__chessboard.get_row_to_plan()
-        
-        if row == -1:
-            # chessboard is full, no empty cell
+        #   1. At least one shadow cells is empty.
+        #       - What is shadow cells?
+        #           - When the plate entered, one or two or three rows of the plate will be seen by chessboard,
+        #           -  The cells those are inside of the three rows, is called shadow cells, 
+        #       - How to calculate shadow cells?
+        #           - Class Plate will help to get shadow cells.
+        #   2. Chessboard cell is avaliable to drop.
+        #       - How to decide chessboard cell is avaliable to drop ?
+        #           - chessboard.cell(row, col).state == CHESSBOARD_CELL_STATE.Unplanned
+        #   3. How is the plan orgnized?
+        #       - To chessboard, will plan to each cell.
+        #       - To plate, will plan to each row ??   
+        #   4. When to finish plan to a row entering?
+        #       - A: All cells in this row is not empty (Prefilled or planned)
+        #       - B: Target row of plate has moved into shadow area.
+        '''
+        if not self.current_plate.has_got_map():
             return
-        row_map = self.__chessboard.rows[row]
+
+        target_row_id = self.__chessboard.get_row_to_plan()
+        
+        if target_row_id in range(0,16):
+            # get shadow rows. should be counted in range(1,4)
+            shadow_rows = self.__chessboard.get_shadow_rows(target_row_id)
+            for row_index in range (0, len(shadow_rows)):
+                plate_row = self.current_plate.get_row_map(target_row_id + row_index)
+                chessboard_row = self.__chessboard.get_row_map(row_index)
+                this_row_is_full = True
+                for col in range(0, 8):
+                    plate_cell = PlateCell()
+                    plate_cell.from_row_col(target_row_id + row_index, col)
+                    chessboard_cell = ChessboardCell()
+                    chessboard_cell.from_row_col(row_index, col)
+                    if plate_cell.state == PLATE_CELL_STATE.Emppty_Unplanned:
+                        # Got an empty cell, Let's see whether we can refill this cell.
+                        if chessboard_cell.state == CHESSBOARD_CELL_STATE.Unplanned:
+                            # got a matched cell from chessboard
+                            plate_cell.to_state(PLATE_CELL_STATE.Empty_Planned)
+                            chessboard_cell.to_state(CHESSBOARD_CELL_STATE.PlannedToDrop)
+                        else:
+                            # Can't get matched cell from chessboard
+                            this_row_is_full = False
+                            
+                if this_row_is_full:
+                    # all cells in this row are filled or refilled
+                    self.current_plate.finished_plan_for_this_row(target_row_id)
+
+
+
+
+
+        entering_row = self.__chessboard.rows[row]
         
         if True:
             # need to be filled.
@@ -178,7 +136,6 @@ class Planner():
         '''
         self.__next_plate.from_map(plate_map)
 
-        
 
 class RobotArms():
     '''
