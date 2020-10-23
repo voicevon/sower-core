@@ -83,6 +83,7 @@ class Plate():
         self.next_enter_row_id = 0
         self.encoder_distance = 0
         self.__encoder_distance_per_row = 200
+        self.__plate_counter = 0
 
     def setup(self):
         GPIO.setmode(GPIO.BOARD)
@@ -93,9 +94,11 @@ class Plate():
         GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_ir_switch_rising)
         GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_encoder_rising)
 
-    def on_ir_switch_rising(self):
+    def on_ir_switch_rising(self, channel):
         self.encoder_distance = 0
         self.next_enter_row_id = 0
+        self.__plate_counter += 1
+        print('#################################################')
 
     def on_encoder_rising(self):
         self.encoder_distance += 1
@@ -126,8 +129,10 @@ class Plate():
             row.print_out(row_id_string + '--  ','')
 
     def main_loop(self):
-        pass
-        # print(self.next_enter_row_id, self.encoder_distance)
+        # pass
+        # print('Plate_id, row_id, encoder_distance %i, %i, %i' %(self.__plate_counter, self.next_enter_row_id, self.encoder_distance))
+        print(GPIO.input(self.__PIN_IR_SWITCH))
+
 
 if __name__ == "__main__":
     plate = Plate()
