@@ -1,6 +1,5 @@
 
 import Jetson.GPIO as GPIO
-
 class Servos_action():
     def __init__(self):
         self.row_id = 0
@@ -10,6 +9,7 @@ class Servos_action():
 class Servos():
     # https://maker.pro/nvidia-jetson/tutorial/how-to-use-gpio-pins-on-jetson-nano-developer-kit
     # https://pypi.org/project/Jetson.GPIO/
+    # https://www.jetsonhacks.com/2019/07/22/jetson-nano-using-i2c/
     def __init__(self, callback_on_finished_one_row):
         self.last_finished_row = 0
         self.__callback = callback_on_finished_one_row
