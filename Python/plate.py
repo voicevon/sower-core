@@ -77,7 +77,7 @@ class Plate():
         self.has_got_map = False
 
 
-        self.__PIN_IR_SWITCH =  23
+        self.__PIN_IR_SWITCH = 21
         self.__PIN_ENCODER_A = 31
         self.__PIN_ENCODER_B = 32
         self.next_enter_row_id = 0
@@ -87,12 +87,12 @@ class Plate():
 
     def setup(self):
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(self.__PIN_ENCODER_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
-        GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_ir_switch_rising)
-        GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_encoder_rising)
+        # GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_ir_switch_rising)
+        # GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_encoder_rising)
 
     def on_ir_switch_rising(self, channel):
         self.encoder_distance = 0
