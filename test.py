@@ -1,29 +1,42 @@
+# SDA = pin.SDA_1
+# SCL = pin.SCL_1
+# SDA_1 = pin.SDA
+# SCL_1 = pin.SCL
+
+from adafruit_servokit import ServoKit
+import board
+import busio
 import time
-from board import SCL, SDA
-from board import SCL_1, SDA_1
-from busio import I2C
-from adafruit_pca9685 import PCA9685
-# from adafruit_motor import servo
-import Jetson.GPIO as GPIO
-# import ipywidgets.widgets as widgets
-# from IPython.display import display
-# import traitlets
-# from jetbot import Camera, bgr8_to_jpeg
-print (SCL)
-print (SDA)
-
-print (SCL_1)
-print (SDA_1)
+# from approxeng.input.selectbinder import ControllerResource
 
 
+# On the Jetson Nano
+# Bus 0 (pins 28,27) is board SCL_1, SDA_1 in the jetson board definition file
+# Bus 1 (pins 5, 3) is board SCL, SDA in the jetson definition file
+# Default is to Bus 1; We are using Bus 0, so we need to construct the busio first ...
+print("Initializing Servos")
+i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1))
+print("Initializing ServoKit")
+kit = ServoKit(channels=16, i2c=i2c_bus0)
+# kit[0] is the bottom servo
+# kit[1] is the top servo
+print("Done initializing")
+while True:
+  sweep = range(0,180)
+  #for degree in sweep:
+  kit.servo[0].angle=180
+    # kit.servo[1].angle=degree
+    # time.sleep(0.01)
+    # time.sleep(0.001)
+    #print(degree)
+    
+  time.sleep(0.8)
+  sweep = range(180,0, -1)
+  for degree in sweep :
+    kit.servo[0].angle=degree
+    time.sleep(0.01)
+    print(degree)
+    
+last_presses = None
 
-i2c_bus = I2C(SCL_1, SDA_1)
-# i2c_bus = I2C(27, 28)
-print('1111111111111111111111111')
-pca = PCA9685(i2c_bus)
-print('22222222222222222222')
-pca.frequency = 50
-
-# camera_tilt = servo.Servo(pca.channels[6], min_pulse=500, max_pulse=2600, actuation_range=180)
-# camera_pan = servo.Servo(pca.channels[7], min_pulse=500, max_pulse=2600, actuation_range=180)
-# camera_z = servo.Servo(pca.channels[8], min_pulse=500, max_pulse=2600, actuation_range=180)
+            

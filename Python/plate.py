@@ -1,3 +1,10 @@
+
+#  Jetson Expansion Header Tool
+#       sudo /opt/nvidia/jetson-io/jetson-io.py
+#           from: https://www.jetsonhacks.com/2020/05/04/spi-on-jetson-using-jetson-io/
+
+
+
 from enum import Enum
 import Jetson.GPIO as GPIO
 
@@ -77,7 +84,7 @@ class Plate():
         self.has_got_map = False
 
 
-        self.__PIN_IR_SWITCH = 21
+        self.__PIN_IR_SWITCH = 37
         self.__PIN_ENCODER_A = 31
         self.__PIN_ENCODER_B = 32
         self.next_enter_row_id = 0
@@ -91,24 +98,23 @@ class Plate():
         GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(self.__PIN_ENCODER_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
-        # GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_ir_switch_rising)
+        GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_gpio_rising)
         # GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_encoder_rising)
 
-    def on_ir_switch_rising(self, channel):
-        self.encoder_distance = 0
-        self.next_enter_row_id = 0
-        self.__plate_counter += 1
-        print('#################################################')
-
-    def on_encoder_rising(self):
-        self.encoder_distance += 1
-        if self.encoder_distance / self.__encoder_distance_per_row == 0:
-            # current row must be fininshed. new row is coming
-            self.next_enter_row_id += 1
+    def on_gpio_rising(self, channel):
+        if channel == self.__PIN_IR_SWITCH:
+            self.encoder_distance = 0
+            self.next_enter_row_id = 0
+            self.__plate_counter += 1
+        elif channel == self.__PIN_ENCODER_A:
+            self.encoder_distance += 1
+            if self.encoder_distance / self.__encoder_distance_per_row == 0:
+                # current row must be fininshed. new row is coming
+                self.next_enter_row_id += 1
 
     def get_row_map(self, row_id):
         '''
-        return an array of empty cells in a row
+        return an array of empty cells in a row.
         '''
         return self.rows[row_id]
 
@@ -130,8 +136,8 @@ class Plate():
 
     def main_loop(self):
         # pass
-        # print('Plate_id, row_id, encoder_distance %i, %i, %i' %(self.__plate_counter, self.next_enter_row_id, self.encoder_distance))
-        print(GPIO.input(self.__PIN_IR_SWITCH))
+        print('Plate_id, row_id, encoder_distance %i, %i, %i' %(self.__plate_counter, self.next_enter_row_id, self.encoder_distance))
+        # print(GPIO.input(self.__PIN_IR_SWITCH))
 
 
 if __name__ == "__main__":

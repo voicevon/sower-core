@@ -10,6 +10,7 @@ from color_print import const
 
 from xyz_arm import XyzArm
 from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
+from plate import Plate
 from servos import Servos
 from threading import Thread
 
@@ -18,8 +19,8 @@ from threading import Thread
 class Planner():
     def __init__(self):
         self.__servos = Servos(self.on_servos_finished_one_row)
-        # self.__robot = XyzArm()
-        self.current_plate = Plate()
+        self.__robot = XyzArm()
+        self.__current_plate = Plate()
         self.__next_plate = Plate()
         self.__chessboard = Chessboard()
         self.__coming_row_id_of_current_plate = 0
@@ -35,11 +36,12 @@ class Planner():
 
         if row_id == 15:
             # finished current plate, point to next plate
-            self.current_plate.to_finished()
+            self.__current_plate.to_finished()
 
     def __create_servos_plan_for_next_row(self):
         '''
-        # try a new plan, only for one row entering
+        # try a new plan, only plan for one row entering
+        #   This function will be invoked from main_loop()
         # When need a feeding plan?
         #   1. At least one shadow cells is empty.
         #       - What is shadow cells?
@@ -57,16 +59,16 @@ class Planner():
         #       - A: All cells in this row is not empty (Prefilled or planned)
         #       - B: Target row of plate has moved into shadow area.
         '''
-        if not self.current_plate.has_got_map():
+        if not self.__current_plate.has_got_map():
             return
 
-        target_row_id = self.__chessboard.get_row_to_plan()
+        target_row_id = self.__current_plate.get_row_to_plan()
         
         if target_row_id in range(0,16):
             # get shadow rows. should be counted in range(1,4)
             shadow_rows = self.__chessboard.get_shadow_rows(target_row_id)
             for row_index in range (0, len(shadow_rows)):
-                plate_row = self.current_plate.get_row_map(target_row_id + row_index)
+                plate_row = self.__current_plate.get_row_map(target_row_id + row_index)
                 chessboard_row = self.__chessboard.get_row_map(row_index)
                 this_row_is_full = True
                 for col in range(0, 8):
@@ -86,7 +88,7 @@ class Planner():
                             
                 if this_row_is_full:
                     # all cells in this row are filled or refilled
-                    self.current_plate.finished_plan_for_this_row(target_row_id)
+                    self.__current_plate.finished_plan_for_this_row(target_row_id)
 
 
 
@@ -116,9 +118,9 @@ class Planner():
         self.__xyz_arm_fill_buffer()
 
         #Check whether current plate is finished
-        if self.current_plate.state == PLATE_STATE.Finished:
+        if self.__current_plate.state == PLATE_STATE.Finished:
             map = self.__next_plate.to_map()
-            self.current_plate.from_map(map)
+            self.__current_plate.from_map(map)
             self.__next_plate.to_state_begin()
 
     def __xyz_arm_fill_buffer(self):
