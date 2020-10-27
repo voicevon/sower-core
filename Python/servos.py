@@ -19,7 +19,9 @@
 import time
 import board  # pip3 install adafruit-blinka
 import busio
-import adafruit_pca9685 # sudo pip3 install adafruit-circuitpython-pca9685 ???? Looks like this is a micro-python libery
+from adafruit_servokit import ServoKit
+
+# import adafruit_pca9685 # sudo pip3 install adafruit-circuitpython-pca9685 ???? Looks like this is a micro-python libery
 # from adafruit_servokit import ServoKit  # sudo pip3 install adafruit-circuitpython-servokit
 # import adafruit_motor.servo
 # View GPIO pinout
@@ -31,50 +33,20 @@ dir(board)
 print(board.__name__)
 
 
-
-i2c = busio.I2C(board.SCL_1, board.SDA_1)
-print("I2C is ok!")
-pca = adafruit_pca9685.PCA9685(i2c, address=0x40,reference_clock_speed=400000)
-print('PCA is ok')
-pca.frequency = 20
-print('PCA frequency is OK')
-
-# kit = ServoKit(channels=8)
-# print('kit is ok')
-# servo = adafruit_motor.servo.Servo(0)
-# print('servo is ok')
-
-
-led_channel = pca.channels[0]
-led_channel.duty_cycle = 0xfff
+print("Initializing Servos")
+i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1))
+print("Initializing ServoKit")
+kit = ServoKit(channels=16, i2c=i2c_bus0)
+# kit[0] is the bottom servo
+# kit[1] is the top servo
+print("Done initializing")
 while True:
-    # Increase brightness:
-    for i in range(0, 0xfff, 10):
-        led_channel.duty_cycle = i
-        
-    # Decrease brightness:
-    for i in range(0xfff, 0, -10):
-        led_channel.duty_cycle = i
+  sweep = range(0,180)
+  #for degree in sweep:
+  kit.servo[0].angle=180
 
 
-    # kit.servo[0].angle = 180
-    # time.sleep(3)
-
-    # kit.servo[0].angle = 0
-    # time.sleep(3)
-
-
-
-kit = ServoKit(channels=16)
-
-# sudo pip3 install adafruit-servokit
-
-# kit = ServoKit(channels=16)  
-# from adafruit_motor import servo
-# camera_tilt = servo.Servo(pca.channels[6], min_pulse=500, max_pulse=2600, actuation_range=180)
-
-
-
+  
 
 class Servos_action():
     def __init__(self):
