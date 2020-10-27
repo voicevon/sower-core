@@ -43,6 +43,7 @@ class PlateRow():
         # self.cells=list(bool)
         self.cells=[]
         self.config_cols_lenth = 8
+        self.is_planned = False
         # for i in range(0, self.config_cols_lenth):
         #     self.cells.append(True)
 
@@ -133,6 +134,21 @@ class Plate():
             if row.id <10:
                 row_id_string = '0' + row_id_string 
             row.print_out(row_id_string + '--  ','')
+
+    def get_unplanned_row_id(self):
+        for row_id in range(0,16):
+            if not  self.rows[row_id].is_planned:
+                return row_id
+
+    def get_shadow_rows(self, target_row):
+        rows = []
+        for row_id in range(target_row, target_row -3, -1):
+            if row_id >= 0:
+                rows.append(rows[row_id])
+
+    def finished_plan_for_this_row(self, target_row_id):
+        self.rows[target_row_id].planed = True
+
 
     def main_loop(self):
         # pass

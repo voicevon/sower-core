@@ -28,9 +28,6 @@ from adafruit_servokit import ServoKit
 #   sudo /opt/nvidia/jetson-io/jetson-io.py
 
 # Try to create an I2C device
-dir(board)
-
-print(board.__name__)
 
 
 print("Initializing Servos")
