@@ -66,11 +66,29 @@ class myCamera(object):
             self.isopen = False
             return
 
+    def setCameraResolution(self,h_camera, offsetx, offsety, width, height):
+        img_res = mvsdk.tSdkImageResolution()
+        img_res.iIndex = 0xFF
+        img_res.iWidth = width
+        img_res.iWidthFOV = width
+        img_res.iHeight = height
+        img_res.iHeightFOV = height
+        img_res.iHOffsetFOV = offsetx
+        img_res.iVOffsetFOV = offsety
+        img_res.iWidthZoomSw = 0
+        img_res.iHeightZoomSw = 0
+        img_res.uBinAverageMode = 0
+        img_res.uBinSumMode = 0
+        img_res.uResampleMask = 0
+        img_res.uSkipMode = 0
+        mvsdk.CameraSetImageResolution(h_camera, img_res)
+
+
     def config(self, config_file=None, TriggerMode=2, TriggerType=1, AeState=False, ExposureTime=30):
         # 获取相机特性描述
         print('camera config:', TriggerMode,TriggerType, AeState, ExposureTime)
         cap = mvsdk.CameraGetCapability(self.hCamera)
-
+        #print(cap)
         # 判断是黑白相机还是彩色相机
         monoCamera = (cap.sIspCapacity.bMonoSensor != 0)
         # 黑白相机让ISP直接输出MONO数据，而不是扩展成R=G=B的24位灰度
@@ -86,14 +104,17 @@ class myCamera(object):
         # 默认手动曝光，曝光时间默认30ms
         mvsdk.CameraSetAeState(self.hCamera, AeState)  # AeState = True 自动曝光 False 手动曝光
         mvsdk.CameraSetExposureTime(self.hCamera, ExposureTime * 1000)
-
+        
         # 加载相机参数
         if config_file is not None:
             mvsdk.CameraLoadParameter(self.hCamera, config_file)
+
+        #self.setCameraResolution(self.hCamera, 0, 0, 1280, 1024)
         # 让SDK内部取图线程开始工作
         mvsdk.CameraPlay(self.hCamera)
 
         # 计算RGB buffer所需的大小，这里直接按照相机的最大分辨率来分配
+        #FrameBufferSize = 1280 * 1024 * (1 if monoCamera else 3)
         FrameBufferSize = cap.sResolutionRange.iWidthMax * cap.sResolutionRange.iHeightMax * (1 if monoCamera else 3)
         # 分配RGB buffer，用来存放ISP输出的图像
         # 备注：从相机传输到PC端的是RAW数据，在PC端通过软件ISP转为RGB数据（如果是黑白相机就不需要转换格式，但是ISP还有其它处理，所以也需要分配这个buffer）
@@ -101,11 +122,9 @@ class myCamera(object):
 
         # 设置采集回调函数
         mvsdk.CameraSetCallbackFunction(self.hCamera, self.GrabCallback, 0)
-        print('11111111111111111111111111111111111111')
 
     @mvsdk.method(mvsdk.CAMERA_SNAP_PROC)
     def GrabCallback(self, hCamera, pRawData, pFrameHead, pContext):
-        print('22222222222222222222222222222222222222222')
         FrameHead = pFrameHead[0]
         pFrameBuffer = self.pFrameBuffer
 
@@ -125,6 +144,7 @@ class myCamera(object):
                                     1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
         self.frame_id += 1
         #cv2.imshow('bai cap', self.frame)
+        #cv2.imwrite('bai_raw.jpg', self.frame)
         print('got image')
 
     def release(self):
@@ -181,12 +201,7 @@ class corn_detection(object):
 
     def corn_recognition(self, raw_img, ROI=None, display=False, theshold_R=200, theshold_G=200, theshold_B=150,
                          theshold_size=8):
-        # 检测玉米
-        #print('detect corn...')
-        #cv2.imshow('bai corn detect', raw_img)
-        #cv2.waitKey(0)
-
-        
+        # 检测玉米     
         try:
             raw_img.shape
         except:
@@ -198,17 +213,21 @@ class corn_detection(object):
         corn_result = np.zeros((self.tray_height, self.tray_width)).astype(bool)
         if self.ROI is not None:
             self.corn_img = raw_img[self.ROI[1]:(self.ROI[1] + self.ROI[3]), self.ROI[0]:(self.ROI[0] + self.ROI[2])]
-            #cv2.imshow('bai corn_img', self.corn_img)
-            #cv2.waitKey(0)
+            cv2.imwrite('bai.jpg', self.corn_img)
+            self.corn_img = cv2.resize(self.corn_img, (int(self.ROI[2]/2), int(self.ROI[3]/2)))
+            # img_test  = self.corn_img.copy()
+            # img_test[(img_test[:,:,0]>150]=0
+            # cv2.imwrite('bai_test.jpg', img_test)
             img_mask = self.corn_img.copy()
-            img_mask[(self.corn_img[:, :, 0] < theshold_R) | (self.corn_img[:, :, 1] < theshold_G) |
-                                     (self.corn_img[:, :, 2] > theshold_B)] = 0  # make mask | (self.corn_img[:, :, 2] < 100)
-            #cv2.imshow('bai corn_img2', self.corn_img)
-            #cv2.waitKey(0)
-            #print(img_mask.shape)
+            print(theshold_R, theshold_G,theshold_B,theshold_size)
+            img_mask[(img_mask[:, :, 0] > theshold_B) | (img_mask[:, :, 1] < theshold_G) |
+                                     (img_mask[:, :, 2] < theshold_R)] = 0  # make mask | (self.corn_img[:, :, 2] < 100)
+
+            print("img shape: ", img_mask.shape)
             img_gray = cv2.cvtColor(img_mask, cv2.COLOR_RGB2GRAY)
+            cv2.imwrite('bai_mask.jpg', img_gray)
             res, img_binary = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)  # 分割
-            element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20, 20))  # 形态学去噪
+            element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))  # 形态学去噪
             img_binary = cv2.morphologyEx(img_binary, cv2.MORPH_CLOSE, element)  # 闭运算连接空洞
             # img_binary = cv2.morphologyEx(img_binary, cv2.MORPH_OPEN, element)  # 开运算去噪
             # cv2.imwrite('gray.jpg', img_binary)
@@ -219,23 +238,36 @@ class corn_detection(object):
                 area = cv2.contourArea(cont)  # 计算包围性状的面积
                 areas.append(area)
 
-            max_area = np.max(areas)
-            contours = np.array(contours)
-            cont_res = contours[np.argwhere(areas > max_area / theshold_size).squeeze()]  # 计算有效玉米轮廓
-            if display:
-                cv2.drawContours(self.corn_img, cont_res.tolist(), -1, (255, 0, 0), 2)  # 绘制轮廓
+            if len(areas)!=0:
+                max_area = np.max(areas)
+            else:
+                max_area=0
+            cont_res =[]
+            for cont in contours:
+                if cv2.contourArea(cont)> max_area/theshold_size:
+                    cont_res.append(cont)
+                    x,y,w,h = cv2.boundingRect(cont)  # 提取矩形坐标
+                    if display:
+                        cv2.rectangle(self.corn_img, (x,y),(x+w,y+h), (0, 0, 255), 5)  # 绘制矩形
+            # contours = np.array(contours)
+            # print(contours)
+            # cont_res = contours[np.argwhere(areas > max_area / theshold_size).squeeze()]  # 计算有效玉米轮廓
+            # print(cont_res)   
+            #if display:
+            #    cv2.drawContours(self.corn_img, cont_res, -1, (255, 0, 0), 2)  # 绘制轮廓
+                #cv2.drawContours(self.corn_img, cont_res.tolist(), -1, (255, 0, 0), 2)  # 绘制轮廓
 
-            interval_h = self.ROI[3] / self.tray_height  # 穴大小
-            interval_w = self.ROI[2] / self.tray_width
+            interval_h = int(self.ROI[3] /2 / self.tray_height)  # 穴大小
+            interval_w = int(self.ROI[2] / 2/ self.tray_width)
+            print("int_h:", interval_h, "int_w:", interval_w)
 
             for row in range(self.tray_height):
                 for col in range(self.tray_width):
-                    tray_rect = [self.ROI[0] + interval_w * col, self.ROI[1] + interval_h * row]
+                    #tray_rect = [self.ROI[0] + interval_w * col, self.ROI[1] + interval_h * row]
+                    tray_rect = [interval_w * col, interval_h * row]
                     # 遍历找到的所有玉米粒
                     for cont in cont_res:
                         x,y,w,h = cv2.boundingRect(cont)  # 提取矩形坐标
-                        if display:
-                            cv2.rectangle(self.corn_img, (x,y),(x+w,y+h), (0, 0, 255), 5)  # 绘制矩形
                         if x + w > tray_rect[0] and tray_rect[0] + interval_w >x and \
                                 y+ h > tray_rect[1] and tray_rect[1] + interval_h > y:
                             corn_result[row, col] = True
@@ -251,7 +283,8 @@ class RobotEye(object):
         self.__running_on_my_own_thread = False
         self.__camera = myCamera()
         self.__corn_detect = corn_detection()
-        self.__camera_config = dict()
+        #self.__camera_config = {'config_file': '/home/znkzjs/sower-core/camera.config'}
+        self.__camera_config = dict() 
         self.__detect_config = {'ROI': [80,405,1872,975]}
         self.__tray_config = dict()
 
@@ -288,6 +321,7 @@ class RobotEye(object):
             print('camera open failed')
         if self.__camera_config.get('config_file', "") != "":
             self.__camera.config(self.__camera_config['config_file'])
+            print("camera config from file!")
         else:
             trigger_mode = self.__camera_config.get('trigger_mode', 2)
             trigger_type = self.__camera_config.get('trigger_type', 1)
@@ -335,9 +369,12 @@ class RobotEye(object):
                     thres_size = self.__detect_config.get('threshold_size', 8)
                     display = self.__detect_config.get('display', False)
                     print('start detect.................')
+                    start_time = time.perf_counter()
                     result = self.__corn_detect.corn_recognition(self.__camera.frame, roi, display, thres_R, thres_G,
                                                                  thres_B, thres_size)
+                    end_time = time.perf_counter()
                     print("corn result: ", result)
+                    print("detection time:", end_time-start_time)
                     self.__mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
                     self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
                     if display:
@@ -405,6 +442,7 @@ class RobotEye(object):
         if self.__tray_config.get('width') is not None and self.__tray_config.get('height') is not None:
             self.__corn_detect.__init__(self.__tray_config['height'], self.__tray_config['width'])
             print('tray config done')
+
         #if topic == "sower/eye/outside/width":
         #    # payload is like "{"width":16, "height":8}"
         #    self.__tray_config = json.loads(payload)
@@ -440,3 +478,20 @@ class RobotEye(object):
 
 if __name__ == "__main__":
     runner = RobotEye()
+
+
+
+
+
+
+
+
+# sudo ./scripts/setPermissions.sh $USER
+
+#!/bin/bash
+# $1 should be the name of the user to add
+# usermod -aG i2c $1
+# groupadd -f -r gpio
+# sudo usermod -a -G gpio $1
+# cp /opt/nvidia/jetson-gpio/etc/99-gpio.rules /etc/udev/rules.d/
+# udevadm control --reload-rules && sudo udevadm trigger
