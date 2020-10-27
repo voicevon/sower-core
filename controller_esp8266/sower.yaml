@@ -1,0 +1,100 @@
+esphome:
+  name: sower
+  platform: ESP8266
+  board: nodemcu
+  includes:
+    - sower_component.h
+
+custom_component:
+- lambda: |-
+    auto sower_component = new Sower_component();
+    return {sower_component};
+
+wifi:
+  ssid: "PDCA"
+  password: "1234567890"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "sower"
+    password: "voicevon1970"
+
+captive_portal:
+
+# Enable logging
+logger:
+
+
+mqtt:
+  broker: voicevon.vicp.io
+  port: 1883
+  username: von
+  password: von1970
+
+
+  - platform: uptime
+    name: Uptime Sensor
+
+
+globals:
+  - id: length_counter
+    type: long
+    restore_value: no
+    initial_value: '0'
+  - id: row_1
+    type: char  
+    initial_value: 255
+
+  - id: row_2
+    type: char
+    initial_value: 255
+
+  - id: row_3
+    type: char
+    initial_value: 255
+  
+
+i2c:
+  sda: 21
+  scl: 22
+  scan: True
+  frequency: 800kHz
+  id: bus_a
+
+
+pca9685:
+  frequency: 50
+    i2c_id: bus_a    #guessed
+    address: 0x03    #guessed
+
+# Individual outputs
+output:
+  - platform: pca9685
+    pca9685_id: 'pca9685_hub1'
+    channel: 0
+
+sensor:
+  - platform: pulse_counter
+    pin: 12
+    name: "meter"
+    on_value:
+      if :
+        condition:
+          abc
+        then:
+          length_counter += 1
+          
+
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: D2
+      mode: INPUT_PULLUP
+    name: 'ir_trigger'
+    # when IR is triggered, reset the length_counter
+    on_press:
+      then:
+        - globals.set:
+          id: length_counter
+          value: 0

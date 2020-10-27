@@ -1,5 +1,7 @@
 {
     "python.linting.pylintEnabled": true,
     "python.linting.flake8Enabled": false,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    // "circuitpython.board.pid": "esp8266",
+    "circuitpython.board.pid": "JETSON_NANO"
 }
