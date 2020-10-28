@@ -51,7 +51,7 @@ class myCamera(object):
         DevList = mvsdk.CameraEnumerateDevice()
         nDev = len(DevList)
         if nDev < 1:
-            print("No camera was found!")
+            print("[Error] robot_eye.py line [54]: No camera was found!")
             self.isopen = False
             return
 
@@ -62,7 +62,7 @@ class myCamera(object):
             self.hCamera = mvsdk.CameraInit(DevInfo, -1, -1)
             self.isopen = True
         except mvsdk.CameraException as e:
-            print("CameraInit Failed({}): {}".format(e.error_code, e.message))
+            print("[Error] robot_eye.py line [65]: CameraInit Failed({}): {}".format(e.error_code, e.message))
             self.isopen = False
             return
 
@@ -86,7 +86,7 @@ class myCamera(object):
 
     def config(self, config_file=None, TriggerMode=2, TriggerType=1, AeState=False, ExposureTime=30):
         # 获取相机特性描述
-        print('camera config:', TriggerMode,TriggerType, AeState, ExposureTime)
+        print('[Info] robot_eye.py: camera config:', TriggerMode,TriggerType, AeState, ExposureTime)
         cap = mvsdk.CameraGetCapability(self.hCamera)
         #print(cap)
         # 判断是黑白相机还是彩色相机
@@ -145,7 +145,7 @@ class myCamera(object):
         self.frame_id += 1
         #cv2.imshow('bai cap', self.frame)
         #cv2.imwrite('bai_raw.jpg', self.frame)
-        print('got image')
+        print('[Info] robot_eye.py: get image, id = ', self.frame_id)
 
     def release(self):
         # 关闭相机
@@ -171,7 +171,7 @@ class corn_detection(object):
 
     def extractROI(self, raw_img):
         # 检测穴盘外围轮廓
-        print("detect tray contour....")
+        print("[Info] robot_eye.py: detect tray contour....")
         try:
             raw_img.shape
         except:
@@ -213,19 +213,19 @@ class corn_detection(object):
         corn_result = np.zeros((self.tray_height, self.tray_width)).astype(bool)
         if self.ROI is not None:
             self.corn_img = raw_img[self.ROI[1]:(self.ROI[1] + self.ROI[3]), self.ROI[0]:(self.ROI[0] + self.ROI[2])]
-            cv2.imwrite('bai.jpg', self.corn_img)
+            #cv2.imwrite('bai.jpg', self.corn_img)
             self.corn_img = cv2.resize(self.corn_img, (int(self.ROI[2]/2), int(self.ROI[3]/2)))
             # img_test  = self.corn_img.copy()
             # img_test[(img_test[:,:,0]>150]=0
             # cv2.imwrite('bai_test.jpg', img_test)
             img_mask = self.corn_img.copy()
-            print(theshold_R, theshold_G,theshold_B,theshold_size)
+            #print(theshold_R, theshold_G,theshold_B,theshold_size)
             img_mask[(img_mask[:, :, 0] > theshold_B) | (img_mask[:, :, 1] < theshold_G) |
                                      (img_mask[:, :, 2] < theshold_R)] = 0  # make mask | (self.corn_img[:, :, 2] < 100)
 
-            print("img shape: ", img_mask.shape)
+            #print("img shape: ", img_mask.shape)
             img_gray = cv2.cvtColor(img_mask, cv2.COLOR_RGB2GRAY)
-            cv2.imwrite('bai_mask.jpg', img_gray)
+            #cv2.imwrite('bai_mask.jpg', img_gray)
             res, img_binary = cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)  # 分割
             element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))  # 形态学去噪
             img_binary = cv2.morphologyEx(img_binary, cv2.MORPH_CLOSE, element)  # 闭运算连接空洞
@@ -259,7 +259,7 @@ class corn_detection(object):
 
             interval_h = int(self.ROI[3] /2 / self.tray_height)  # 穴大小
             interval_w = int(self.ROI[2] / 2/ self.tray_width)
-            print("int_h:", interval_h, "int_w:", interval_w)
+            #print("int_h:", interval_h, "int_w:", interval_w)
 
             for row in range(self.tray_height):
                 for col in range(self.tray_width):
@@ -316,19 +316,19 @@ class RobotEye(object):
 
         self.__camera.open()  # open camera
         if self.__camera.isopen:
-            print('camera open')
+            print('[Info] robot_eye.py: camera open!')
         else:
-            print('camera open failed')
+            print('[Error] robot_eye.py line [321]: camera open failed!')
         if self.__camera_config.get('config_file', "") != "":
             self.__camera.config(self.__camera_config['config_file'])
-            print("camera config from file!")
+            #print("camera config from file!")
         else:
             trigger_mode = self.__camera_config.get('trigger_mode', 2)
             trigger_type = self.__camera_config.get('trigger_type', 1)
             aestate = self.__camera_config.get('aestate', False)
             exposure_time = self.__camera_config.get('exposure_time', 10)
             self.__camera.config(TriggerMode=trigger_mode, TriggerType=trigger_type, AeState=aestate, ExposureTime=exposure_time)
-        print('camera config done')
+        print('[Info] robot_eye.py: camera config done!')
 
     def main_loop(self):
         # This is mainly for debugging. do not use while loop in this function!
@@ -347,34 +347,33 @@ class RobotEye(object):
             # while self.__mqtt.mqtt_system_turn_on:
             while True:   #TODO
                 if self.__camera.frame_id != last_frame_id:
-                    print('capture image done')
+                    #print('capture image done')
                     last_frame_id = self.__camera.frame_id
                     if self.__detect_config.get('ROI', []):
                         if len(self.__detect_config['ROI']) == 4 and self.__detect_config['ROI'][0] != 0 \
                                 and self.__detect_config['ROI'][1] !=0 and self.__detect_config['ROI'][2] !=0 and self.__detect_config['ROI'][3] != 0:
                             roi = self.__detect_config['ROI']
                         else:
-                            print('invalid ROI')
+                            print('[Error] robot_eye.py line [357]: invalid ROI!')
                             continue
                     else:
                         cap_img = self.__camera.frame.copy()
                         roi = self.__corn_detect.extractROI(self.__camera.frame)
                         if roi is None:
-                            print("extract tray contour failed!")
+                            print("[Warning] robot_eye.py line [363]: extract tray contour failed!")
                             continue
-                    print('roi:', roi)
+                    #print('roi:', roi)
                     thres_R = self.__detect_config.get('threshold_R', 190)
                     thres_G = self.__detect_config.get('threshold_G', 190)
                     thres_B = self.__detect_config.get('threshold_B', 150)
                     thres_size = self.__detect_config.get('threshold_size', 8)
                     display = self.__detect_config.get('display', False)
-                    print('start detect.................')
+                    print('[Info] robot_eye.py: start detect.................')
                     start_time = time.perf_counter()
                     result = self.__corn_detect.corn_recognition(self.__camera.frame, roi, display, thres_R, thres_G,
                                                                  thres_B, thres_size)
                     end_time = time.perf_counter()
-                    print("corn result: ", result)
-                    print("detection time:", end_time-start_time)
+                    print("[Info] robot_eye.py: detect done! result: ", result, "time: ", end_time-start_time, " s")
                     self.__mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
                     self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
                     if display:
@@ -383,7 +382,7 @@ class RobotEye(object):
                         if is_success:
                             img_pub = img_encode.tobytes()
                             self.__mqtt.publish("sower/img/bin", img_pub, retain=True)
-                            print("show image")
+                            print("[Info] robot_eye.py: publish image done!")
                     #self.__on_got_new_plate_callback(result, cap_img)
 
 
@@ -398,7 +397,7 @@ class RobotEye(object):
         #    if topic == 'sower/eye/outside/' + k
         #    self.__tray_config[topic] = int (payload)
         
-        print("robot_eye:",topic, payload)
+        print("[Info] robot_eye.py: received message: ",topic, payload)
         #self.__detect_config['ROI'] = [0,0,0,0]
         if topic == "sower/eye/outside/width":
             self.__tray_config['width'] = int(payload)
@@ -427,21 +426,21 @@ class RobotEye(object):
                 self.__detect_config['display'] = False
         elif topic == "sower/eye/inside/detect/roi/x":
             self.__detect_config['ROI'][0] = int(payload)
-            print("ROI.x:",int(payload))
+            #print("ROI.x:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/y":
             self.__detect_config['ROI'][1] = int(payload)
-            print("ROI.y:",int(payload))
+            #print("ROI.y:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/width":
             self.__detect_config['ROI'][2] = int(payload)
-            print("ROI.w:",int(payload))
+            #print("ROI.w:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/height":
             self.__detect_config['ROI'][3] = int(payload)
-            print("ROI.h:",int(payload))
+            #print("ROI.h:",int(payload))
 
 
         if self.__tray_config.get('width') is not None and self.__tray_config.get('height') is not None:
             self.__corn_detect.__init__(self.__tray_config['height'], self.__tray_config['width'])
-            print('tray config done')
+            print('[Info] robot_eye.py: tray config done!')
 
         #if topic == "sower/eye/outside/width":
         #    # payload is like "{"width":16, "height":8}"
