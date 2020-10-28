@@ -10,7 +10,7 @@ from color_print import const
 
 from xyz_arm import XyzArm
 from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
-from plate import Plate
+from plate import Plate, PlateCell, PLATE_CELL_STATE
 from servos import Servos
 from threading import Thread
 
@@ -62,22 +62,23 @@ class Planner():
         if not self.__current_plate.has_got_map():
             return
 
-        target_row_id = self.__current_plate.get_row_to_plan()
+        unplanned_row_id = self.__current_plate.get_unplanned_row_id()
         
-        if target_row_id in range(0,16):
+        if unplanned_row_id in range(0,16):
             # get shadow rows. should be counted in range(1,4)
-            shadow_rows = self.__chessboard.get_shadow_rows(target_row_id)
+            shadow_rows = self.__current_plate.get_shadow_rows(unplanned_row_id)
             for row_index in range (0, len(shadow_rows)):
-                plate_row = self.__current_plate.get_row_map(target_row_id + row_index)
+                plate_row = self.__current_plate.get_row_map(unplanned_row_id + row_index)
                 chessboard_row = self.__chessboard.get_row_map(row_index)
                 this_row_is_full = True
                 for col in range(0, 8):
+                    # Compare two cells between chessboard_cell and plate_cell
                     plate_cell = PlateCell()
-                    plate_cell.from_row_col(target_row_id + row_index, col)
+                    plate_cell.from_row_col(unplanned_row_id + row_index, col)
                     chessboard_cell = ChessboardCell()
                     chessboard_cell.from_row_col(row_index, col)
                     if plate_cell.state == PLATE_CELL_STATE.Emppty_Unplanned:
-                        # Got an empty cell, Let's see whether we can refill this cell.
+                        # Got an empty plate_cell, Let's see whether we can refill this cell.
                         if chessboard_cell.state == CHESSBOARD_CELL_STATE.Unplanned:
                             # got a matched cell from chessboard
                             plate_cell.to_state(PLATE_CELL_STATE.Empty_Planned)
@@ -88,7 +89,7 @@ class Planner():
                             
                 if this_row_is_full:
                     # all cells in this row are filled or refilled
-                    self.__current_plate.finished_plan_for_this_row(target_row_id)
+                    self.__current_plate.finished_plan_for_this_row(unplanned_row_id)
 
 
 
