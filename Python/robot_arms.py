@@ -10,35 +10,25 @@ from color_print import const
 
 from xyz_arm import XyzArm
 from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
-from plate import Plate, PlateCell, PLATE_CELL_STATE
+from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 from servos import Servos
 from threading import Thread
 
 
-
 class Planner():
     def __init__(self):
-        self.__servos = Servos(self.on_servos_finished_one_row)
-        self.__robot = XyzArm()
-        self.__current_plate = Plate()
-        self.__next_plate = Plate()
+        self.__xyz_arm = XyzArm()
+        self.__current_plate = Plate(release_servos_action)
+        self.__next_plate = Plate(release_servos_action)
         self.__chessboard = Chessboard()
         self.__coming_row_id_of_current_plate = 0
+        self.__servos = Servos()
  
     def connect(self):
-        self.__robot.connect_to_marlin()
-        self.__robot.Init_Marlin()
-        self.__servos.connect()
+        self.__xyz_arm.connect_to_marlin()
+        self.__xyz_arm.Init_Marlin()
     
-    def on_servos_finished_one_row(self, row_id):
-        # update the chessboard, might be 3 rows will be effected.
-        self.__coming_row_id_of_current_plate = row_id + 1
-
-        if row_id == 15:
-            # finished current plate, point to next plate
-            self.__current_plate.to_finished()
-
-    def __create_servos_plan_for_next_row(self):
+    def __create_servos_plan_for_next_row(self, unplanned_row_id):
         '''
         # try a new plan, only plan for one row entering
         #   This function will be invoked from main_loop()
@@ -59,63 +49,53 @@ class Planner():
         #       - A: All cells in this row is not empty (Prefilled or planned)
         #       - B: Target row of plate has moved into shadow area.
         '''
-        if not self.__current_plate.has_got_map():
-            return
 
-        unplanned_row_id = self.__current_plate.get_unplanned_row_id()
-        
-        if unplanned_row_id in range(0,16):
-            # get shadow rows. should be counted in range(1,4)
-            shadow_rows = self.__current_plate.get_shadow_rows(unplanned_row_id)
-            for row_index in range (0, len(shadow_rows)):
-                plate_row = self.__current_plate.get_row_map(unplanned_row_id + row_index)
-                chessboard_row = self.__chessboard.get_row_map(row_index)
-                this_row_is_full = True
-                for col in range(0, 8):
-                    # Compare two cells between chessboard_cell and plate_cell
-                    plate_cell = PlateCell()
-                    plate_cell.from_row_col(unplanned_row_id + row_index, col)
-                    chessboard_cell = ChessboardCell()
-                    chessboard_cell.from_row_col(row_index, col)
-                    if plate_cell.state == PLATE_CELL_STATE.Emppty_Unplanned:
-                        # Got an empty plate_cell, Let's see whether we can refill this cell.
-                        if chessboard_cell.state == CHESSBOARD_CELL_STATE.Unplanned:
-                            # got a matched cell from chessboard
-                            plate_cell.to_state(PLATE_CELL_STATE.Empty_Planned)
-                            chessboard_cell.to_state(CHESSBOARD_CELL_STATE.PlannedToDrop)
-                        else:
-                            # Can't get matched cell from chessboard
-                            this_row_is_full = False
-                            
-                if this_row_is_full:
-                    # all cells in this row are filled or refilled
-                    self.__current_plate.finished_plan_for_this_row(unplanned_row_id)
+        shadow_rows = self.__current_plate.get_shadow_rows(unplanned_row_id)
+        for row_index in range (0, len(shadow_rows)):
+            plate_row = self.__current_plate.get_row_map(unplanned_row_id + row_index)
+            chessboard_row = self.__chessboard.get_row_map(row_index)
+            this_row_is_full = True
+            for col in range(0, 8):
+                # Compare two cells between chessboard_cell and plate_cell
+                plate_cell = PlateCell()
+                plate_cell.from_row_col(unplanned_row_id + row_index, col)
+                chessboard_cell = ChessboardCell()
+                chessboard_cell.from_row_col(row_index, col)
+                if plate_cell.state == PLATE_CELL_STATE.Emppty_Unplanned:
+                    # Got an empty plate_cell, Let's see whether we can refill this cell.
+                    if chessboard_cell.state == CHESSBOARD_CELL_STATE.Unplanned:
+                        # got a matched cell from chessboard
+                        plate_cell.to_state(PLATE_CELL_STATE.Empty_Planned)
+                        chessboard_cell.to_state(CHESSBOARD_CELL_STATE.PlannedToDrop)
+                    else:
+                        # Can't get matched cell from chessboard
+                        this_row_is_full = False
+                        
+            if this_row_is_full:
+                # all cells in this row are filled or refilled
+                self.__current_plate.finished_plan_for_this_row(unplanned_row_id)
 
-
-
-
-
-        entering_row = self.__chessboard.rows[row]
-        
-        if True:
-            # need to be filled.
-            if True:
-                # chessbord is avaliable
-                
-                # planed to drop
-                row_map.cell[x].plan_to_drop()
-                
-
-
-        if empty_col_id  == -1:
-            # No col is continuously empty. can create plan now.
-            action = Servos_action()
-            action.row_id = 5
-            action.row_action = 6
-            self.__servos.append_planned_action(action)
+    def release_servos_action(self):
+        row_id = self.next_enter_row_id()
+        # get servos_action, It's 3 bytes array, or Tuple?
+        servos_action = Servos_action()
+        shadow_rows = range(self.next_enter_row_id, self.next_enter_row_id-3, -1)
+        for row_id in shadow_rows:
+            if row_id >=0:
+                for col_id in range(8, 0, -1):
+                    if self.rows[row_id + offset].state == PLATE_CELL_STATE.Empty_Planned 
+                        servos_action.bytes[0] *= 2
+                        servos_action.bytes[0] += 1
+        self.__servos.output_i2c(servos_action.bytes)
+        self.__chessboard.on_servos_released(servos_action.bytes)
 
     def main_loop(self):
-        self.__create_servos_plan_for_next_row()
+        if self.__current_plate.has_got_map():
+            unplanned_row_id = self.__current_plate.get_unplanned_row_id()
+            if unplanned_row_id in range(0,16):
+                # get shadow rows. should be counted in range(1,4)
+                self.__create_servos_plan_for_next_row(unplanned_row_id)
+            
         self.__xyz_arm_fill_buffer()
 
         #Check whether current plate is finished
@@ -126,11 +106,10 @@ class Planner():
 
     def __xyz_arm_fill_buffer(self):
         row, col = self.__chessboard.get_one_empty_cell()
-        if row == -1:
-            return
-        self.xyz_arm.pickup_from_warehouse()
-        self.xyz_arm.place_to_cell(row, col)
-        self.__chessboard.set_one_cell(row, col)
+        if row >= 0:
+            self.__xyz_arm.pickup_from_warehouse()
+            self.__xyz_arm.place_to_cell(row, col)
+            self.__chessboard.set_one_cell(row, col)
 
 
     def set_new_plate(self, plate_map):

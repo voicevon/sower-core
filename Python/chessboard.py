@@ -17,7 +17,6 @@ class ChessboardCell():
 
 # class CHESSBOARD_ROW_STATE(Enum):
 
-
 class ChessboardRow():
     def __init__(self):
         # self.state = CHESSBOARD_ROW_STATE.Unplanned  # Unplanned, Planed, Executing, Executed
@@ -66,3 +65,10 @@ class Chessboard():
         rowl_map |= 1 << col_id
         self.rows[row_id]= rowl_map
 
+    def on_servos_released(self, bytes):
+        '''
+        some cells becomes empty
+        '''
+        for row_id in range(0, len(bytes)):
+            self.rows[row_id] = bytes[row_id]
+            

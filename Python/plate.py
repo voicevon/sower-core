@@ -8,6 +8,8 @@
 from enum import Enum
 import Jetson.GPIO as GPIO
 
+from servos import Servos_action
+
 
 class PLATE_CELL_STATE(Enum):
     Emppty_Unplanned = 1
@@ -33,6 +35,13 @@ class PlateCell():
                  PLATE_CELL_STATE.Refilled: 'R '
                  }
         return table[self.state]
+
+
+# class PLATE_ROW_STATE(Enum):
+#     Unplanned_Or_OnPlanning = 1
+#     Planned = 2
+#     InBuffer = 3        # Plan becomes to Action.
+
 
 class PlateRow():
     '''
@@ -78,12 +87,12 @@ class Plate():
           ^                                                                                                  |
           |----------------------------------------------------------------|
     '''
-    def __init__(self):
+    def __init__(self, callback_release_servos):
         # self.rows = list(PlateRow)
         self.rows = []
         self.state = PLATE_STATE.Started
         self.has_got_map = False
-
+        self.callback_release_servos = callback_release_servos
 
         self.__PIN_IR_SWITCH = 37
         self.__PIN_ENCODER_A = 31
@@ -102,6 +111,9 @@ class Plate():
         GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_gpio_rising)
         # GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_encoder_rising)
 
+
+
+
     def on_gpio_rising(self, channel):
         if channel == self.__PIN_IR_SWITCH:
             self.encoder_distance = 0
@@ -111,6 +123,7 @@ class Plate():
             self.encoder_distance += 1
             if self.encoder_distance / self.__encoder_distance_per_row == 0:
                 # current row must be fininshed. new row is coming
+                self.callback_release_servos()  #TODO: new threading
                 self.next_enter_row_id += 1
 
     def get_row_map(self, row_id):
