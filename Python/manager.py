@@ -7,11 +7,12 @@ sys.path.append(app_config.path.text_color)
 from color_print import const
 
 # from robot_arms import RobotArms
-# from servo_array_driver import ServoArrayDriver
+from servo_array_driver import ServoArrayDriver
 import paho.mqtt.client as mqtt
 from mqtt_agent import MqttAgent
 
 from robot_eye import RobotEye
+from robot_sensors import RobotSensors
 from xyz_arm import XyzArm
 from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
 from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
@@ -21,14 +22,15 @@ class SowerManager():
 
     def __init__(self):
         self.__eye = RobotEye()
-        self.__xyz_arm = XyzArm()
-        self.__xyz_arm.init_and_home()
-        self.__servos = ServoArrayDriver()
-        self.__current_plate = Plate(release_servos_action)
-        self.__next_plate = Plate(release_servos_action)
         self.__chessboard = Chessboard()
-        self.__coming_row_id_of_current_plate = 0
+        self.__xyz_arm = XyzArm()
         self.__servos = Servos()
+        self.__servos_minghao = ServoArrayDriver()
+        self.__sensors = RobotSensors(self.on_new_plate_enter, self.on_new_row_enter)
+        # self.__servos = ServoArrayDriver()
+        self.__current_plate = Plate()
+        self.__next_plate = Plate()
+        self.__coming_row_id_of_current_plate = 0
 
         self.__goto = self.__on_state_begin
         # self.__goto = self.__on_state_test_mqtt
@@ -39,6 +41,21 @@ class SowerManager():
         self.__YELLOW = const.print_color.fore.yellow
         self.__GREEN = const.print_color.fore.green
         self.__RESET = const.print_color.control.reset
+
+    def setup(self):
+        mqtt = self.__mqtt_agent.connect()
+        self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
+        # self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
+        self.__eye.setup(mqtt, self.__on_eye_got_new_plate)
+        self.__servos.setup(self.__xyz_arm.pickup_then_place_to_cell)
+        self.__xyz_arm.setup(mqtt, None)
+        self.__xyz_arm.connect_to_marlin()
+        self.__xyz_arm.Init_Marlin()
+        self.__xyz_arm.init_and_home()
+
+        print(const.print_color.background.blue + self.__YELLOW)
+        print('System is initialized. Now is working')
+        print(self.__RESET)
 
     def __on_state_test_mqtt(self):
         # return image as mqtt message payload
@@ -68,6 +85,8 @@ class SowerManager():
     def __on_state_working(self):
         if self.__system_turn_on:
             self.__eye.main_loop()
+            self.__xyz_arm_fill_buffer()
+            self.__plan_servos_action()
         else:
             self.__goto = self.__on_state_begin
 
@@ -79,24 +98,24 @@ class SowerManager():
             self.__goto = self.__on_state_begin
 
     def __on_eye_got_new_plate(self, plate_array, image):
-        self.__servos.send_new_platmap(plate_array)
+        if False:
+            # For  solution  Minghao
+            info = plate_array
+            self.__servos_minghao.send_new_platmap(new_map)
+        
+        if True:
+            # For solution voicevon@gmail.com
+            plate_map = plate_array
+            self.__next_plate.from_map(plate_map)
 
+    def on_new_plate_enter(self):
+        map = self.__next_plate.get_plate_map()
+        self.__current_plate.from_map(map)
 
-    def setup(self):
-        mqtt = self.__mqtt_agent.connect()
-        self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
-        # self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
-        self.__eye.setup(mqtt, self.__on_eye_got_new_plate)
-        self.__xyz_arm.setup(mqtt, None)
-        self.__servos.setup(self.__xyz_arm.pickup_then_place_to_cell)
-
-        print(const.print_color.background.blue + self.__YELLOW)
-        print('System is initialized. Now is working')
-        print(self.__RESET)
-
-    def connect(self):
-        self.__xyz_arm.connect_to_marlin()
-        self.__xyz_arm.Init_Marlin()
+    def on_new_row_enter(self):
+        self.__servos.output_i2c(123)
+        self.__chessboard.execute_plan()
+        
     
     def __create_servos_plan_for_next_row(self, unplanned_row_id):
         '''
@@ -159,14 +178,13 @@ class SowerManager():
         self.__servos.output_i2c(servos_action.bytes)
         self.__chessboard.on_servos_released(servos_action.bytes)
 
-    def main_loop(self):
+    def __plan_servos_action(self):
         if self.__current_plate.has_got_map():
             unplanned_row_id = self.__current_plate.get_unplanned_row_id()
             if unplanned_row_id in range(0,16):
                 # get shadow rows. should be counted in range(1,4)
                 self.__create_servos_plan_for_next_row(unplanned_row_id)
             
-        self.__xyz_arm_fill_buffer()
 
         #Check whether current plate is finished
         if self.__current_plate.state == PLATE_STATE.Finished:
@@ -180,14 +198,6 @@ class SowerManager():
             self.__xyz_arm.pickup_from_warehouse()
             self.__xyz_arm.place_to_cell(row, col)
             self.__chessboard.set_one_cell(row, col)
-
-
-    def set_new_plate(self, plate_map):
-        '''
-        This will be invoked when camera got a new plate.
-        '''
-        self.__next_plate.from_map(plate_map)
-
 
     def main_loop(self):
         self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 

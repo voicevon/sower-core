@@ -1,14 +1,6 @@
 
-#  Jetson Expansion Header Tool
-#       sudo /opt/nvidia/jetson-io/jetson-io.py
-#           from: https://www.jetsonhacks.com/2020/05/04/spi-on-jetson-using-jetson-io/
 
-
-
-from enum import Enum
-import Jetson.GPIO as GPIO
-
-from servos import Servos_action
+# from servos import Servos_action
 
 
 class PLATE_CELL_STATE(Enum):
@@ -87,43 +79,18 @@ class Plate():
           ^                                                                                                  |
           |----------------------------------------------------------------|
     '''
-    def __init__(self, callback_release_servos):
+    def __init__(self):
         # self.rows = list(PlateRow)
         self.rows = []
         self.state = PLATE_STATE.Started
         self.has_got_map = False
-        self.callback_release_servos = callback_release_servos
+        # self.callback_release_servos = callback_release_servos
 
-        self.__PIN_IR_SWITCH = 37
-        self.__PIN_ENCODER_A = 31
-        self.__PIN_ENCODER_B = 32
         self.next_enter_row_id = 0
-        self.encoder_distance = 0
-        self.__encoder_distance_per_row = 200
+        # self.encoder_distance = 0
         self.__plate_counter = 0
 
-    def setup(self):
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
-        GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-        GPIO.setup(self.__PIN_ENCODER_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
-        GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_gpio_rising)
-        # GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_encoder_rising)
-
-
-    def on_gpio_rising(self, channel):
-        if channel == self.__PIN_IR_SWITCH:
-            self.encoder_distance = 0
-            self.next_enter_row_id = 0
-            self.__plate_counter += 1
-
-        elif channel == self.__PIN_ENCODER_A:
-            self.encoder_distance += 1
-            if self.encoder_distance / self.__encoder_distance_per_row == 0:
-                # current row must be fininshed. new row is coming
-                self.callback_release_servos()  #TODO: new threading
-                self.next_enter_row_id += 1
 
     def get_row_map(self, row_id):
         '''
@@ -158,8 +125,8 @@ class Plate():
             if row_id >= 0:
                 rows.append(rows[row_id])
 
-    def finished_plan_for_this_row(self, target_row_id):
-        self.rows[target_row_id].planed = True
+    # def finished_plan_for_this_row(self, target_row_id):
+    #     self.rows[target_row_id].planed = True
 
 
     def main_loop(self):
