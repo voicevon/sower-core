@@ -1,6 +1,6 @@
 from robot_sensors import RobotSensors
 from robot_xyz_arm import XyzArm
-from servo_array_driver import ServoArrayDriver
+from robot_servo_array import ServoArrayDriver
 from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
 from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 
@@ -11,7 +11,7 @@ class RobotSower():
     '''
     This is the hard robot, will take the plan and execute it.
     '''
-    def __init__(self):
+    def __init__(self, mqtt):
         self.__xyz_arm = XyzArm()
         self.__servos_minghao = ServoArrayDriver()
         self.__sensors = RobotSensors(self.__on_new_plate_enter, self.__on_new_row_enter)
@@ -28,11 +28,11 @@ class RobotSower():
         return self.__chessboard
 
     def on_eye_got_new_plate(self, plate_array):
-        if False:
+        if True:
             # For  solution  Minghao
             new_map = plate_array
             self.__servos_minghao.send_new_platmap(new_map)
-        if True:
+        if False:
             # For solution voicevon@gmail.com
             plate_map = plate_array
             self.__next_plate.from_map(plate_map)
@@ -64,7 +64,7 @@ class RobotSower():
             self.__chessboard.set_one_cell(row, col)
             # update map and send new map to Minghao's subsystem
             self.__servos_minghao.inform_minghao(row, col)
-            
+
 
     def main_loop(self):
         self.xyz_arm_fill_buffer()

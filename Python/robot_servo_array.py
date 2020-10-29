@@ -7,15 +7,15 @@ class ServoArrayDriver():
         '''
         Hand shaking with controller through serial port.
         '''
-        def __init__(self, portname, baudrate):
+        def __init__(self, portname, baudrate, on_received_line):
             self.__serialport = serial.Serial()
             self.__serialport.port = portname
             self.__serialport.baudrate = baudrate
             self.__serialport.timeout = 1
             self.__serialport.writeTimeout = 2
-        
             self.__counter = 0
             self.__echo_is_on = False
+            self.__on_received_line = on_received_line
 
         def Connect(self):
             self.__serialport.open()
@@ -30,25 +30,21 @@ class ServoArrayDriver():
         def set_echo_on(self, is_on):
             self.__echo_is_on = is_on
 
-        def SendCommandCode(self, raw_gcode):
+        def SendCommand(self, raw_gcode):
             self.__counter += 1
             self.__serialport.write(str.encode(raw_gcode +'\r\n'))
             if self.__echo_is_on:
                 print ('>>> %s' % raw_gcode)
-            got_ok = False
-            while not got_ok:
-                response_a = self.__serialport.readline()
-                response = bytes.decode(response_a)
-                if(response == 'ok\n'):
-                    got_ok = True
-                    if self.__echo_is_on:
-                        print ('OK')
-                elif (response ==''):
-                    rospy.sleep(0.1)
-                elif self.__echo_is_on:
-                    print("<<< " + response)
+
+        def main_loop(self):
+            # check what is received from serial port
+            response_a = self.__serialport.readline()
+            response = bytes.decode(response_a)
+            if(response == 'ok\n'):
+                self.__on_got_chessboard_map_from_minghao(response)
 
     def __init__(self):
+        self.ServoArray_serial.__init__('dev/ttyUSB1', 115200, self.on_received_chessboard_map)
         self.__layout = [([0] * 8) for i in range(16)]
         self.__rows_range = range(0, 3)
         self.__cols_range = range(0, 8)
@@ -66,15 +62,17 @@ class ServoArrayDriver():
     def send_some_command(self, command):
         self.__send_command(command)
 
-    def send_new_platmap(self, plate_map):
+    def send_new_plate_map(self, plate_map):
         # send map via serial port
-        pass
+        self.ServoArray_serial.SendCommand(plate_map)
     
-    def receive_chessboard_map(self):
+    def on_received_chessboard_map(self, received_line):
         '''
         receive from serial port
         '''
-        pass
+        for row_id in self.__rows_range:
+            self.chessboard_map[row_id] = received_line[row_id]
+
 
     def get_first_empty_cell(self):
         for row_id in self.__rows_range:
@@ -100,7 +98,8 @@ class ServoArrayDriver():
     def setup(self, callback_xyz):
         self.__callback_fill_cell = callback_xyz
 
-
+    def spin_once(self):
+        pass
 
     
 

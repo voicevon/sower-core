@@ -1,12 +1,13 @@
 import sys
 # sys.path.append('C:\\gitlab\\bot\\python\\reprap')  # on windows
 # sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on linux
-# sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
-sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on Jetson Nano xuming
+sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
+# sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on Jetson Nano xuming
 
 from reprap_arm import ReprapArm
 
 import time
+import threading
 
 class XyzArm(ReprapArm):
     '''
@@ -95,15 +96,19 @@ class XyzArm(ReprapArm):
         self.home(home_y=True)
         self.home(home_x=True)
 
-    def start_with_new_thread(self):
+    def spin(self):
         self.__on_my_own_thread = True
-        t = threading(self.__main_task)
+        t = threading.Thread(self.__main_task_loop)
         t.start
 
-    def main_loop(self):
+    def spin_once(self):
         # This is mainly for debugging. do not use while loop in this function!
         # For better performance, invoke start_with_new_thread() instead.
         self.__main_task()
+
+    def __main_task_loop(self):
+        while True:
+            self.__main_task()
 
     def __main_task(self):
         # Check feeding_buffer is there any cave is empty

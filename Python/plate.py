@@ -69,7 +69,6 @@ class PLATE_STATE(Enum):
     Armed = 3
     Finished = 4 
 
-
 class Plate():
     '''
     A plate is composed by array of PlateRows

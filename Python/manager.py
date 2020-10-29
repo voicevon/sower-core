@@ -19,7 +19,7 @@ class SowerManager():
     def __init__(self):
         self.__eye = RobotEye()
         self.__robot_sower = RobotSower()
-        phy_chessboard = RobotSower.get_chessboard()
+        phy_chessboard = self.__robot_sower.get_chessboard()
         self.__planner = Planner(phy_chessboard)
 
         self.__coming_row_id_of_current_plate = 0
@@ -39,7 +39,7 @@ class SowerManager():
         self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
         # self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
         on_eye_got_new_plate_callbacks = []
-        on_eye_got_new_plate_callbacks.append(self.__planner.on_eye_got_new_plate)
+        # on_eye_got_new_plate_callbacks.append(self.__planner.on_eye_got_new_plate)
         on_eye_got_new_plate_callbacks.append(self.__robot_sower.on_eye_got_new_plate)
         self.__eye.setup(mqtt, on_eye_got_new_plate_callbacks)
 

@@ -28,7 +28,6 @@ class Planner():
         if self.__current_plate.state == PLATE_STATE.Finished:
             map = self.__next_plate.to_map()
             self.__current_plate.from_map(map)
-            self.__next_plate.to_state_begin()
 
     def __create_plan_for_next_row(self, unplanned_row_id):
         '''
