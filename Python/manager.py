@@ -75,9 +75,8 @@ class SowerManager():
     def __on_state_working(self):
         if self.__system_turn_on:
             self.__eye.main_loop()   # for single threading
+            self. __planner.main_loop()
             self.__robot_sower.xyz_arm_fill_buffer()
-            self. __planner.try_to_renew_plate()
-            self.__planner.create_plan()
         else:
             self.__goto = self.__on_state_begin
 
