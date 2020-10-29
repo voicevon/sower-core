@@ -19,7 +19,12 @@ class RobotSower():
         self.__next_plate = Plate()
 
         self.__chessboard = Chessboard()
-
+        
+        self.__servos.setup(self.__xyz_arm.pickup_then_place_to_cell)
+        self.__xyz_arm.setup(mqtt, None)
+        self.__xyz_arm.connect_to_marlin()
+        self.__xyz_arm.Init_Marlin()
+        self.__xyz_arm.init_and_home()
     def get_chessboard(self):
         return self.__chessboard
 

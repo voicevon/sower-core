@@ -41,13 +41,7 @@ class SowerManager():
         on_eye_got_new_plate_callbacks = []
         on_eye_got_new_plate_callbacks.append(self.__planner.on_eye_got_new_plate)
         on_eye_got_new_plate_callbacks.append(self.__robot_sower.on_eye_got_new_plate)
-        self.__eye.setup(mqtt, self.__robot_sower.on_eye_got_new_plate_callbacks)
-
-        self.__servos.setup(self.__xyz_arm.pickup_then_place_to_cell)
-        self.__xyz_arm.setup(mqtt, None)
-        self.__xyz_arm.connect_to_marlin()
-        self.__xyz_arm.Init_Marlin()
-        self.__xyz_arm.init_and_home()
+        self.__eye.setup(mqtt, on_eye_got_new_plate_callbacks)
 
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
@@ -80,10 +74,10 @@ class SowerManager():
 
     def __on_state_working(self):
         if self.__system_turn_on:
-            self.__eye.main_loop()
-            self.robot_sower.xyz_arm_fill_buffer()
+            self.__eye.main_loop()   # for single threading
+            self.__robot_sower.xyz_arm_fill_buffer()
+            self. __planner.try_to_renew_plate()
             self.__planner.create_plan()
-            self. __try_to_renew_plate()
         else:
             self.__goto = self.__on_state_begin
 

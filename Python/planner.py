@@ -7,6 +7,12 @@ class Planner():
         self.__current_plate = Plate()
         self.__next_plate = Plate()
         self.__chessboard = chessboard
+    
+    def on_eye_got_new_plate(self, result):
+        if True:
+            # For solution voicevon@gmail.com
+            plate_map = result
+            self.__next_plate.from_map(plate_map)
 
     def create_plan(self):
         if self.__current_plate.state == PLATE_STATE.Mapped:
@@ -15,7 +21,7 @@ class Planner():
                 # get shadow rows. should be counted in range(1,4)
                 # return unplanned_row_id
                 self.__create_plan_for_next_row(unplanned_row_id)
-
+                
     def __try_to_renew_plate(self):
         #Check whether current plate is finished    ??
         if self.__current_plate.state == PLATE_STATE.Finished:
