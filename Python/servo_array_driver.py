@@ -50,7 +50,10 @@ class ServoArrayDriver():
 
     def __init__(self):
         self.__layout = [([0] * 8) for i in range(16)]
+        self.__rows_range = range(0, 3)
+        self.__cols_range = range(0, 8)
         self.__callback_fill_cell = None
+        self.chessboard_map = (0, 0, 0)
 
     def __send_command(self, code):
         waitting_mil_second = 0
@@ -66,7 +69,27 @@ class ServoArrayDriver():
     def send_new_platmap(self, plate_map):
         # send map via serial port
         pass
+    
+    def receive_chessboard_map(self):
+        '''
+        receive from serial port
+        '''
+        pass
 
+    def get_first_empty_cell(self):
+        for row_id in self.__rows_range:
+            for col_id in self.__cols_range:
+                flag = self.chessboard_map[row_id] & 1 << col_id
+                if flag:
+                    return row_id, col_id
+        return (-1,-1)
+
+    def inform_minghao(self, row_id, col_id):
+        # update map
+        self.chessboard_map[row_id] += 1 << col_id
+        # send new map to sub system via serial port
+        self.serial.write(self.chessboard_map)
+    
     def on_servo_updated(self, top_buffer_map):
         if True:
             # one or more cells are empty now, place a seed to the cell with xyz_arm

@@ -54,6 +54,17 @@ class RobotSower():
             self.__xyz_arm.pickup_from_warehouse()
             self.__xyz_arm.place_to_cell(row, col)
             self.__chessboard.set_one_cell(row, col)
+    
+    def xyz_arm_fill_chessboard_for_minghao(self):
+        row, col = self.__servos_minghao.get_first_empty_cell()
+        if row >= 0:
+            # TODO: this is a long time processing, should start a new thread 
+            self.__xyz_arm.pickup_from_warehouse()
+            self.__xyz_arm.place_to_cell(row, col)
+            self.__chessboard.set_one_cell(row, col)
+            # update map and send new map to Minghao's subsystem
+            self.__servos_minghao.inform_minghao(row, col)
+            
 
     def main_loop(self):
         self.xyz_arm_fill_buffer()

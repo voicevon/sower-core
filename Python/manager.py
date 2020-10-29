@@ -76,7 +76,7 @@ class SowerManager():
         if self.__system_turn_on:
             self.__eye.main_loop()   # for single threading
             self. __planner.main_loop()
-            self.__robot_sower.xyz_arm_fill_buffer()
+            self.__robot_sower.main_loop()
         else:
             self.__goto = self.__on_state_begin
 
@@ -86,8 +86,6 @@ class SowerManager():
     def __on_state_emergency_stop(self):
         if self.__mqtt_system_on:
             self.__goto = self.__on_state_begin
-
-
 
     def release_servos_action(self):
         row_id = self.next_enter_row_id()
@@ -102,9 +100,6 @@ class SowerManager():
                         servos_action.bytes[0] += 1
         self.__servos.output_i2c(servos_action.bytes)
         self.__chessboard.on_servos_released(servos_action.bytes)
-
-
-
 
 
     def main_loop(self):
