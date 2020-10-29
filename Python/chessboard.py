@@ -17,13 +17,13 @@ class ChessboardCell():
 
 # class CHESSBOARD_ROW_STATE(Enum):
 
-class ChessboardRow():
-    def __init__(self):
-        # self.state = CHESSBOARD_ROW_STATE.Unplanned  # Unplanned, Planed, Executing, Executed
-        self.planned_action = 0
+# class ChessboardRow():
+#     def __init__(self):
+#         # self.state = CHESSBOARD_ROW_STATE.Unplanned  # Unplanned, Planed, Executing, Executed
+#         self.planned_action = 0
         
-    def set_plan(self,action):
-        self.planned_action = action
+#     def set_plan(self,action):
+#         self.planned_action = action
 
 class Chessboard():
     '''
@@ -38,37 +38,55 @@ class Chessboard():
     '''
     def __init__(self):
         # self.rows = list(ChessboardRow)
-        self.rows = []
-        self.__row_id_to_be_planned = 0
+        self.cells = []
+        # self.__row_id_to_be_planned = 0
+        # self.size = (8,3)
+        self.__row_range = range(0, 3)
+        self.__col_range = range(0, 8)
 
     def get_one_empty_cell(self):
-        row_id = 0
-        col_id = 2
-        if True:
-            return row_id, col_id
-        
+        for row_id in self.__row_range:
+            for col_id in self.__col_range:
+                if self.cells[row_id][col_id].state == CHESSBOARD_CELL_STATE.Empty:
+                    return row_id, col_id
         return None
 
-    def get_row_to_plan(self):
-        return self.rows[self.__row_id_to_be_planned]
+    def is_planned_cell(self, row_id, col_id):
+        # for row_id in self.__row_range:
+        #     for col_id in self.__col_range:
+        if self.cells[row_id][col_id].state == CHESSBOARD_CELL_STATE.PlannedToDrop:
+            return True
+        else:
+            return False
 
-    def get_next_empty_row_id_in_plan(self):
-        empty_col_id = -1
-        if True:
-             empty_col_id =7
+
+    # def get_row_to_plan(self):
+    #     return self.rows[self.__row_id_to_be_planned]
+
+    # def get_next_empty_row_id_in_plan(self):
+    #     empty_col_id = -1
+    #     if True:
+    #          empty_col_id =7
         
-        return empty_col_id
+    #     return empty_col_id
 
-    def set_one_cell(self, row_id, col_id):
+    # def set_one_cell(self, row_id, col_id):
 
-        rowl_map = self.rows[row_id]
-        rowl_map |= 1 << col_id
-        self.rows[row_id]= rowl_map
+    #     rowl_map = self.rows[row_id]
+    #     rowl_map |= 1 << col_id
+    #     self.rows[row_id]= rowl_map
 
-    def on_servos_released(self, bytes):
+    def execute_plan(self):
         '''
         some cells becomes empty
         '''
-        for row_id in range(0, len(bytes)):
-            self.rows[row_id] = bytes[row_id]
+        for row_id in range(0, 3):
+            for col_id in range(0, 8):
+                this_cell = self.cells[row_id][col_id]
+                if this_cell.state == CHESSBOARD_CELL_STATE.PlannedToDrop:
+                    this_cell.state = CHESSBOARD_CELL_STATE.Empty
+
+
+    # def on_servos_released(self, bytes):
+
             

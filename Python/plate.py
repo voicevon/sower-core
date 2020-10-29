@@ -90,7 +90,10 @@ class Plate():
         # self.encoder_distance = 0
         self.__plate_counter = 0
 
-
+    def is_empty_cell(self, row_id, col_id):
+        if self.rows[row_id].cells[col_id].state == PLATE_CELL_STATE.Emppty_Unplanned:
+            return True
+        return False
 
     def get_row_map(self, row_id):
         '''
@@ -124,7 +127,7 @@ class Plate():
         for row_id in range(target_row, target_row -3, -1):
             if row_id >= 0:
                 rows.append(rows[row_id])
-
+        return rows
     # def finished_plan_for_this_row(self, target_row_id):
     #     self.rows[target_row_id].planed = True
 

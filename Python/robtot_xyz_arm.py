@@ -1,8 +1,8 @@
 import sys
 # sys.path.append('C:\\gitlab\\bot\\python\\reprap')  # on windows
 # sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on linux
-sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
-# sys.path.append('/home/xm/bot/python/reprap')   # on Jetson Nano xuming
+# sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
+sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on Jetson Nano xuming
 
 from reprap_arm import ReprapArm
 

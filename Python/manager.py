@@ -13,10 +13,10 @@ from mqtt_agent import MqttAgent
 
 from robot_eye import RobotEye
 from robot_sensors import RobotSensors
-from xyz_arm import XyzArm
+from robot_xyz_arm import XyzArm
 from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
 from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
-from servos import Servos
+from rebot_servos import Servos
 
 class SowerManager():
 
@@ -141,19 +141,15 @@ class SowerManager():
 
         shadow_rows = self.__current_plate.get_shadow_rows(unplanned_row_id)
         for row_index in range (0, len(shadow_rows)):
-            plate_row = self.__current_plate.get_row_map(unplanned_row_id + row_index)
-            chessboard_row = self.__chessboard.get_row_map(row_index)
             this_row_is_full = True
-            for col in range(0, 8):
+            for col_id in range(0, 8):
                 # Compare two cells between chessboard_cell and plate_cell
-                plate_cell = PlateCell()
-                plate_cell.from_row_col(unplanned_row_id + row_index, col)
-                chessboard_cell = ChessboardCell()
-                chessboard_cell.from_row_col(row_index, col)
-                if plate_cell.state == PLATE_CELL_STATE.Emppty_Unplanned:
+                plate_row_id = row_index + unplanned_row_id
+                if self.__current_plate.is_empty_cell(plate_row_id, col_id):
                     # Got an empty plate_cell, Let's see whether we can refill this cell.
-                    if chessboard_cell.state == CHESSBOARD_CELL_STATE.Unplanned:
-                        # got a matched cell from chessboard
+                    if self.__chessboard.is_planned_cell(row_index, col_id):
+                        # got a matched cell from chessboard, Save plan
+                        
                         plate_cell.to_state(PLATE_CELL_STATE.Empty_Planned)
                         chessboard_cell.to_state(CHESSBOARD_CELL_STATE.PlannedToDrop)
                     else:
@@ -172,7 +168,7 @@ class SowerManager():
         for row_id in shadow_rows:
             if row_id >=0:
                 for col_id in range(8, 0, -1):
-                    if self.rows[row_id + offset].state == PLATE_CELL_STATE.Empty_Planned 
+                    if self.rows[row_id + offset].state == PLATE_CELL_STATE.Empty_Planned:
                         servos_action.bytes[0] *= 2
                         servos_action.bytes[0] += 1
         self.__servos.output_i2c(servos_action.bytes)

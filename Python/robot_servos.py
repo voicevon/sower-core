@@ -60,12 +60,12 @@ class Servos():
         # kit[1] is the top servo
         print("Done initializing")
         while True:
-            sweep = range(0,180)
+            # sweep = range(0,180)
             #for degree in sweep:
             kit.servo[0].angle=180
 
     def append_planned_action(self, servos_action):
-            self.__planned_actions.append(servos_action)
+        self.__planned_actions.append(servos_action)
 
     def output_i2c(self, row_id):
         # https://learn.adafruit.com/circuitpython-libraries-on-linux-and-the-nvidia-jetson-nano?view=all#i2c-sensors-devices
@@ -77,12 +77,11 @@ class Servos():
     def main_loop(self):
         pass
 
-def callback(row_id):
-    print(row_id)
+
 
 
 if __name__ == "__main__":
     pass
-    servos = Servos(callback)
+    servos = Servos()
     while True:
         servos.main_loop()
