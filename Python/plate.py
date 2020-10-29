@@ -2,6 +2,7 @@
 
 # from servos import Servos_action
 
+from enum import Enum
 
 class PLATE_CELL_STATE(Enum):
     Emppty_Unplanned = 1
@@ -29,10 +30,10 @@ class PlateCell():
         return table[self.state]
 
 
-# class PLATE_ROW_STATE(Enum):
-#     Unplanned_Or_OnPlanning = 1
-#     Planned = 2
-#     InBuffer = 3        # Plan becomes to Action.
+class PLATE_ROW_STATE(Enum):
+    Unplanned_Or_OnPlanning = 1
+    Planned = 2
+    Executed = 3        # Plan becomes to Action.
 
 
 class PlateRow():
@@ -41,19 +42,18 @@ class PlateRow():
     '''
     def __init__(self, id):
         self.id = id
-        # self.cells=list(bool)
+        # self.cells=list(PlateCell)
         self.cells=[]
         self.config_cols_lenth = 8
-        self.is_planned = False
-        # for i in range(0, self.config_cols_lenth):
-        #     self.cells.append(True)
+        self.state = PLATE_ROW_STATE.Unplanned_Or_OnPlanning
 
 
     def from_row_map(self, row_map):
         for i in range(0,len(row_map)):
             cell = PlateCell()
             cell.from_cell_map(row_map[i])
-            self.cells.append(cell)    
+            self.cells.append(cell)  
+        self.state = PLATE_ROW_STATE.Unplanned_Or_OnPlanning   #????  
     
     def print_out(self, string_head, string_tail):
         out = string_head
@@ -92,15 +92,8 @@ class Plate():
             return True
         return False
 
-    # def set_cell_state_empty_planned(self, row_id, col_id):
     def set_cell_planned(self, row_id, col_id):
         self.rows[row_id].cells[col_id].state = PLATE_CELL_STATE.Empty_Planned
-
-    def get_row_map(self, row_id):
-        '''
-        return an array of empty cells in a row.
-        '''
-        return self.rows[row_id]
 
     def from_map(self, cells_map): 
         # print(cells_map)
@@ -125,7 +118,7 @@ class Plate():
                 row_id_string = '0' + row_id_string 
             row.print_out(row_id_string + '--  ','')
 
-    def get_unplanned_row_id(self):
+    def get_first_unplanned_row_id(self):
         for row_id in range(0,16):
             if not  self.rows[row_id].is_planned:
                 return row_id
@@ -142,9 +135,7 @@ class Plate():
 
 
     def main_loop(self):
-        # pass
-        print('Plate_id, row_id, encoder_distance %i, %i, %i' %(self.__plate_counter, self.next_enter_row_id, self.encoder_distance))
-        # print(GPIO.input(self.__PIN_IR_SWITCH))
+        pass
 
 
 if __name__ == "__main__":

@@ -3,12 +3,13 @@
 from plate import Plate, PlateRow, PlateCell, PLATE_STATE, PLATE_CELL_STATE
 
 class Planner():
+
     def __init__(self, chessboard):
         self.__current_plate = Plate()
         self.__next_plate = Plate()
         self.__chessboard = chessboard
     
-    def on_eye_got_new_plate(self, result):
+    def update_next_plate_from_eye_result(self, result):
         if True:
             # For solution voicevon@gmail.com
             plate_map = result
@@ -16,8 +17,8 @@ class Planner():
 
     def create_plan(self):
         if self.__current_plate.state == PLATE_STATE.Mapped:
-            unplanned_row_id = self.__current_plate.get_unplanned_row_id()
-            if unplanned_row_id in range(0,16):
+            unplanned_row_id = self.__current_plate.get_first_unplanned_row_id()
+            if unplanned_row_id in range(0,18):
                 # get shadow rows. should be counted in range(1,4)
                 # return unplanned_row_id
                 self.__create_plan_for_next_row(unplanned_row_id)
@@ -62,7 +63,7 @@ class Planner():
                     if self.__chessboard.is_planned_cell(row_index, col_id):
                         # got a matched cell from chessboard, Save plan, to plate and chessboard
                         self.__current_plate.set_cell_planned(plate_row_id, col_id)
-                        self.__chessboard.set_cell_planned(row_index, col_id)
+                        self.__chessboard.set_cell_planned(plate_row_id, row_index, col_id)
                     else:
                         # Can't get matched cell from chessboard
                         this_row_is_full = False
@@ -71,3 +72,6 @@ class Planner():
                 # all cells in this row are filled or refilled in plan
                 self.__current_plate.finished_plan_for_this_row(unplanned_row_id)
 
+    def main_loop(self):
+        self.create_plan()
+        self.__try_to_renew_plate()

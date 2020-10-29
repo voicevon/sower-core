@@ -47,8 +47,6 @@ class Servos():
     # https://elinux.org/Jetson/I2C
     def __init__(self):
         self.last_finished_row = 0
-        # self.__callback = callback_on_finished_one_row
-        # self.__planned_actions = list(Servos_action)
         self.__planned_actions = []
 
     def setup(self):
@@ -65,19 +63,12 @@ class Servos():
             kit.servo[0].angle=180
 
     def append_planned_action(self, servos_action):
+        # ??? 
         self.__planned_actions.append(servos_action)
 
     def output_i2c(self, row_id):
         # https://learn.adafruit.com/circuitpython-libraries-on-linux-and-the-nvidia-jetson-nano?view=all#i2c-sensors-devices
         pass
-
-
-
-
-    def main_loop(self):
-        pass
-
-
 
 
 if __name__ == "__main__":
