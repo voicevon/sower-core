@@ -20,6 +20,8 @@ class RobotSensors():
 
         self.__encoder_distance_per_row = 200
         self.__encoder_distance = -12345
+        self.__current_plate_enter_point = 0
+        self.__next_plate_enter_point = 0
         self.coming_row_id  = -1
         self.current_speed = 30
         '''
@@ -40,7 +42,8 @@ class RobotSensors():
 
     def on_gpio_rising(self, channel):
         if channel == self.__PIN_IR_SWITCH:
-            self.__encoder_distance = -12345
+            # There are two plates in operation.
+            self.__next_plate_enter_point = self.__encoder_distance
 
         elif channel == self.__PIN_ENCODER_A:
             self.__encoder_distance += 1
@@ -49,6 +52,10 @@ class RobotSensors():
                 # current row must be fininshed. new row is coming
                 self.__on_new_row_enter()
 
+    def update_current_plate(self):
+        self.__current_plate_enter_point = self.__next_plate_enter_point
+
+        
     # def on_gpio_falling(self, channel):
     #     if channel == self.__PIN_IR_SWITCH:
     #         self.coming_row_id = -1

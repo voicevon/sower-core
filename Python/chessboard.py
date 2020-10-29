@@ -59,6 +59,8 @@ class Chessboard():
         else:
             return False
 
+    def set_cell_planned(self, row_id, col_id):
+        self.cells[row_id, col_id].state = CHESSBOARD_CELL_STATE.PlannedToDrop
 
     # def get_row_to_plan(self):
     #     return self.rows[self.__row_id_to_be_planned]

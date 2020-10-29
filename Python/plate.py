@@ -83,17 +83,18 @@ class Plate():
         # self.rows = list(PlateRow)
         self.rows = []
         self.state = PLATE_STATE.Started
-        self.has_got_map = False
-        # self.callback_release_servos = callback_release_servos
 
         self.next_enter_row_id = 0
-        # self.encoder_distance = 0
         self.__plate_counter = 0
 
     def is_empty_cell(self, row_id, col_id):
         if self.rows[row_id].cells[col_id].state == PLATE_CELL_STATE.Emppty_Unplanned:
             return True
         return False
+
+    # def set_cell_state_empty_planned(self, row_id, col_id):
+    def set_cell_planned(self, row_id, col_id):
+        self.rows[row_id].cells[col_id].state = PLATE_CELL_STATE.Empty_Planned
 
     def get_row_map(self, row_id):
         '''
@@ -110,6 +111,13 @@ class Plate():
             self.rows.append(row)
         self.state = PLATE_STATE.Mapped
 
+    def to_map(self):
+        map=[]
+        for row_id in range(0, len(self.rows)):
+            for col_id in range(0,8):
+                map.append( self.rows[row_id].cells[col_id].state)
+        return map
+
     def print_out_map(self):
         for row in self.rows:
             row_id_string = str(row.id)
@@ -122,14 +130,15 @@ class Plate():
             if not  self.rows[row_id].is_planned:
                 return row_id
 
-    def get_shadow_rows(self, target_row):
-        rows = []
-        for row_id in range(target_row, target_row -3, -1):
-            if row_id >= 0:
-                rows.append(rows[row_id])
-        return rows
-    # def finished_plan_for_this_row(self, target_row_id):
-    #     self.rows[target_row_id].planed = True
+    def get_shadow_rows_range(self, target_row):
+        range_max = target_row
+        range_min = target_row - 2
+        if range_min < 0:
+            range_min = 0
+        return range(range_min, range_max)
+
+    def finished_plan_for_this_row(self, target_row_id):
+        self.rows[target_row_id].planed = True
 
 
     def main_loop(self):

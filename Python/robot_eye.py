@@ -14,25 +14,6 @@ import json
 import time
 
 
-
-#class eye_config:
-#    topic_outside ={'width':16, 'height':8}
-#    topic_inside_camera = {'trigger_mode':2, 'trigger_type':2}
-#   
-#   
-#   class outside:
-#        width = 16
-#        height = 8
-#    class inside:
-#        class camera:
-#            id = 1
-#        class detector:
-#            class roi:
-#                a = 1
-#                b = 2
-#                f = 3
-#
-
 class myCamera(object):
     """
     acquire the image in callback method
@@ -143,8 +124,6 @@ class myCamera(object):
         self.frame = frame.reshape((FrameHead.iHeight, FrameHead.iWidth,
                                     1 if FrameHead.uiMediaType == mvsdk.CAMERA_MEDIA_TYPE_MONO8 else 3))
         self.frame_id += 1
-        #cv2.imshow('bai cap', self.frame)
-        #cv2.imwrite('bai_raw.jpg', self.frame)
         print('[Info] robot_eye.py: get image, id = ', self.frame_id)
 
     def release(self):
@@ -177,14 +156,10 @@ class corn_detection(object):
         except:
             self.ROI = None
             return self.ROI
-        #cv2.imshow('bai extract roi', raw_img)
-        #cv2.waitKey(0)
 
         H_img = cv2.cvtColor(raw_img, cv2.COLOR_RGB2GRAY)
         res, img_detected = cv2.threshold(H_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         img_detected = cv2.morphologyEx(img_detected, cv2.MORPH_CLOSE, kernel=(5, 5))
-        #chy = cv2.findContours(img_detected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
-        #print(chy[0],chy[1])
         img, contours, hierarchy = cv2.findContours(img_detected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
         areas = []
         contour = []
@@ -250,20 +225,16 @@ class corn_detection(object):
                     if display:
                         cv2.rectangle(self.corn_img, (x,y),(x+w,y+h), (0, 0, 255), 5)  # 绘制矩形
             # contours = np.array(contours)
-            # print(contours)
             # cont_res = contours[np.argwhere(areas > max_area / theshold_size).squeeze()]  # 计算有效玉米轮廓
-            # print(cont_res)   
             #if display:
             #    cv2.drawContours(self.corn_img, cont_res, -1, (255, 0, 0), 2)  # 绘制轮廓
                 #cv2.drawContours(self.corn_img, cont_res.tolist(), -1, (255, 0, 0), 2)  # 绘制轮廓
 
             interval_h = int(self.ROI[3] /2 / self.tray_height)  # 穴大小
             interval_w = int(self.ROI[2] / 2/ self.tray_width)
-            #print("int_h:", interval_h, "int_w:", interval_w)
 
             for row in range(self.tray_height):
                 for col in range(self.tray_width):
-                    #tray_rect = [self.ROI[0] + interval_w * col, self.ROI[1] + interval_h * row]
                     tray_rect = [interval_w * col, interval_h * row]
                     # 遍历找到的所有玉米粒
                     for cont in cont_res:
@@ -294,9 +265,9 @@ class RobotEye(object):
         t = threading(self.__main_task)
         t.start
 
-    def setup(self, mqtt, callback):
+    def setup(self, mqtt, callbacks):
         self.__mqtt = mqtt
-        self.__on_got_new_plate_callback = callback
+        self.__on_got_new_plate_callback = callbacks
         #self.__mqtt.subscribe("sower/eye/outside/width")
         #self.__mqtt.subscribe("sower/eye/outside/height")
         #self.__mqtt.subscribe("sower/eye/inside/camera/config_file")
@@ -321,7 +292,6 @@ class RobotEye(object):
             print('[Error] robot_eye.py line [321]: camera open failed!')
         if self.__camera_config.get('config_file', "") != "":
             self.__camera.config(self.__camera_config['config_file'])
-            #print("camera config from file!")
         else:
             trigger_mode = self.__camera_config.get('trigger_mode', 2)
             trigger_type = self.__camera_config.get('trigger_type', 1)
@@ -340,14 +310,12 @@ class RobotEye(object):
 
     def __main_task(self):
         # Try to get a plate map, When it happened, invoke the callback
-        #self.__camera.open()  # open camera
         message_id = 0
         last_frame_id = 0
         if self.__camera.isopen:
             # while self.__mqtt.mqtt_system_turn_on:
             while True:   #TODO
                 if self.__camera.frame_id != last_frame_id:
-                    #print('capture image done')
                     last_frame_id = self.__camera.frame_id
                     if self.__detect_config.get('ROI', []):
                         if len(self.__detect_config['ROI']) == 4 and self.__detect_config['ROI'][0] != 0 \
@@ -383,22 +351,13 @@ class RobotEye(object):
                             img_pub = img_encode.tobytes()
                             self.__mqtt.publish("sower/img/bin", img_pub, retain=True)
                             print("[Info] robot_eye.py: publish image done!")
-                    #self.__on_got_new_plate_callback(result, cap_img)
 
 
     def on_mqtt_message(self, topic, payload):
         # will be invoked from manager, not mqtt_client directly
         # only the topic like "sower/eye/*" would trigger the invoking.
 
-
-        #topic_outside ={'width':16, 'height':8}
-        #topic_inside_camera = {'trigger_mode':2, 'trigger_type':2}
-        #for k,v in topic_outside:
-        #    if topic == 'sower/eye/outside/' + k
-        #    self.__tray_config[topic] = int (payload)
-        
         print("[Info] robot_eye.py: received message: ",topic, payload)
-        #self.__detect_config['ROI'] = [0,0,0,0]
         if topic == "sower/eye/outside/width":
             self.__tray_config['width'] = int(payload)
         elif topic == "sower/eye/outside/height":
@@ -426,62 +385,25 @@ class RobotEye(object):
                 self.__detect_config['display'] = False
         elif topic == "sower/eye/inside/detect/roi/x":
             self.__detect_config['ROI'][0] = int(payload)
-            #print("ROI.x:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/y":
             self.__detect_config['ROI'][1] = int(payload)
-            #print("ROI.y:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/width":
             self.__detect_config['ROI'][2] = int(payload)
-            #print("ROI.w:",int(payload))
         elif topic == "sower/eye/inside/detect/roi/height":
             self.__detect_config['ROI'][3] = int(payload)
-            #print("ROI.h:",int(payload))
+        elif topic == "sower/eye/inside/camera/soft_trigger":
+            if self.__camera_config['trigger_mode'] == 1:
+                mvsdk.CameraClearBuffer(self.__camera.hCamera)
+                mvsdk.CameraSoftTrigger(self.__camera.hCamera)
 
 
         if self.__tray_config.get('width') is not None and self.__tray_config.get('height') is not None:
             self.__corn_detect.__init__(self.__tray_config['height'], self.__tray_config['width'])
             print('[Info] robot_eye.py: tray config done!')
 
-        #if topic == "sower/eye/outside/width":
-        #    # payload is like "{"width":16, "height":8}"
-        #    self.__tray_config = json.loads(payload)
-        #    if self.__tray_config.get('width') is not None and self.__tray_config.get('height') is not None:
-        #        self.__corn_detect.__init__(self.__tray_config['height'], self.__tray_config['width'])
-        #elif topic == "sower/eye/inside":
-        #    # payload is like "{        "id": 1
-        #    #                           "camera":
-        #    #                            {
-        #    #                                "trigger mode": 2,
-        #    #                                "trigger type": 0,
-        #    #                                "aestate": false,
-        #    #                                "exposure time": 30,
-        #    #                                "config file": "/home/camera.Config"
-        #    #                            },
-        #    #                    "detect":
-        #    #                            {
-        #    #                               "threshold_R": 200,
-        #    #                               "threshold_G": 200,
-        #    #                               "threshold_B": 150,
-        #    #                               "threshold_size": 8,
-        #    #                               "display": true,
-        #    #                               "ROI": [20,30,500,500]
-        #    #                            }
-        #    #                  }"
-        #    config = json.loads(payload)
-        #    self.__message_id = config['id']
-        #    if config.get('camera') is not None:
-        #        self.__camera_config = config['camera']
-        #    if config.get('detect') is not None:
-        #        self.__detect_config = config['detect']
-
 
 if __name__ == "__main__":
     runner = RobotEye()
-
-
-
-
-
 
 
 
