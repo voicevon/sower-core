@@ -115,8 +115,10 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         # x, y = (180,180)
         self.move_to_xyz(x, y, speed_mm_per_min=18000)
 
+
 if __name__ == "__main__":
     my_arm = XyzArm()
+    my_arm.connect_to_marlin()
     my_arm.init_and_home()
     if False:
         my_arm.calibrate_col_row(2,7)

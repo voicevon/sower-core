@@ -56,7 +56,6 @@ class SowerManager():
             self.__goto = self.__on_state_working
 
     def __on_state_working(self):
-        # print('11111111111111111111111111111111111111111111111111111111111')
         if self.__system_turn_on:
             self.__eye.main_loop()   # for single threading
             self. __planner.spin()

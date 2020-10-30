@@ -50,7 +50,7 @@ class ServoArrayDriver():
             # response_a = self.__serialport.readall()
             response_a = self.__serialport.read(size=1)
             listTestByte = list(response_a)
-            print('>>>>>><<<<<<<' , listTestByte)
+            print('>>>>>><<<<<<<' , len(response_a),listTestByte)
 
             response = bytes.decode(response_a)
             # print('>>>>>>>%s<<<<<<<' % response)
@@ -58,13 +58,15 @@ class ServoArrayDriver():
                 self.__on_received_line(response)
 
     def __init__(self):
-        # self.ServoArray_serial.__init__('dev/ttyUSB1', 115200, self.on_received_chessboard_map)
         self.__COLS = 8
         self.__ROWS = 3
-        self.__SERIAL_PORT_NAME = '/dev/ttyUSB1'
+        self.__SERIAL_PORT_NAME = '/dev/ttyUSB0'
         self.__serial = self.ServoArray_serial(self.__SERIAL_PORT_NAME, 115200, self.on_received_chessboard_map)
         self.__serial.set_echo_on(True)
         self.__serial.connect()
+
+        self.__serial2 = self.ServoArray_serial('/dev/ttyUSB1',115200, self.on_received_chessboard_map)
+        self.__serial2.connect()
 
         self.__rows_range = range(0, self.__ROWS)
         self.__cols_range = range(0, self.__COLS)
@@ -107,6 +109,7 @@ class ServoArrayDriver():
 
     def spin_once(self):
         self.__serial.spin_once()
+        self.__serial2.write_string('abc   ')
 
     def spin(self):
         while True:
