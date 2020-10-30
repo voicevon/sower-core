@@ -1,5 +1,5 @@
 from enum import Enum
-from rebot_servos import Servos
+from robot_servos import Servos
 
 
 class CHESSBOARD_CELL_STATE(Enum):
@@ -33,13 +33,8 @@ class Chessboard():
         self.__servos = Servos()
         self.__row_range = range(0, 3)
         self.__col_range = range(0, 8)
-        self.cells = [self.__row_range, self.__col_range]
-        # Create each cell object for chessboard 
-        for row_id in self.__row_range:
-            for col_id in self.__col_range:
-                cell = ChessboardCell()
-                self.cells[row_id, col_id] = cell
-
+        self.cells = [([ChessboardCell()] * 8) for i in range(3)]
+        
     def get_first_empty_cell(self):
         for row_id in self.__row_range:
             for col_id in self.__col_range:
@@ -88,3 +83,5 @@ class Chessboard():
                     this_cell.state = CHESSBOARD_CELL_STATE.Empty
 
             
+if __name__ == "__main__":
+    test = Chessboard()

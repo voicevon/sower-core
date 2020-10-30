@@ -19,10 +19,10 @@
 import time
 import board  # pip3 install adafruit-blinka
 import busio
-from adafruit_servokit import ServoKit
+from adafruit_servokit import ServoKit  # pip3 install adafruit-circuitpython-servokit
 
 # import adafruit_pca9685 # sudo pip3 install adafruit-circuitpython-pca9685 ???? Looks like this is a micro-python libery
-# from adafruit_servokit import ServoKit  # sudo pip3 install adafruit-circuitpython-servokit
+# from adafruit_servokit import ServoKit  
 # import adafruit_motor.servo
 # View GPIO pinout
 #   sudo /opt/nvidia/jetson-io/jetson-io.py
@@ -72,7 +72,4 @@ class Servos():
 
 
 if __name__ == "__main__":
-    pass
     servos = Servos()
-    while True:
-        servos.main_loop()

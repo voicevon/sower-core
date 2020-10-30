@@ -14,6 +14,10 @@ class app_config:
             port = 1883
             username = 'von'
             password = 'von1970'
+            class subscript_topics:
+                topics = ['sower/arm/',
+                                 'sower/eye/',
+                                 ]
 
     class robot_arms:
         name = 'Cartisian'
