@@ -20,6 +20,7 @@ class SowerManager():
     def __init__(self):
         # self.__mqtt_agent = MqttAgent()
         g_mqtt.connect_broker()
+        # app_config.g.mqtt.connect_broker()
         # self.mqtt_client = self.__mqtt_agent.connect()
         self.__eye = RobotEye()
         # self.__robot_sower = RobotSower(self.mqtt_client)
@@ -38,6 +39,7 @@ class SowerManager():
         # subscribe all topics from config files
         for topic in app_config.server.mqtt.subscript_topics.topic_dict.keys():
             g_mqtt.subscribe(topic)
+            # app_config.g.mqtt.subscribe(topic)
 
         print('MQTT subscription is done')
 
@@ -90,7 +92,7 @@ class SowerManager():
 
 
     def main_loop(self):
-        self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 
+        # self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 
         last_function = self.__goto
         self.__goto()
         if last_function != self.__goto:

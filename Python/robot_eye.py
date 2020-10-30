@@ -258,6 +258,7 @@ class RobotEye(object):
         self.__camera_config = dict() 
         self.__detect_config = {'ROI': [80,405,1872,975]}
         self.__tray_config = dict()
+        g_mqtt.append_on_message_callback(self.on_mqtt_message)
 
     def start_with_new_thread(self, mqtt):
         self.__running_on_my_own_thread = True
@@ -305,6 +306,7 @@ class RobotEye(object):
         # stop my_own_thread
         self.__running_on_my_own_thread = False
         self.__main_task()
+        
 
     def __main_task(self):
         # Try to get a plate map, When it happened, invoke the callback
@@ -354,6 +356,7 @@ class RobotEye(object):
                             g_mqtt.publish("sower/img/bin", img_pub, retain=True)
                             print("[Info] robot_eye.py: publish image done!")
 
+    
 
     def on_mqtt_message(self, topic, payload):
         # will be invoked from manager, not mqtt_client directly

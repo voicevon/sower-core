@@ -1,10 +1,12 @@
 
 from datetime import datetime
+# from mqtt_helper import MqttHelper
 import cv2
 
 
 class app_config:
-
+    # class g:
+    #     mqtt = MqttHelper()
     class path:
         text_color = '/home/xm/gitrepo/ros_marlin_bridge/perfect'
 
@@ -81,11 +83,5 @@ class CvDebugger():
 
 
 if __name__ == "__main__":
-    global_config = app_config
-    s1 = global_config.robot_arm.name
-    print(s1)
+    pass
 
-    global_config.robot_arm.name = 'test'
-    s1 = global_config.robot_arm.name
-    print(s1)
- 
