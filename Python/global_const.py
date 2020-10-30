@@ -16,7 +16,7 @@ class app_config:
             password = 'von1970'
             class subscript_topics:
                 topics = {'sower/arm/': 12,
-                                 'sower/eye/', 13,
+                                 'sower/eye/': 13,
                 }
 
     class robot_arms:
