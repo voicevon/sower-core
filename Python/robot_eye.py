@@ -14,8 +14,11 @@ import threading
 import json
 import time
 
+import sys
+sys.path.append('/home/znkzjs/bot/python')
+from singleton import Singleton
 
-class myCamera(object):
+class myCamera(metaclass=Singleton):
     """
     acquire the image in callback method
     """

@@ -7,12 +7,10 @@ from color_print import const
 
 import paho.mqtt.client as mqtt
 
-class Singleton(type):
-    _instances = {}
-    def __call__(cls, *args, **kwargs):
-        if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
-        return cls._instances[cls]
+sys.path.append('/home/znkzjs/bot/python')
+from singleton import Singleton
+
+
 
 # class MqttHelper(mqtt.Client):
 class MqttHelper(metaclass=Singleton):

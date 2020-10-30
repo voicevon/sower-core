@@ -2,6 +2,10 @@ from enum import Enum
 from robot_servos import Servos
 from global_const import  app_config
 
+import sys
+sys.path.append('/home/znkzjs/bot/python')
+from singleton import Singleton
+
 
 class CHESSBOARD_CELL_STATE(Enum):
     Empty = 1
@@ -19,7 +23,7 @@ class ChessboardCell():
         self.planned_to_drop_for_plate_row_id = 0
         self.state = CHESSBOARD_CELL_STATE.Empty # Empty, filled_no_plan, planned_to_drop, 
 
-class Chessboard():
+class Chessboard(metaclass=Singleton):
     '''
     The Chessboard is a 2D  array .
         Rows from right to left

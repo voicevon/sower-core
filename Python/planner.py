@@ -7,7 +7,6 @@ class Planner():
     def __init__(self):
         self.__current_plate = Plate()
         self.__next_plate = Plate()
-        self.__chessboard = g_chessboard
     
     def update_next_plate_from_eye_result(self, result):
         if True:
@@ -59,10 +58,10 @@ class Planner():
                 plate_row_id = row_index + unplanned_row_id
                 if self.__current_plate.is_empty_cell(plate_row_id, col_id):
                     # Got an empty plate_cell, Let's see whether we can refill this cell.
-                    if self.__chessboard.is_planned_cell(row_index, col_id):
+                    if g_chessboard.is_planned_cell(row_index, col_id):
                         # got a matched cell from chessboard, Save plan, to plate and chessboard
                         self.__current_plate.set_cell_planned(plate_row_id, col_id)
-                        self.__chessboard.set_cell_planned(plate_row_id, row_index, col_id)
+                        g_chessboard.set_cell_planned(plate_row_id, row_index, col_id)
                     else:
                         # Can't get matched cell from chessboard
                         this_row_is_full = False
@@ -74,3 +73,7 @@ class Planner():
     def main_loop(self):
         self.create_plan()
         self.__try_to_renew_plate()
+
+
+if __name__ == "__main__":
+    pass

@@ -18,13 +18,8 @@ from robot_sower  import RobotSower
 class SowerManager():
 
     def __init__(self):
-        # self.__mqtt_agent = MqttAgent()
         g_mqtt.connect_broker()
-        # app_config.g.mqtt.connect_broker()
-        # self.mqtt_client = self.__mqtt_agent.connect()
         self.__eye = RobotEye()
-        # self.__robot_sower = RobotSower(self.mqtt_client)
-        # phy_chessboard = self.__robot_sower.get_chessboard()
         self.__planner = Planner()
 
         self.__coming_row_id_of_current_plate = 0
@@ -39,7 +34,6 @@ class SowerManager():
         # subscribe all topics from config files
         for topic in app_config.server.mqtt.subscript_topics.topic_dict.keys():
             g_mqtt.subscribe(topic)
-            # app_config.g.mqtt.subscribe(topic)
 
         print('MQTT subscription is done')
 
