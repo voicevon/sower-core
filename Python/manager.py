@@ -17,35 +17,40 @@ from robot_sower  import RobotSower
 class SowerManager():
 
     def __init__(self):
+        self.__mqtt_agent = MqttAgent()
+        self.mqtt_client = self.__mqtt_agent.connect()
         self.__eye = RobotEye()
-        self.__robot_sower = RobotSower()
+        self.__robot_sower = RobotSower(self.mqtt_client)
         phy_chessboard = self.__robot_sower.get_chessboard()
         self.__planner = Planner(phy_chessboard)
 
         self.__coming_row_id_of_current_plate = 0
 
         self.__goto = self.__on_state_begin
-        # self.__goto = self.__on_state_test_mqtt
-        # self.__mqtt = None
-        self.__mqtt_agent = MqttAgent()
         self.__system_turn_on = False
 
         self.__YELLOW = const.print_color.fore.yellow
         self.__GREEN = const.print_color.fore.green
         self.__RESET = const.print_color.control.reset
 
-    def setup(self):
-        mqtt = self.__mqtt_agent.connect()
-        self.__mqtt_agent.connect_eye(self.__eye.on_mqtt_message)
-        # self.__eye.setup(self.__mqtt_agent, self.__on_eye_got_new_plate)
-        on_eye_got_new_plate_callbacks = []
-        # on_eye_got_new_plate_callbacks.append(self.__planner.on_eye_got_new_plate)
-        on_eye_got_new_plate_callbacks.append(self.__robot_sower.on_eye_got_new_plate)
-        self.__eye.setup(mqtt, on_eye_got_new_plate_callbacks)
+        # subscribe all topics from config files
+        for topic in app_config.server.mqtt.subscript_topics:
+            self.mqtt_client.subscribe(topic)
+
+
+        solution = app_config.robot_arms.servo_controller.solution 
+        if solution == 'minghao':
+            self.__eye.setup(mqtt, self.__robot_sower.on_eye_got_new_plate)
+        elif solution == 'xuming':
+            self.__eye.setup(mqtt, self.__planner.update_next_plate_from_eye_result)
 
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
         print(self.__RESET)
+
+
+
+
 
     def __on_state_test_mqtt(self):
         # return image as mqtt message payload

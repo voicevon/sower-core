@@ -1,9 +1,10 @@
 from robot_sensors import RobotSensors
 from robot_xyz_arm import XyzArm
 from robot_servo_array import ServoArrayDriver
-from chessboard import ChessboardRow, Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
+from chessboard import  Chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
 from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 
+from global_const import app_config
 
 
 
@@ -28,12 +29,11 @@ class RobotSower():
         return self.__chessboard
 
     def on_eye_got_new_plate(self, plate_array):
-        if True:
-            # For  solution  Minghao
+        solution = app_config.robot_arms.servo_controller.solution
+        if solution == 'minghao':
             new_map = plate_array
             self.__servos_minghao.send_new_platmap(new_map)
-        if False:
-            # For solution voicevon@gmail.com
+        elif solution == 'xuming':
             plate_map = plate_array
             self.__next_plate.from_map(plate_map)
 
@@ -47,27 +47,25 @@ class RobotSower():
         # reload plan from where??
         # self.__chessboard.reload_plan()
 
-    def xyz_arm_fill_buffer(self):
-        row, col = self.__chessboard.get_first_empty_cell()
+    def xyz_arm_fill_chessboard(self):
+        solution = app_config.robot_arms.servo_controller.solution
+        if solution == 'minghao':
+            row, col = self.__servos_minghao.get_first_empty_cell()
+        elif solution == 'xuming':
+            row, col = self.__chessboard.get_first_empty_cell()
+
         if row >= 0:
             # TODO: this is a long time processing, should start a new thread 
             self.__xyz_arm.pickup_from_warehouse()
             self.__xyz_arm.place_to_cell(row, col)
             self.__chessboard.set_one_cell(row, col)
-    
-    def xyz_arm_fill_chessboard_for_minghao(self):
-        row, col = self.__servos_minghao.get_first_empty_cell()
-        if row >= 0:
-            # TODO: this is a long time processing, should start a new thread 
-            self.__xyz_arm.pickup_from_warehouse()
-            self.__xyz_arm.place_to_cell(row, col)
-            self.__chessboard.set_one_cell(row, col)
+        if solution == 'minghao':
             # update map and send new map to Minghao's subsystem
             self.__servos_minghao.inform_minghao(row, col)
 
 
     def main_loop(self):
-        self.xyz_arm_fill_buffer()
+        self.xyz_arm_fill_chessboard()
         if self.__chessboard_need_a_new_plan:    
             plan= self.__current_plate.get_plan()  # always return the plan for next_coming_row
             self.__chessboard.loadplan()

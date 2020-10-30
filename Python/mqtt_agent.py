@@ -21,30 +21,6 @@ class MqttAgent(mqtt.Client):
         self.mqtt_system_turn_on = True
         self.__invoke_eye = None
 
-    def connect_eye(self, invoke_eye):
-        self.__invoke_eye = invoke_eye
-        a,b = self.__mqtt.subscribe("sower/outside/system/state")
-        print('333333333333333333333333333333333')
-        print(a,b)
-        self.__mqtt.subscribe("sower/eye/outside/width")
-        self.__mqtt.subscribe("sower/eye/outside/height")
-        self.__mqtt.subscribe("sower/eye/inside/camera/config_file")
-        self.__mqtt.subscribe("sower/eye/inside/camera/trigger_mode")
-        self.__mqtt.subscribe("sower/eye/inside/camera/trigger_type")
-        self.__mqtt.subscribe("sower/eye/inside/camera/aestate")
-        a,b = self.__mqtt.subscribe("sower/eye/inside/camera/exposure_time")
-        print(a,b)
-        self.__mqtt.subscribe("sower/eye/inside/detect/threshold_r")
-        self.__mqtt.subscribe("sower/eye/inside/detect/threshold_g")
-        self.__mqtt.subscribe("sower/eye/inside/detect/threshold_b")
-        self.__mqtt.subscribe("sower/eye/inside/detect/threshold_size")
-        self.__mqtt.subscribe("sower/eye/inside/detect/display")
-        self.__mqtt.subscribe("sower/eye/inside/detect/roi/x")
-        self.__mqtt.subscribe("sower/eye/inside/detect/roi/y")
-        self.__mqtt.subscribe("sower/eye/inside/detect/roi/width")
-        self.__mqtt.subscribe("sower/eye/inside/detect/roi/height")
-        self.__mqtt.subscribe("sower/eye/inside/camera/soft_trigger")
-        self.__mqtt.publish(topic="fishtank/switch/r4/command", payload="ON", retain=True)
         
     def connect(self, broker='', port=0, uid='', psw=''):
 

@@ -343,9 +343,10 @@ class RobotEye(object):
                     end_time = time.perf_counter()
                     print("[Info] robot_eye.py: detect done! result: ", result, "time: ", end_time-start_time, " s")
                     self.__mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
-                    #self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
-                    for callback in self.__on_got_new_plate_callback:
-                        callback(result)
+                    # self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
+                    self.__on_got_new_plate_callback(result)
+                    # for callback in self.__on_got_new_plate_callback:
+                    #     callback(result)
 
                     if display:
                         img_show = cv2.resize(self.__corn_detect.corn_img, (400, 200))

@@ -40,8 +40,7 @@ class PlateRow():
     '''
     Composed by an list of cells
     '''
-    def __init__(self, id):
-        self.id = id
+    def __init__(self):
         # self.cells=list(PlateCell)
         self.cells=[]
         self.config_cols_lenth = 8
@@ -80,7 +79,9 @@ class Plate():
     '''
     def __init__(self):
         # self.rows = list(PlateRow)
-        self.rows = []
+        self.__ROWS = 16
+        self.__rows_range = range(0,self.__ROWS)
+        self.rows = [(PlateRow()) for i in self.__rows_range]
         self.state = PLATE_STATE.Started
 
         self.next_enter_row_id = 0
@@ -96,11 +97,15 @@ class Plate():
 
     def from_map(self, cells_map): 
         # print(cells_map)
-        self.rows=[]
-        for i in range(0,len(cells_map)):
-            row = PlateRow(i)
+        # for i in range(0,len(cells_map)):
+        #     row = self.
+        #     row.from_row_map(cells_map[i])
+        #     self.rows.append(row)
+        # self.state = PLATE_STATE.Mapped
+        i = 0
+        for row in self.rows:
             row.from_row_map(cells_map[i])
-            self.rows.append(row)
+            i += 1
         self.state = PLATE_STATE.Mapped
 
     def to_map(self):
@@ -111,11 +116,13 @@ class Plate():
         return map
 
     def print_out_map(self):
+        index = 0
         for row in self.rows:
-            row_id_string = str(row.id)
-            if row.id <10:
-                row_id_string = '0' + row_id_string 
-            row.print_out(row_id_string + '--  ','')
+            str_index = str(index)
+            if index <10:
+                str_index = '0' + str(index) 
+            row.print_out(str_index + '--  ','')
+            index += 1
 
     def get_first_unplanned_row_id(self):
         for row_id in range(0,16):
@@ -139,7 +146,6 @@ class Plate():
 
 if __name__ == "__main__":
     plate = Plate()
-    plate.setup()
     map = [[True,True,True,True,False,True,False,True],
             [True,True,True,True,True,True,True,True],
             [True,True,True,True,True,True,True,True], 
@@ -159,5 +165,5 @@ if __name__ == "__main__":
             [True,True,True,True,True,True,True,True]]
     plate.from_map(map)
     plate.print_out_map()
-    while True:
-        plate.main_loop()
+    # while True:
+    #     plate.main_loop()

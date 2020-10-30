@@ -15,21 +15,47 @@ class app_config:
             username = 'von'
             password = 'von1970'
             class subscript_topics:
-                topics = {'sower/arm/': 12,
-                                 'sower/eye/': 13,
-                }
+                topics = {
+                                'sower/arm/': 12,
+                                "sower/outside/system/state" : 11,
+                                "sower/eye/outside/width": 11,
+                                "sower/eye/outside/height": 11,
+                                "sower/eye/inside/camera/config_file": 11,
+                                "sower/eye/inside/camera/trigger_mode": 11,
+                                "sower/eye/inside/camera/trigger_type": 11,
+                                "sower/eye/inside/camera/aestate": 11,
+                                "sower/eye/inside/camera/exposure_time": 11,
+                                "sower/eye/inside/detect/threshold_r": 11,
+                                "sower/eye/inside/detect/threshold_g": 11,
+                                "sower/eye/inside/detect/threshold_b": 11,
+                                "sower/eye/inside/detect/threshold_size": 11,
+                                "sower/eye/inside/detect/display": 11,
+                                "sower/eye/inside/detect/roi/x": 11,
+                                "sower/eye/inside/detect/roi/y": 11,
+                                "sower/eye/inside/detect/roi/width": 11,
+                                "sower/eye/inside/detect/roi/height": 11,
+                                "sower/eye/inside/camera/soft_trigger": 11,
+                                }
 
     class robot_arms:
-        name = 'Cartisian'
-        port_name = 'dev/ttyUSB0'
-        baudrate = 115200
-
+        class xyz_arm:
+            name = 'Cartisian'
+            port_name = 'dev/ttyUSB0'
+            baudrate = 115200
+        
         class servo_controller:
+            solution = 'xuming'
+
+            # solution = 'minghao'
             port_name = 'dev/ttyUSB1'
             baudrate = 115200
 
     class robot_eye:
         camera_index = 0
+
+    class chessboard:
+        rows_count = 3
+        cols_count = 8
 
     class layout:
         class seed_box:
