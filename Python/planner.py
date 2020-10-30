@@ -70,7 +70,7 @@ class Planner():
                 # all cells in this row are filled or refilled in plan
                 self.__current_plate.finished_plan_for_this_row(unplanned_row_id)
 
-    def main_loop(self):
+    def spin(self):
         self.create_plan()
         self.__try_to_renew_plate()
 

@@ -21,12 +21,15 @@ class ServoArrayDriver():
         def connect(self):
             self.__serialport.open()
             if self.__echo_is_on:
-                print ('Reprap_host::Serial port is opened.')
-            while True:
-                xx = self.__serialport.readline()
-                mm = bytes.decode(xx)
-                if (mm == ''):
-                    break
+                if self.__serialport.is_open:
+                    print ('Minghao servos::Serial port is opened.')
+                else:
+                    print ('Minghao servos::Serial port is NOT  opened.')
+            # while True:
+            #     xx = self.__serialport.readline()
+            #     mm = bytes.decode(xx)
+            #     if (mm == ''):
+            #         break
 
         def set_echo_on(self, is_on):
             self.__echo_is_on = is_on
@@ -40,10 +43,17 @@ class ServoArrayDriver():
         def write_bytes(self, bytes_array):
             self.__serialport.write(bytes_array)
 
-        def main_loop(self):
+        def spin_once(self):
             # check what is received from serial port
-            response_a = self.__serialport.readline()
+            # response_a = self.__serialport.readline()
+            # response_a = self.__serialport.read_all()
+            # response_a = self.__serialport.readall()
+            response_a = self.__serialport.read(size=1)
+            listTestByte = list(response_a)
+            print('>>>>>><<<<<<<' , listTestByte)
+
             response = bytes.decode(response_a)
+            # print('>>>>>>>%s<<<<<<<' % response)
             if(response == 'ok\n'):
                 self.__on_received_line(response)
 
@@ -51,8 +61,9 @@ class ServoArrayDriver():
         # self.ServoArray_serial.__init__('dev/ttyUSB1', 115200, self.on_received_chessboard_map)
         self.__COLS = 8
         self.__ROWS = 3
-        self.__SERIAL_PORT_NAME = 'dev/ttyUSB1'
+        self.__SERIAL_PORT_NAME = '/dev/ttyUSB1'
         self.__serial = self.ServoArray_serial(self.__SERIAL_PORT_NAME, 115200, self.on_received_chessboard_map)
+        self.__serial.set_echo_on(True)
         self.__serial.connect()
 
         self.__rows_range = range(0, self.__ROWS)
@@ -95,8 +106,14 @@ class ServoArrayDriver():
         self.__callback_fill_cell = callback_xyz
 
     def spin_once(self):
-        pass
+        self.__serial.spin_once()
+
+    def spin(self):
+        while True:
+            self.__serial.spin_once()
 
 
 if __name__ == "__main__":
     tester = ServoArrayDriver()
+    while True:
+        tester.spin_once()

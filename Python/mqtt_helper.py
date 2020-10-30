@@ -13,7 +13,7 @@ from singleton import Singleton
 
 
 # class MqttHelper(mqtt.Client):
-class MqttHelper(metaclass=Singleton):
+class MqttHelper(mqtt.Client, metaclass=Singleton):
 
     def __init__(self):
         # super(MqttHelper, self).__init__()
@@ -100,8 +100,7 @@ import time
 if __name__ == "__main__":
     g_mqtt.connect_broker()
     g_mqtt.publish_float('sower/eye/outside/height', 1)
-    while True:
-        pass
+
     # flag = False
     # while True:
     #     print(flag)

@@ -21,11 +21,11 @@ class SowerManager():
         g_mqtt.connect_broker()
         self.__eye = RobotEye()
         self.__planner = Planner()
-
+        self.__robot_sower = RobotSower(do_init_marlin=False)
         self.__coming_row_id_of_current_plate = 0
 
         self.__goto = self.__on_state_begin
-        self.__system_turn_on = False
+        self.__system_turn_on = True
 
         self.__YELLOW = const.print_color.fore.yellow
         self.__GREEN = const.print_color.fore.green
@@ -56,10 +56,11 @@ class SowerManager():
             self.__goto = self.__on_state_working
 
     def __on_state_working(self):
+        # print('11111111111111111111111111111111111111111111111111111111111')
         if self.__system_turn_on:
             self.__eye.main_loop()   # for single threading
-            self. __planner.main_loop()
-            self.__robot_sower.main_loop()
+            self. __planner.spin()
+            self.__robot_sower.spin()
         else:
             self.__goto = self.__on_state_begin
 
@@ -85,7 +86,7 @@ class SowerManager():
         self.__chessboard.on_servos_released(servos_action.bytes)
 
 
-    def main_loop(self):
+    def spin(self):
         # self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 
         last_function = self.__goto
         self.__goto()
@@ -98,7 +99,7 @@ class SowerManager():
 if __name__ == "__main__":
     runner = SowerManager()
     while True:
-        runner.main_loop()
+        runner.spin()
 
 
 #

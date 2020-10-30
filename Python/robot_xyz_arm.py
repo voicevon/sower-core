@@ -4,12 +4,15 @@ import sys
 sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
 # sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on Jetson Nano xuming
 
+sys.path.append('/home/znkzjs/bot/python')
+from singleton import Singleton
+
 from reprap_arm import ReprapArm
 
 import time
 import threading
 
-class XyzArm(ReprapArm):
+class XyzArm(ReprapArm, metaclass=Singleton):
     '''
     This robot arm is a human level robot.
     Warehouse postion: When idle, it's at bottom.
@@ -18,6 +21,11 @@ class XyzArm(ReprapArm):
         ReprapArm.__init__(self)
         self.__placed_counter = 0
         self.__mqtt = None
+
+    def init_and_home(self):
+        self.allow_cold_extrusion()
+        self.home(home_y=True)
+        self.home(home_x=True)
 
     def __get_xy_from_col_row(self, col, row):
         '''
@@ -78,23 +86,7 @@ class XyzArm(ReprapArm):
         self.pickup_from_warehouse(row)
         self.place_to_cell(col, row)
 
-    def setup(self, mqtt, feeding_buffer):
-        self.__feeding_buffer = feeding_buffer
-        self.__mqtt = mqtt
-        if False:
-            # Fill one seed into each cell
-            for row in range(0,8):
-                for col in range(0,3):
-                    print('pickup and place %i %i' %(col,row))
-                    self.pickup_from_warehouse(row)
-                    self.place_to_cell(col,row)
 
-
-    def init_and_home(self):
-        self.connect_to_marlin()
-        self.allow_cold_extrusion()
-        self.home(home_y=True)
-        self.home(home_x=True)
 
     def spin(self):
         self.__on_my_own_thread = True
