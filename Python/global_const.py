@@ -15,7 +15,7 @@ class app_config:
             username = 'von'
             password = 'von1970'
             class subscript_topics:
-                topics = {
+                topic_dict = {
                                 'sower/arm/': 12,
                                 "sower/outside/system/state" : 11,
                                 "sower/eye/outside/width": 11,

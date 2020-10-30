@@ -4,7 +4,8 @@
 # Author: bjq-znkzjs
 # Date  : 2020-09-15
 
-import paho.mqtt.client as mqtt
+# import paho.mqtt.client as mqtt
+from mqtt_helper import g_mqtt
 import numpy as np
 import mvsdk
 import platform
@@ -249,7 +250,6 @@ class corn_detection(object):
 class RobotEye(object):
     def __init__(self):
         super(RobotEye, self).__init__()
-        self.__mqtt = mqtt
         self.__on_got_new_plate_callback = None
         self.__running_on_my_own_thread = False
         self.__camera = myCamera()
@@ -260,13 +260,11 @@ class RobotEye(object):
         self.__tray_config = dict()
 
     def start_with_new_thread(self, mqtt):
-        self.__mqtt = mqtt
         self.__running_on_my_own_thread = True
         t = threading(self.__main_task)
         t.start
 
-    def setup(self, mqtt, callbacks):
-        self.__mqtt = mqtt
+    def setup(self,  callbacks):
         self.__on_got_new_plate_callback = callbacks
         #self.__mqtt.subscribe("sower/eye/outside/width")
         #self.__mqtt.subscribe("sower/eye/outside/height")
@@ -342,7 +340,7 @@ class RobotEye(object):
                                                                  thres_B, thres_size)
                     end_time = time.perf_counter()
                     print("[Info] robot_eye.py: detect done! result: ", result, "time: ", end_time-start_time, " s")
-                    self.__mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
+                    g_mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
                     # self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
                     self.__on_got_new_plate_callback(result)
                     # for callback in self.__on_got_new_plate_callback:
@@ -353,7 +351,7 @@ class RobotEye(object):
                         is_success, img_encode = cv2.imencode(".jpg", img_show)
                         if is_success:
                             img_pub = img_encode.tobytes()
-                            self.__mqtt.publish("sower/img/bin", img_pub, retain=True)
+                            g_mqtt.publish("sower/img/bin", img_pub, retain=True)
                             print("[Info] robot_eye.py: publish image done!")
 
 

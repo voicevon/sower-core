@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 from global_const import app_config
+from mqtt_helper import  g_mqtt
+
 import time
 import sys
 sys.path.append(app_config.path.text_color)
 from color_print import const
 
 # from robot_arms import RobotArms
-import paho.mqtt.client as mqtt
-from mqtt_agent import MqttAgent
+# import paho.mqtt.client as mqtt
 
 from robot_eye import RobotEye
 from planner import Planner
@@ -17,12 +18,13 @@ from robot_sower  import RobotSower
 class SowerManager():
 
     def __init__(self):
-        self.__mqtt_agent = MqttAgent()
-        self.mqtt_client = self.__mqtt_agent.connect()
+        # self.__mqtt_agent = MqttAgent()
+        g_mqtt.connect_broker()
+        # self.mqtt_client = self.__mqtt_agent.connect()
         self.__eye = RobotEye()
-        self.__robot_sower = RobotSower(self.mqtt_client)
-        phy_chessboard = self.__robot_sower.get_chessboard()
-        self.__planner = Planner(phy_chessboard)
+        # self.__robot_sower = RobotSower(self.mqtt_client)
+        # phy_chessboard = self.__robot_sower.get_chessboard()
+        self.__planner = Planner()
 
         self.__coming_row_id_of_current_plate = 0
 
@@ -34,40 +36,20 @@ class SowerManager():
         self.__RESET = const.print_color.control.reset
 
         # subscribe all topics from config files
-        for topic in app_config.server.mqtt.subscript_topics:
-            self.mqtt_client.subscribe(topic)
+        for topic in app_config.server.mqtt.subscript_topics.topic_dict.keys():
+            g_mqtt.subscribe(topic)
 
+        print('MQTT subscription is done')
 
         solution = app_config.robot_arms.servo_controller.solution 
         if solution == 'minghao':
-            self.__eye.setup(mqtt, self.__robot_sower.on_eye_got_new_plate)
+            self.__eye.setup(self.__robot_sower.on_eye_got_new_plate)
         elif solution == 'xuming':
-            self.__eye.setup(mqtt, self.__planner.update_next_plate_from_eye_result)
+            self.__eye.setup(self.__planner.update_next_plate_from_eye_result)
 
         print(const.print_color.background.blue + self.__YELLOW)
         print('System is initialized. Now is working')
         print(self.__RESET)
-
-
-
-
-
-    def __on_state_test_mqtt(self):
-        # return image as mqtt message payload
-        # f= open("Python/test.jpg")
-        # content = f.read()
-        # byte_im = bytearray(content)
-
-
-        # im = cv2.imread('test.jpg')
-        # im_resize = cv2.resize(im, (500, 500))
-        # is_success, im_buf_arr = cv2.imencode(".jpg", im_resize)
-        # byte_im = im_buf_arr.tobytes()
-
-        with open('test.jpg', 'rb') as f:
-            byte_im = f.read()
-        self.__mqtt.publish('sower/img/bin', byte_im )
-        time.sleep(100)
 
     def __on_state_begin(self):
         if self.__system_turn_on:
@@ -119,7 +101,6 @@ class SowerManager():
 
 if __name__ == "__main__":
     runner = SowerManager()
-    runner.setup()
     while True:
         runner.main_loop()
 

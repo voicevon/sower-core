@@ -86,6 +86,7 @@ class Chessboard():
                 if this_cell.state == CHESSBOARD_CELL_STATE.PlannedToDrop:
                     this_cell.state = CHESSBOARD_CELL_STATE.Empty
 
-            
+g_chessboard = Chessboard()
+
 if __name__ == "__main__":
     test = Chessboard()

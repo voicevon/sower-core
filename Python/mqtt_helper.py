@@ -8,9 +8,10 @@ from color_print import const
 import paho.mqtt.client as mqtt
 
 
-class MqttAgent(mqtt.Client):
+class MqttHelper(mqtt.Client):
+
     def __init__(self):
-        super(MqttAgent, self).__init__()
+        super(MqttHelper, self).__init__()
         self.__is_connected = False
         self.__mqtt = mqtt
         self.__mqtt = mqtt.Client("sower-2039-1004")  # create new instance
@@ -20,9 +21,10 @@ class MqttAgent(mqtt.Client):
         self.__RESET = const.print_color.control.reset
         self.mqtt_system_turn_on = True
         self.__invoke_eye = None
+        self.__on_message_callbacks = []
 
         
-    def connect(self, broker='', port=0, uid='', psw=''):
+    def connect_broker(self, broker='', port=0, uid='', psw=''):
 
         if broker == '':
             broker = app_config.server.mqtt.broker_addr
@@ -42,28 +44,23 @@ class MqttAgent(mqtt.Client):
         # self.__mqtt.loop_stop()
         return self.__mqtt
 
-    def __mqtt_on_message(self, client, userdata, message):
-        print("message received ", str(message.payload.decode("utf-8")))
-        print("message topic=", message.topic)
-        print("message qos=", message.qos)
-        print("message retain flag=", message.retain)
+    def append_on_message_callback(self, callback):
+            self.__on_message_callbacks.append(callback)
 
+    def __mqtt_on_message(self, client, userdata, message):
+        # print("message received ", str(message.payload.decode("utf-8")))
+        # print("message topic=", message.topic)
+        # print("message qos=", message.qos)
+        # print("message retain flag=", message.retain)
         payload = str(message.payload.decode("utf-8"))
-        if message.topic == "sower/outside/system/state":
-            if message.payload:
-                self.mqtt_system_turn_on = True
-            else:
-                self.mqtt_system_turn_on = False
-        elif self.__invoke_eye is not None:
-            #self.__eye.on_mqtt_message(message.topic, payload)
-            self.__invoke_eye(message.topic, payload)
+        for invoking in self.__on_message_callbacks:
+            invoking(message.topic, payload)
 
     def publish_init(self):
-        #  traverse app_config, publish all elements to broker.
+        #  traverse app_config, publish all elements to broker with default values
         pass
-
-    def publish_image(self, flag):
-
+    
+    def publish_cv_image(self, flag):
       # return image as mqtt message payload
         # f= open("Python/test.jpg")
         # content = f.read()
@@ -82,14 +79,14 @@ class MqttAgent(mqtt.Client):
             byte_im = f.read()
         self.__mqtt.publish('sower/img/bin',byte_im )
 
+g_mqtt = MqttHelper()
+
 import time
 if __name__ == "__main__":
-    test = MqttAgent()
-    test.connect()
-    test.connect_eye(None)
-    flag = False
-    while True:
-        print(flag)
-        test.publish_image(flag)
-        time.sleep(5)
-        flag = not flag
+    test = MqttHelper()
+    test.connect_broker()
+    # flag = False
+    # while True:
+    #     print(flag)
+    #     time.sleep(5)
+    #     flag = not flag

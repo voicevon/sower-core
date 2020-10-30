@@ -1,13 +1,13 @@
-
+from chessboard import g_chessboard
 
 from plate import Plate, PlateRow, PlateCell, PLATE_STATE, PLATE_CELL_STATE
 
 class Planner():
 
-    def __init__(self, chessboard):
+    def __init__(self):
         self.__current_plate = Plate()
         self.__next_plate = Plate()
-        self.__chessboard = chessboard
+        self.__chessboard = g_chessboard
     
     def update_next_plate_from_eye_result(self, result):
         if True:
