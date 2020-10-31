@@ -1,7 +1,7 @@
 import serial, time
 from global_const import app_config
 from  threading import Thread
-
+from crccheck.crc import Crc16  #pip3 install crccheck
 
 class ServoArrayDriver():
 
@@ -42,25 +42,31 @@ class ServoArrayDriver():
         if self.__echo_is_on:
             print('>>>' + str(bytes_array))
 
-    def send_map_over_serial_port(self,  plate_map=None, chessboard_map=None):
-        output = []
-        if plate_map is not None:
-        # send plate map via serial port
-            output = [0xaa, 0xaa, plate_id, ]
-            output += [[0] * 16]
-            output += [crc_high, crc_low]
-            output += [0x0d, 0x0a]
-            output += plate_map
+    def __get_crc16_list(self, origin):
+        # origin_bytes is an bytes list
+        crc16 = Crc16()
+        origin_tuple = tuple(origin)
+        # print(origin_tuple)
+        crc16.process(origin_tuple)
+        crc16_bytes = list(crc16.finalbytes())
+        print('crc16_bytes= ',crc16_bytes)
+        return crc16_bytes
 
-        elif chessboard_map is not None:
-        # send chessboard map via serial port
-            output = [0xaa,0xbb,]
-            output += chessboard_map  # 3 bytes
-            ouput += [crc_high, crc_low]
-            output += [0x0d, 0x0a]
 
+    def send_plate_map(self, plate_id, plate_map):
+        output = [0xaa, 0xaa, plate_id ]
+        output += plate_map  # 16 bytes
+        output += self.__get_crc16_list(output)
+        output += [0x0d, 0x0a]
         self.write_bytes(output)
-    
+
+    def send_chessboard_map(self, chessboard_map):
+        output = [0xaa,0xbb,]
+        output += chessboard_map  # 3 bytes
+        output += self.__get_crc16_list(output)
+        output += [0x0d, 0x0a]
+        self.write_bytes(output)
+
     def request_chessboard_map(self):
         output = [0xaa, 0xcc,0x0d,0x0a]
         self.write_bytes(output)
@@ -90,7 +96,7 @@ class ServoArrayDriver():
                 result = xx[2]
                 ender = xx[3:4]   # 0x0d,0x0a
 
-            elif xx[0,1] == [0xaa,0xcc,]:
+            elif xx[0:1] == [0xaa,0xcc,]:
                 # controller respomnse the chessboard map
                 self.chessboard_map[0] = xx[2]
                 self.chessboard_map[1] = xx[3]
@@ -114,8 +120,8 @@ class ServoArrayDriver():
 
 if __name__ == "__main__":
     tester = ServoArrayDriver()
-    tester.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=True)
-    tester.spin()
+    tester.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
+    # tester.spin()
 
 
     # tester2 = ServoArrayDriver()
@@ -127,3 +133,6 @@ if __name__ == "__main__":
     #     time.sleep(1)
     #     tester.spin_once()
     #     # tester2.spin_once()
+
+    map=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+    tester.send_plate_map(plate_id=123, plate_map = map)
