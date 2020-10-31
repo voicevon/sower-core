@@ -6,11 +6,13 @@ import cv2
 import sys
 sys.path.append('/home/znkzjs/pylib')  # for custom's jetson nano 
 
+
 class app_config:
     # class g:
     #     mqtt = MqttHelper()
-    class path:
-        text_color = '/home/xm/gitrepo/ros_marlin_bridge/perfect'
+    class pylib_path:
+        text_color = '/home/znkzjs/pylib'  # for custom's jetson nano
+        # text_color = '/home/xm/gitrepo/pylib'  # for xuming's jetson nano
 
     class server:
         class mqtt:

@@ -8,11 +8,10 @@ from global_const import app_config
 
 import time
 import sys
-sys.path.append(app_config.path.text_color)
-from color_print import const
 
 sys.path.append('/home/znkzjs/pylib')
 from mqtt_helper import g_mqtt
+from terminal_font_color import TerminalFontColor
 
 from robot_eye import RobotEye
 from planner import Planner
@@ -21,8 +20,15 @@ from robot_sower  import RobotSower
 
 class SowerManager():
 
+    def __connect_to_mqtt_broker(self):
+        broker = app_config.server.mqtt.broker_addr
+        port = app_config.server.mqtt.port
+        uid = app_config.server.mqtt.username
+        password = app_config.server.mqtt.password
+        g_mqtt.connect_broker(broker, port, uid, password)
+
     def __init__(self):
-        g_mqtt.connect_broker()
+        self.__connect_to_mqtt_broker()
         self.__eye = RobotEye()
         self.__planner = Planner()
         self.__robot_sower = RobotSower(do_init_marlin=False)
@@ -31,9 +37,9 @@ class SowerManager():
         self.__goto = self.__on_state_begin
         self.__system_turn_on = True
 
-        self.__YELLOW = const.print_color.fore.yellow
-        self.__GREEN = const.print_color.fore.green
-        self.__RESET = const.print_color.control.reset
+        self.__YELLOW = TerminalFontColor.Fore.yellow
+        self.__GREEN = TerminalFontColor.Fore.yellow
+        self.__RESET = TerminalFontColor.Control.reset
 
         # subscribe all topics from config files
         for topic in app_config.server.mqtt.subscript_topics.topic_dict.keys():
@@ -47,7 +53,7 @@ class SowerManager():
         elif solution == 'xuming':
             self.__eye.setup(self.__planner.update_next_plate_from_eye_result)
 
-        print(const.print_color.background.blue + self.__YELLOW)
+        print(self.__YELLOW + TerminalFontColor.Background.blue)
         print('System is initialized. Now is working')
         print(self.__RESET)
 
@@ -93,7 +99,7 @@ class SowerManager():
         last_function = self.__goto
         self.__goto()
         if last_function != self.__goto:
-            print(const.print_color.background.blue + self.__YELLOW)
+            print(self.__YELLOW + TerminalFontColor.Background.blue)
             print(self.__goto.__name__)
             print(self.__RESET)
 
