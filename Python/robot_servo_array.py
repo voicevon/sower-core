@@ -4,22 +4,23 @@ from global_const import app_config
 
 class ServoArrayDriver():
 
-    def __init__(self, serial_port_name):
+    def __init__(self):
         self.__COLS = 8
         self.__ROWS = 3
         self.__rows_range = range(0, self.__ROWS)
         self.__cols_range = range(0, self.__COLS)
         self.chessboard_map = [[0] for i in self.__rows_range]
-
         self.__serialport = serial.Serial()
-        self.__serialport.port = serial_port_name
-        self.__serialport.baudrate = 115200
-        self.__serialport.timeout = 1
-        self.__serialport.writeTimeout = 2
         self.__echo_is_on = False
 
-    def connect_serial_port(self):
+    def connect_serial_port(self, serial_port_name, baudrate,echo_is_on):
+        self.__serialport.port = serial_port_name
+        self.__serialport.baudrate = baudrate
+        self.__serialport.timeout = 1
+        self.__serialport.writeTimeout = 2
         self.__serialport.open()
+        self.__echo_is_on = echo_is_on
+
         if self.__echo_is_on:
             if self.__serialport.is_open:
                 print ('Minghao servos::Serial port is opened.')
@@ -76,8 +77,10 @@ class ServoArrayDriver():
             self.read_serial()
 
 if __name__ == "__main__":
-    tester = ServoArrayDriver('/dev/ttyUSB1')
-    tester2 = ServoArrayDriver('/dev/ttyUSB0')
+    tester = ServoArrayDriver()
+    tester.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
+    tester2 = ServoArrayDriver()
+    tester2.connect_serial_port('/dev/ttyUSB0', 115200, echo_is_on=False)
     while True:
         tester2.write_string('abc  ')
         tester.spin_once()

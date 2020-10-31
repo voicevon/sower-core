@@ -12,8 +12,8 @@ from singleton import Singleton
 
 
 
-# class MqttHelper(mqtt.Client):
-class MqttHelper(mqtt.Client, metaclass=Singleton):
+class MqttHelper(metaclass=Singleton):
+# class MqttHelper(mqtt.Client, metaclass=Singleton):
 
     def __init__(self):
         # super(MqttHelper, self).__init__()
@@ -57,11 +57,12 @@ class MqttHelper(mqtt.Client, metaclass=Singleton):
     def subscribe(self, topic, qos=0):
         self.__mqtt.subscribe(topic, qos)
     
-    def __mqtt_on_message(self, client, userdata, message):
-        # print("message received ", str(message.payload.decode("utf-8")))
-        # print("message topic=", message.topic)
-        # print("message qos=", message.qos)
-        # print("message retain flag=", message.retain)
+    def __mqtt_on_message(self, client, userdata, message, do_debug_print_out=False):
+        if do_debug_print_out:
+            print("message received ", str(message.payload.decode("utf-8")))
+            print("message topic=", message.topic)
+            print("message qos=", message.qos)
+            print("message retain flag=", message.retain)
         payload = str(message.payload.decode("utf-8"))
         for invoking in self.__on_message_callbacks:
             invoking(message.topic, payload)
@@ -96,13 +97,8 @@ class MqttHelper(mqtt.Client, metaclass=Singleton):
 
 g_mqtt = MqttHelper()
 
-import time
 if __name__ == "__main__":
     g_mqtt.connect_broker()
     g_mqtt.publish_float('sower/eye/outside/height', 1)
 
-    # flag = False
-    # while True:
-    #     print(flag)
-    #     time.sleep(5)
-    #     flag = not flag
+

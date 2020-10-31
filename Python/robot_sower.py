@@ -15,6 +15,7 @@ class RobotSower():
     def __init__(self, do_init_marlin=False):
         self.__xyz_arm = XyzArm()
         self.__servos_minghao = ServoArrayDriver()
+        self.__servos_minghao.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
         self.__sensors = RobotSensors(self.__on_new_plate_enter, self.__on_new_row_enter)
         self.__current_plate = Plate()
         self.__next_plate = Plate()

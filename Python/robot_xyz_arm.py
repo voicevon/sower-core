@@ -17,12 +17,13 @@ class XyzArm(ReprapArm, metaclass=Singleton):
     This robot arm is a human level robot.
     Warehouse postion: When idle, it's at bottom.
     '''
-    def __init__(self):
+    def __init__(self ):
         ReprapArm.__init__(self)
         self.__placed_counter = 0
         self.__mqtt = None
 
-    def init_and_home(self):
+    def init_and_home(self, serial_port_name):
+        ReprapArm.connect_reprap_controller(serial_port_name, 115200)
         self.allow_cold_extrusion()
         self.home(home_y=True)
         self.home(home_x=True)
@@ -118,7 +119,7 @@ class XyzArm(ReprapArm, metaclass=Singleton):
 
 if __name__ == "__main__":
     my_arm = XyzArm()
-    my_arm.connect_to_marlin()
+    my_arm.connect_reprap_controller('/dev/ttyUSB0')
     my_arm.init_and_home()
     if False:
         my_arm.calibrate_col_row(2,7)

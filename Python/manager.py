@@ -8,12 +8,10 @@ import sys
 sys.path.append(app_config.path.text_color)
 from color_print import const
 
-# from robot_arms import RobotArms
-# import paho.mqtt.client as mqtt
-
 from robot_eye import RobotEye
 from planner import Planner
 from robot_sower  import RobotSower
+
 
 class SowerManager():
 
@@ -83,7 +81,6 @@ class SowerManager():
                         servos_action.bytes[0] += 1
         self.__servos.output_i2c(servos_action.bytes)
         self.__chessboard.on_servos_released(servos_action.bytes)
-
 
     def spin(self):
         # self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 
