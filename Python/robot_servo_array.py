@@ -36,31 +36,41 @@ class ServoArrayDriver():
             print ('>>> %s' % raw_string)
 
     def write_bytes(self, bytes_array):
+        print(bytes_array)
         self.__serialport.write(bytes_array)
 
-    def read_serial(self):
+    def spin_once(self):
         # check what is received from serial port
-        # response_a = self.__serialport.readline()
-        # response_a = self.__serialport.read_all()
-        # response_a = self.__serialport.readall()
-        response_a = self.__serialport.read(size=1)
-        listTestByte = list(response_a)
-        print('>>>>>><<<<<<<' , len(response_a),listTestByte)
+        controller_response = self.__serialport.readline()
+        if len(controller_response) > 0:
+            xx = list(controller_response)
+            if xx[0] == 0x01:
+                # The controller got plate map 
+                pass
+            elif xx[0] == 0x02:
+                # The controller got chessboard map
+                pass
+            elif xx[0] == 0x03:
+                # controller respomnse the chessboard map
+                self.chessboard_map[0] = xx[1]
+                self.chessboard_map[1] = xx[2]
+                self.chessboard_map[2] = xx[3]
 
-        response = bytes.decode(response_a)
-        print('>>>>>>>%s<<<<<<<' % response)
-
-    def send_new_plate_map(self, plate_map):
-        # send map via serial port
-        self.__serialport.write_string(plate_map)
+    def send_map_over_serial_port(self,  plate_map=None, chessboard_map=None):
+        # send plate map via serial port
+        output = []
+        if plate_map is not None:
+            output = [0x01,]
+            output += plate_map
+        elif chessboard_map is not None:
+            output = [0x02,]
+            output += chessboard_map
+        self.write_bytes(output)
     
-    def on_received_chessboard_map(self, received_line):
-        '''
-        receive from serial port
-        '''
-        for row_id in self.__rows_range:
-            self.chessboard_map[row_id] = received_line[row_id]
-
+    def send_request_chessboard_map(self):
+        output = [0x03,]
+        self.write_bytes(output)
+        
     def get_first_empty_cell(self):
         for row_id in self.__rows_range:
             for col_id in self.__cols_range:
@@ -69,19 +79,20 @@ class ServoArrayDriver():
                     return row_id, col_id
         return (-1,-1)
 
-    def spin_once(self):
-        self.read_serial()
-
+    #TODO:  new threading
     def spin(self):
         while True:
-            self.read_serial()
+            self.spin_once()
 
 if __name__ == "__main__":
     tester = ServoArrayDriver()
     tester.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
-    tester2 = ServoArrayDriver()
-    tester2.connect_serial_port('/dev/ttyUSB0', 115200, echo_is_on=False)
+    # tester2 = ServoArrayDriver()
+    # tester2.connect_serial_port('/dev/ttyUSB0', 115200, echo_is_on=False)
     while True:
-        tester2.write_string('abc  ')
+        tester.write_bytes([0xcc])
+        time.sleep(1)
+        tester.write_bytes([0xbb])
+        time.sleep(1)
         tester.spin_once()
-        tester2.spin()
+        # tester2.spin_once()
