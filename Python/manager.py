@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import  global_const 
-from singleton import Singleton
-from mqtt_helper import g_mqtt
+# from singleton import Singleton
+# from mqtt_helper import g_mqtt
 
 
 from global_const import app_config
@@ -11,8 +11,8 @@ import sys
 sys.path.append(app_config.path.text_color)
 from color_print import const
 
-# sys.path.append('/home/znkzjs/pylib')
-# from mqtt_helper import g_mqtt
+sys.path.append('/home/znkzjs/pylib')
+from mqtt_helper import g_mqtt
 
 from robot_eye import RobotEye
 from planner import Planner
@@ -62,8 +62,8 @@ class SowerManager():
     def __on_state_working(self):
         if self.__system_turn_on:
             self.__eye.main_loop()   # for single threading
-            self. __planner.spin()
-            self.__robot_sower.spin()
+            self. __planner.spin_once()
+            self.__robot_sower.spin_once()
         else:
             self.__goto = self.__on_state_begin
 
@@ -88,7 +88,7 @@ class SowerManager():
         self.__servos.output_i2c(servos_action.bytes)
         self.__chessboard.on_servos_released(servos_action.bytes)
 
-    def spin(self):
+    def spin_once(self):
         # self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 
         last_function = self.__goto
         self.__goto()
@@ -101,7 +101,7 @@ class SowerManager():
 if __name__ == "__main__":
     runner = SowerManager()
     while True:
-        runner.spin()
+        runner.spin_once()
 
 
 #

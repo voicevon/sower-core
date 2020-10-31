@@ -13,6 +13,7 @@ class ServoArrayDriver():
         self.chessboard_map = [[0] for i in self.__rows_range]
         self.__serialport = serial.Serial()
         self.__echo_is_on = False
+        self.__spinning = False
 
     def connect_serial_port(self, serial_port_name, baudrate,echo_is_on):
         self.__serialport.port = serial_port_name
@@ -42,18 +43,26 @@ class ServoArrayDriver():
             print('>>>' + str(bytes_array))
 
     def send_map_over_serial_port(self,  plate_map=None, chessboard_map=None):
-        # send plate map via serial port
         output = []
         if plate_map is not None:
-            output = [0x01,]
+        # send plate map via serial port
+            output = [0xaa, 0xaa, plate_id, ]
+            output += [[0] * 16]
+            output += [crc_high, crc_low]
+            output += [0x0d, 0x0a]
             output += plate_map
+
         elif chessboard_map is not None:
-            output = [0x02,]
-            output += chessboard_map
+        # send chessboard map via serial port
+            output = [0xaa,0xbb,]
+            output += chessboard_map  # 3 bytes
+            ouput += [crc_high, crc_low]
+            output += [0x0d, 0x0a]
+
         self.write_bytes(output)
     
     def request_chessboard_map(self):
-        output = [0x03,]
+        output = [0xaa, 0xcc,0x0d,0x0a]
         self.write_bytes(output)
         
     def get_first_empty_cell(self):
@@ -70,17 +79,24 @@ class ServoArrayDriver():
         controller_response = self.__serialport.readline()
         if len(controller_response) > 0:
             xx = list(controller_response)
-            if xx[0] == 0x01:
-                # The controller got plate map 
-                pass
-            elif xx[0] == 0x02:
+            if xx[0:1] == [0xaa,0xaa,]:
+                # The controller got plate map
+                plate_id = xx[2]
+                result = xx[3]
+                ender = xx[4:5]   # 0x0d,0x0a
+
+            elif xx[0:1] == [0xaa,0xbb,]:
                 # The controller got chessboard map
-                pass
-            elif xx[0] == 0x03:
+                result = xx[2]
+                ender = xx[3:4]   # 0x0d,0x0a
+
+            elif xx[0,1] == [0xaa,0xcc,]:
                 # controller respomnse the chessboard map
-                self.chessboard_map[0] = xx[1]
-                self.chessboard_map[1] = xx[2]
-                self.chessboard_map[2] = xx[3]
+                self.chessboard_map[0] = xx[2]
+                self.chessboard_map[1] = xx[3]
+                self.chessboard_map[2] = xx[4]
+                crc_high, crc_low = xx [5:6]
+                ender = xx[7:8]
     
     def __main_loop_new_threading(self):
         while True:
@@ -91,8 +107,10 @@ class ServoArrayDriver():
         '''
         Will not block invoker
         '''
-        t = Thread(target=self.__main_loop_new_threading)
-        t.start()
+        if not self.__spinning:
+            t = Thread(target=self.__main_loop_new_threading)
+            t.start()
+            self.__spinning = True
 
 if __name__ == "__main__":
     tester = ServoArrayDriver()

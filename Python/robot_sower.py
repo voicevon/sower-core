@@ -45,21 +45,21 @@ class RobotSower():
     def xyz_arm_fill_chessboard(self):
         solution = app_config.robot_arms.servo_controller.solution
         if solution == 'minghao':
-            row, col = self.__servos_minghao.get_first_empty_cell()
+            row_id, col_id = self.__servos_minghao.get_first_empty_cell()
         elif solution == 'xuming':
-            row, col = g_chessboard.get_first_empty_cell()
+            row_id, col_id = g_chessboard.get_first_empty_cell()
 
-        if row >= 0:
+        if row_id >= 0:
             # TODO: this is a long time processing, should start a new thread 
-            self.__xyz_arm.pickup_from_warehouse()
-            self.__xyz_arm.place_to_cell(row, col)
-            g_chessboard.set_one_cell(row, col)
+            self.__xyz_arm.pickup_from_warehouse(row_id)
+            self.__xyz_arm.place_to_cell(row_id, col_id)
+            g_chessboard.set_one_cell(row_id, col_id)
         if solution == 'minghao':
             # update map and send new map to Minghao's subsystem
-            self.__servos_minghao.inform_minghao(row, col)
+            self.__servos_minghao.inform_minghao(row_id, col_id)
 
 
-    def spin(self):
+    def spin_once(self):
         self.__servos_minghao.spin()
         self.xyz_arm_fill_chessboard()
         if g_chessboard_need_a_new_plan:    

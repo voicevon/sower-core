@@ -10,7 +10,7 @@ from singleton import Singleton
 from reprap_arm import ReprapArm
 
 import time
-import threading
+from  threading import Thread
 
 class XyzArm(ReprapArm, metaclass=Singleton):
     '''
@@ -87,29 +87,25 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         self.pickup_from_warehouse(row)
         self.place_to_cell(col, row)
 
-
-
     def spin(self):
-        self.__on_my_own_thread = True
-        t = threading.Thread(self.__main_task_loop)
-        t.start
+        t = Thread(target=self.__main_task_loop)
+        t.start()
+
+    def __main_loop(self):
+        while True:
+            self.spin_once()
 
     def spin_once(self):
+        '''
         # This is mainly for debugging. do not use while loop in this function!
-        # For better performance, invoke start_with_new_thread() instead.
-        self.__main_task()
-
-    def __main_task_loop(self):
-        while True:
-            self.__main_task()
-
-    def __main_task(self):
+        # For better performance, invoke spin() instead. 
+        # 
         # Check feeding_buffer is there any cave is empty
+        '''
         col, row  = self.__target_plate.find_empty_cell()
         if col is not None:
-            self.__robot.place_to_cell(col, row)
+            self.__robot .place_to_cell(col, row)
             self.__robot.pickup_from_warehouse(row)
-        pass
 
     def calibrate_col_row(self, col, row):
         x, y = self.__get_xy_from_col_row(col, row)
@@ -119,8 +115,7 @@ class XyzArm(ReprapArm, metaclass=Singleton):
 
 if __name__ == "__main__":
     my_arm = XyzArm()
-    my_arm.connect_reprap_controller('/dev/ttyUSB0')
-    my_arm.init_and_home()
+    my_arm.init_and_home('/dev/ttyUSB0')
     if False:
         my_arm.calibrate_col_row(2,7)
 
