@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
+import  global_const 
+from singleton import Singleton
+from mqtt_helper import g_mqtt
+
 
 from global_const import app_config
-from mqtt_helper import  g_mqtt
 
 import time
 import sys
 sys.path.append(app_config.path.text_color)
 from color_print import const
+
+# sys.path.append('/home/znkzjs/pylib')
+# from mqtt_helper import g_mqtt
 
 from robot_eye import RobotEye
 from planner import Planner

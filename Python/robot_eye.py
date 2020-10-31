@@ -4,8 +4,6 @@
 # Author: bjq-znkzjs
 # Date  : 2020-09-15
 
-# import paho.mqtt.client as mqtt
-from mqtt_helper import g_mqtt
 import numpy as np
 import mvsdk
 import platform
@@ -14,9 +12,9 @@ import threading
 import json
 import time
 
-import sys
-sys.path.append('/home/znkzjs/bot/python')
+import  global_const 
 from singleton import Singleton
+from mqtt_helper import g_mqtt
 
 class myCamera(metaclass=Singleton):
     """

@@ -3,6 +3,8 @@ from datetime import datetime
 # from mqtt_helper import MqttHelper
 import cv2
 
+import sys
+sys.path.append('/home/znkzjs/pylib')  # for custom's jetson nano 
 
 class app_config:
     # class g:
