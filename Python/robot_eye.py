@@ -12,7 +12,7 @@ import threading
 import json
 import time
 
-import  global_const 
+import  app_config
 from singleton import Singleton
 from mqtt_helper import g_mqtt
 

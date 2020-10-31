@@ -7,7 +7,7 @@ import sys
 sys.path.append('/home/znkzjs/pylib')  # for custom's jetson nano 
 
 
-class app_config:
+class AppConfig:
     # class g:
     #     mqtt = MqttHelper()
     class pylib_path:
@@ -78,7 +78,7 @@ class app_config:
 class CvDebugger():
     @staticmethod
     def show_debug_image(window_name, soure_img, debug_text):
-        if app_config.robot_eye.board_scanner.show_board_image:
+        if AppConfig.robot_eye.board_scanner.show_board_image:
             cp = soure_img.copy()
             debug_text += '  ' + datetime.now().strftime('%s')
             cv2.putText(cp, debug_text, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1)

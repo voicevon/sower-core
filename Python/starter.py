@@ -1,7 +1,7 @@
-from global_const import app_config
+from app_config import AppConfig
 
 import sys
-sys.path.append(app_config.path.text_color)
+sys.path.append(AppConfig.path.text_color)
 from color_print import const 
 
 

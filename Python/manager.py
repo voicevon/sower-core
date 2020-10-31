@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
-import  global_const 
-# from singleton import Singleton
-# from mqtt_helper import g_mqtt
-
-
-from global_const import app_config
+from app_config import AppConfig
 
 import time
 import sys
 
-sys.path.append('/home/znkzjs/pylib')
+sys.path.append(AppConfig.pylib_path)
 from mqtt_helper import g_mqtt
 from terminal_font_color import TerminalFontColor
 
@@ -21,10 +16,10 @@ from robot_sower  import RobotSower
 class SowerManager():
 
     def __connect_to_mqtt_broker(self):
-        broker = app_config.server.mqtt.broker_addr
-        port = app_config.server.mqtt.port
-        uid = app_config.server.mqtt.username
-        password = app_config.server.mqtt.password
+        broker = AppConfig.server.mqtt.broker_addr
+        port = AppConfig.server.mqtt.port
+        uid = AppConfig.server.mqtt.username
+        password = AppConfig.server.mqtt.password
         g_mqtt.connect_broker(broker, port, uid, password)
 
     def __init__(self):
@@ -42,12 +37,12 @@ class SowerManager():
         self.__RESET = TerminalFontColor.Control.reset
 
         # subscribe all topics from config files
-        for topic in app_config.server.mqtt.subscript_topics.topic_dict.keys():
+        for topic in AppConfig.server.mqtt.subscript_topics.topic_dict.keys():
             g_mqtt.subscribe(topic)
 
         print('MQTT subscription is done')
 
-        solution = app_config.robot_arms.servo_controller.solution 
+        solution = AppConfig.robot_arms.servo_controller.solution 
         if solution == 'minghao':
             self.__eye.setup(self.__robot_sower.on_eye_got_new_plate)
         elif solution == 'xuming':

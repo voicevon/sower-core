@@ -1,5 +1,5 @@
 import serial, time
-from global_const import app_config
+from app_config import AppConfig
 from  threading import Thread
 from crccheck.crc import Crc16  #pip3 install crccheck
 

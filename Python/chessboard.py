@@ -1,6 +1,6 @@
 from enum import Enum
 from robot_servos import Servos
-from global_const import  app_config
+from app_config import  AppConfig
 
 import sys
 sys.path.append('/home/znkzjs/bot/python')
@@ -37,8 +37,8 @@ class Chessboard(metaclass=Singleton):
     def __init__(self):
         self.__servos = Servos()
 
-        self.__ROWS = app_config.chessboard.rows_count
-        self.__COLS = app_config.chessboard.cols_count
+        self.__ROWS = AppConfig.chessboard.rows_count
+        self.__COLS = AppConfig.chessboard.cols_count
         self.__row_range = range(0, self.__ROWS)
         self.__col_range = range(0, self.__COLS)
         self.cells = [([ChessboardCell()] * self.__ROWS) for i in range(self.__COLS)]

@@ -4,7 +4,7 @@ from robot_servo_array import  ServoArrayDriver
 from chessboard import  g_chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
 from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 
-from global_const import app_config
+from app_config import AppConfig
 
 
 
@@ -24,7 +24,7 @@ class RobotSower():
             self.__xyz_arm.init_and_home()
         
     def on_eye_got_new_plate(self, plate_array):
-        solution = app_config.robot_arms.servo_controller.solution
+        solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
             new_map = plate_array
             self.__servos_minghao.send_new_platmap(new_map)
@@ -43,7 +43,7 @@ class RobotSower():
         # g_chessboard.reload_plan()
 
     def xyz_arm_fill_chessboard(self):
-        solution = app_config.robot_arms.servo_controller.solution
+        solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
             row_id, col_id = self.__servos_minghao.get_first_empty_cell()
         elif solution == 'xuming':
