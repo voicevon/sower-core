@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 from app_config import AppConfig
 
-import time
-import sys
-
 sys.path.append(AppConfig.pylib_path)
 from mqtt_helper import g_mqtt
 from terminal_font_color import TerminalFontColor
@@ -12,6 +9,8 @@ from robot_eye import RobotEye
 from planner import Planner
 from robot_sower  import RobotSower
 
+import time
+import sys
 
 class SowerManager():
 
