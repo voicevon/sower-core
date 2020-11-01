@@ -1,8 +1,9 @@
 import serial, time
 from app_config import AppConfig
 from  threading import Thread
-from crccheck.crc import Crc16  #pip3 install crccheck
+from crccheck.crc import Crc16Modbus  #pip3 install crccheck
 
+# https://electronics.stackexchange.com/questions/109631/best-way-to-do-i2c-twi-over-long-distance
 class ServoArrayDriver():
 
     def __init__(self):
@@ -14,6 +15,8 @@ class ServoArrayDriver():
         self.__serialport = serial.Serial()
         self.__echo_is_on = False
         self.__spinning = False
+        self.plate_id = 0
+        self.controller_got_ok = False
 
     def connect_serial_port(self, serial_port_name, baudrate,echo_is_on):
         self.__serialport.port = serial_port_name
@@ -44,14 +47,14 @@ class ServoArrayDriver():
 
     def __get_crc16_list(self, origin):
         # origin_bytes is an bytes list
-        crc16 = Crc16()
+        crc16 = Crc16Modbus()
         origin_tuple = tuple(origin)
         # print(origin_tuple)
         crc16.process(origin_tuple)
         crc16_bytes = list(crc16.finalbytes())
-        print('crc16_bytes= ',crc16_bytes)
+        crc16_bytes.reverse()
+        # print('crc16_bytes= ',crc16_bytes)
         return crc16_bytes
-
 
     def send_plate_map(self, plate_id, plate_map):
         output = [0xaa, 0xaa, plate_id ]
@@ -61,14 +64,16 @@ class ServoArrayDriver():
         self.write_bytes(output)
 
     def send_chessboard_map(self, chessboard_map):
-        output = [0xaa,0xbb,]
+        output = [0xaa,0xbb]
         output += chessboard_map  # 3 bytes
         output += self.__get_crc16_list(output)
         output += [0x0d, 0x0a]
         self.write_bytes(output)
 
     def request_chessboard_map(self):
-        output = [0xaa, 0xcc,0x0d,0x0a]
+        output = [0xaa, 0xcc]
+        output += self.__get_crc16_list(output)
+        output += [0x0d, 0x0a]
         self.write_bytes(output)
         
     def get_first_empty_cell(self):
@@ -80,29 +85,34 @@ class ServoArrayDriver():
         return (-1,-1)
 
     def spin_once(self):
-        self.request_chessboard_map()
+        # self.request_chessboard_map()
         # check what is received from serial port
         controller_response = self.__serialport.readline()
         if len(controller_response) > 0:
             xx = list(controller_response)
-            if xx[0:1] == [0xaa,0xaa,]:
+            # print(xx)
+            # print(xx[0:2])
+            if xx[0:2] == [0xaa,0xaa]:
                 # The controller got plate map
                 plate_id = xx[2]
                 result = xx[3]
-                ender = xx[4:5]   # 0x0d,0x0a
-
-            elif xx[0:1] == [0xaa,0xbb,]:
+                ender = xx[4:6]   # 0x0d,0x0a
+                if result == 0x01:
+                    self.controller_got_ok = True
+                    print('minghao got map, feed back a OK...')
+            elif xx[0:2] == [0xaa,0xbb]:
                 # The controller got chessboard map
                 result = xx[2]
-                ender = xx[3:4]   # 0x0d,0x0a
+                ender = xx[3:5]   # 0x0d,0x0a
 
-            elif xx[0:1] == [0xaa,0xcc,]:
+            elif xx[0:2] == [0xaa,0xcc]:
                 # controller respomnse the chessboard map
                 self.chessboard_map[0] = xx[2]
                 self.chessboard_map[1] = xx[3]
                 self.chessboard_map[2] = xx[4]
-                crc_high, crc_low = xx [5:6]
-                ender = xx[7:8]
+                print(self.chessboard_map)
+                crc_high, crc_low = xx [5:7]
+                ender = xx[7:9]
     
     def __main_loop_new_threading(self):
         while True:
@@ -134,5 +144,17 @@ if __name__ == "__main__":
     #     tester.spin_once()
     #     # tester2.spin_once()
 
-    map=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
-    tester.send_plate_map(plate_id=123, plate_map = map)
+    map1=[0,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
+    map2=[0,0xff, 0xff]
+    while True:
+        tester.send_plate_map(plate_id=tester.plate_id, plate_map = map1)
+        # tester.send_chessboard_map(map2)
+        tester.spin_once()
+        if tester.controller_got_ok:
+            print('Plate_id = %d' %tester.plate_id)
+            time.sleep(15)
+            tester.plate_id += 1
+            if tester.plate_id > 255:
+                tester.plate_id = 0
+        else:
+            time.sleep(0.5)
