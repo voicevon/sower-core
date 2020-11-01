@@ -2,6 +2,9 @@ import serial, time
 from app_config import AppConfig
 from  threading import Thread
 from crccheck.crc import Crc16Modbus  #pip3 install crccheck
+import sys
+sys.path.append('/home/znkzjs/pylib')
+from terminal_font_color import TerminalFontColor
 
 # https://electronics.stackexchange.com/questions/109631/best-way-to-do-i2c-twi-over-long-distance
 class ServoArrayDriver():
@@ -93,13 +96,19 @@ class ServoArrayDriver():
             # print(xx)
             # print(xx[0:2])
             if xx[0:2] == [0xaa,0xaa]:
-                # The controller got plate map
-                plate_id = xx[2]
-                result = xx[3]
-                ender = xx[4:6]   # 0x0d,0x0a
-                if result == 0x01:
-                    self.controller_got_ok = True
-                    print('minghao got map, feed back a OK...')
+                if len(xx) == 6:
+                    # The controller got plate map
+                    plate_id = xx[2]
+                    result = xx[3]
+                    ender = xx[4:6]   # 0x0d,0x0a
+                    if result == 0x01:
+                        self.controller_got_ok = True
+                        print('minghao got map, feed back a OK...')
+                    else:
+                        print(TerminalFontColor.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFontColor.Control.reset)
+                else:
+                    print(TerminalFontColor.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFontColor.Control.reset)
+
             elif xx[0:2] == [0xaa,0xbb]:
                 # The controller got chessboard map
                 result = xx[2]
@@ -144,17 +153,19 @@ if __name__ == "__main__":
     #     tester.spin_once()
     #     # tester2.spin_once()
 
-    map1=[0,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
+    map1=[0x55,0xaa,0xff,0x55,0xaa,0xff,0xff,0x55,     0xaa,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
     map2=[0,0xff, 0xff]
     while True:
         tester.send_plate_map(plate_id=tester.plate_id, plate_map = map1)
+        print('sending.............')
         # tester.send_chessboard_map(map2)
         tester.spin_once()
         if tester.controller_got_ok:
             print('Plate_id = %d' %tester.plate_id)
-            time.sleep(15)
+            time.sleep(5)
             tester.plate_id += 1
             if tester.plate_id > 255:
                 tester.plate_id = 0
+            tester.controller_got_ok = False
         else:
             time.sleep(0.5)
