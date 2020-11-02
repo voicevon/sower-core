@@ -12,7 +12,7 @@ class RobotSower():
     '''
     This is the hard robot, will take the plan and execute it.
     '''
-    def __init__(self, do_init_marlin=False):
+    def __init__(self, do_init_marlin=False, do_home=False):
         self.__xyz_arm = XyzArm()
         self.__servos_minghao = ServoArrayDriver()
         self.__servos_minghao.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
@@ -20,8 +20,9 @@ class RobotSower():
         self.__current_plate = Plate()
         self.__next_plate = Plate()
         if do_init_marlin:
-            self.__xyz_arm.connect_to_marlin()
-            self.__xyz_arm.init_and_home()
+            self.__xyz_arm.setup_and_home('/dev/ttyUSB0')
+        if do_home:
+            self.__xyz_arm.home_y_x()
         
     def on_eye_got_new_plate(self, plate_array):
         solution = AppConfig.robot_arms.servo_controller.solution

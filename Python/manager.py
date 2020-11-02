@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 from app_config import AppConfig
 
+import sys
 sys.path.append(AppConfig.pylib_path)
 from mqtt_helper import g_mqtt
-from terminal_font_color import TerminalFontColor
+from terminal_font import TerminalFont
 
 from robot_eye import RobotEye
 from planner import Planner
 from robot_sower  import RobotSower
 
 import time
-import sys
 
 class SowerManager():
 
@@ -25,15 +25,15 @@ class SowerManager():
         self.__connect_to_mqtt_broker()
         self.__eye = RobotEye()
         self.__planner = Planner()
-        self.__robot_sower = RobotSower(do_init_marlin=False)
+        self.__robot_sower = RobotSower(do_init_marlin=True)
         self.__coming_row_id_of_current_plate = 0
 
         self.__goto = self.__on_state_begin
         self.__system_turn_on = True
 
-        self.__YELLOW = TerminalFontColor.Fore.yellow
-        self.__GREEN = TerminalFontColor.Fore.yellow
-        self.__RESET = TerminalFontColor.Control.reset
+        self.__YELLOW = TerminalFont.Color.Fore.yellow
+        self.__GREEN = TerminalFont.Color.Fore.yellow
+        self.__RESET = TerminalFont.Color.Control.reset
 
         # subscribe all topics from config files
         for topic in AppConfig.server.mqtt.subscript_topics.topic_dict.keys():
@@ -47,7 +47,7 @@ class SowerManager():
         elif solution == 'xuming':
             self.__eye.setup(self.__planner.update_next_plate_from_eye_result)
 
-        print(self.__YELLOW + TerminalFontColor.Background.blue)
+        print(self.__YELLOW + TerminalFont.Color.Background.blue)
         print('System is initialized. Now is working')
         print(self.__RESET)
 
@@ -93,7 +93,7 @@ class SowerManager():
         last_function = self.__goto
         self.__goto()
         if last_function != self.__goto:
-            print(self.__YELLOW + TerminalFontColor.Background.blue)
+            print(self.__YELLOW + TerminalFont.Color.Background.blue)
             print(self.__goto.__name__)
             print(self.__RESET)
 

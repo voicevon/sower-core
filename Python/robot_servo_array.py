@@ -4,7 +4,7 @@ from  threading import Thread
 from crccheck.crc import Crc16Modbus  #pip3 install crccheck
 import sys
 sys.path.append('/home/znkzjs/pylib')
-from terminal_font_color import TerminalFontColor
+from terminal_font import TerminalFont
 
 # https://electronics.stackexchange.com/questions/109631/best-way-to-do-i2c-twi-over-long-distance
 class ServoArrayDriver():
@@ -105,9 +105,9 @@ class ServoArrayDriver():
                         self.controller_got_ok = True
                         print('minghao got map, feed back a OK...')
                     else:
-                        print(TerminalFontColor.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFontColor.Control.reset)
+                        print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Control.reset)
                 else:
-                    print(TerminalFontColor.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFontColor.Control.reset)
+                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFont.Control.reset)
 
             elif xx[0:2] == [0xaa,0xbb]:
                 # The controller got chessboard map
@@ -154,18 +154,22 @@ if __name__ == "__main__":
     #     # tester2.spin_once()
 
     map1=[0x55,0xaa,0xff,0x55,0xaa,0xff,0xff,0x55,     0xaa,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
+    map1.reverse()
     map2=[0,0xff, 0xff]
     while True:
+        # tester.send_plate_map(plate_id=1, plate_map = map1)
         tester.send_plate_map(plate_id=tester.plate_id, plate_map = map1)
         print('sending.............')
         # tester.send_chessboard_map(map2)
         tester.spin_once()
         if tester.controller_got_ok:
             print('Plate_id = %d' %tester.plate_id)
-            time.sleep(5)
+            time.sleep(1)
             tester.plate_id += 1
             if tester.plate_id > 255:
                 tester.plate_id = 0
+            if tester.plate_id == 10:
+                tester.plate_id += 1
             tester.controller_got_ok = False
         else:
             time.sleep(0.5)

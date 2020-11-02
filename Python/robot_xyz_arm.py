@@ -1,10 +1,10 @@
 import sys
 # sys.path.append('C:\\gitlab\\bot\\python\\reprap')  # on windows
 # sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on linux
-sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
+# sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
 # sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on Jetson Nano xuming
 
-sys.path.append('/home/znkzjs/bot/python')
+sys.path.append('/home/znkzjs/pylib')
 from singleton import Singleton
 
 from reprap_arm import ReprapArm
@@ -22,9 +22,11 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         self.__placed_counter = 0
         self.__mqtt = None
 
-    def init_and_home(self, serial_port_name):
-        ReprapArm.connect_reprap_controller(serial_port_name, 115200)
+    def setup_and_home(self, serial_port_name):
+        ReprapArm.connect_reprap_controller(self, portname= serial_port_name, baudrate=115200)
         self.allow_cold_extrusion()
+
+    def home_y_x(self):
         self.home(home_y=True)
         self.home(home_x=True)
 
@@ -115,7 +117,9 @@ class XyzArm(ReprapArm, metaclass=Singleton):
 
 if __name__ == "__main__":
     my_arm = XyzArm()
-    my_arm.init_and_home('/dev/ttyUSB0')
+    my_arm.setup_and_home('/dev/ttyUSB0')
+    my_arm.home_y_x()
+    
     if False:
         my_arm.calibrate_col_row(2,7)
 
