@@ -18,7 +18,7 @@ class ServoArrayDriver():
         self.__serialport = serial.Serial()
         self.__echo_is_on = False
         self.__spinning = False
-        self.plate_id = 0
+        self.plate_id = 1
         self.controller_got_ok = False
 
     def connect_serial_port(self, serial_port_name, baudrate,echo_is_on):
@@ -64,6 +64,13 @@ class ServoArrayDriver():
         output += plate_map  # 16 bytes
         output += self.__get_crc16_list(output)
         output += [0x0d, 0x0a]
+        self.write_bytes(output)    
+    
+    def send_dual_map(self, plate_id, merged_map):
+        output = [0xaa, 0xaa, plate_id ]
+        output += merged_map  # 19 bytes
+        output += self.__get_crc16_list(output)
+        output += [0x0d, 0x0a]
         self.write_bytes(output)
 
     def send_chessboard_map(self, chessboard_map):
@@ -88,6 +95,44 @@ class ServoArrayDriver():
         return (-1,-1)
 
     def spin_once(self):
+        # self.request_chessboard_map()
+        # check what is received from serial port
+        controller_response = self.__serialport.read(size=11)
+        if len(controller_response) > 0:
+            xx = list(controller_response)
+            print(len(xx),xx)
+            # print(xx[0:2])
+            if xx[0:2] == [0xaa,0xaa]:
+                if len(xx) == 11:
+                    # The controller got plate map
+                    plate_id = xx[2]  # 1..10
+                    result = xx[3]  # 1 / 0
+                    new_chessboard = xx[4:7]
+                    crc = xx[7:9]  
+                    ender = xx[9:11]   # 0x0d,0x0a
+                    if result == 0x01:
+                        self.controller_got_ok = True
+                        print('minghao got map, feed back a OK...')
+                    else:
+                        print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Control.reset)
+                else:
+                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFont.Control.reset)
+
+            elif xx[0:2] == [0xaa,0xbb]:
+                # The controller got chessboard map
+                result = xx[2]
+                ender = xx[3:5]   # 0x0d,0x0a
+
+            elif xx[0:2] == [0xaa,0xcc]:
+                # controller respomnse the chessboard map
+                self.chessboard_map[0] = xx[2]
+                self.chessboard_map[1] = xx[3]
+                self.chessboard_map[2] = xx[4]
+                print(self.chessboard_map)
+                crc_high, crc_low = xx [5:7]
+                ender = xx[7:9]
+
+    def spin_once_version1(self):
         # self.request_chessboard_map()
         # check what is received from serial port
         controller_response = self.__serialport.readline()
@@ -122,7 +167,7 @@ class ServoArrayDriver():
                 print(self.chessboard_map)
                 crc_high, crc_low = xx [5:7]
                 ender = xx[7:9]
-    
+
     def __main_loop_new_threading(self):
         while True:
             self.spin_once()
@@ -156,20 +201,19 @@ if __name__ == "__main__":
     map1=[0x55,0xaa,0xff,0x55,0xaa,0xff,0xff,0x55,     0xaa,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
     map1.reverse()
     map2=[0,0xff, 0xff]
+    map = map1 + map2
     while True:
         # tester.send_plate_map(plate_id=1, plate_map = map1)
-        tester.send_plate_map(plate_id=tester.plate_id, plate_map = map1)
+        tester.send_dual_map(plate_id=tester.plate_id, merged_map = map)
         print('sending.............')
         # tester.send_chessboard_map(map2)
         tester.spin_once()
         if tester.controller_got_ok:
             print('Plate_id = %d' %tester.plate_id)
-            time.sleep(1)
+            time.sleep(15)
             tester.plate_id += 1
-            if tester.plate_id > 255:
-                tester.plate_id = 0
-            if tester.plate_id == 10:
-                tester.plate_id += 1
+            if tester.plate_id > 9:
+                tester.plate_id = 1
             tester.controller_got_ok = False
         else:
             time.sleep(0.5)
