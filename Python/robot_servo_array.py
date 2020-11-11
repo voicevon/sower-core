@@ -67,6 +67,7 @@ class ServoArrayDriver():
         self.write_bytes(output)    
     
     def send_dual_map(self, plate_id, merged_map):
+        print('merged_map=' , merged_map)
         output = [0xaa, 0xaa, plate_id ]
         output += merged_map  # 19 bytes
         output += self.__get_crc16_list(output)
@@ -198,9 +199,11 @@ if __name__ == "__main__":
     #     tester.spin_once()
     #     # tester2.spin_once()
 
-    map1=[0x55,0xaa,0xff,0x55,0xaa,0xff,0xff,0x55,     0xaa,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
-    map1.reverse()
-    map2=[0,0xff, 0xff]
+    map1=[0xf3,0xcf,0xff,0xff,0xff,0xff,0xff,0x3f,     0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
+    # map1=[0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5]
+   # map1.reverse()
+    map2=[0xff,0xff, 0xff]
+    # map2=[0xff,2,3]
     map = map1 + map2
     while True:
         # tester.send_plate_map(plate_id=1, plate_map = map1)
