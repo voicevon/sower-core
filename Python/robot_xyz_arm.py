@@ -117,6 +117,7 @@ class XyzArm(ReprapArm, metaclass=Singleton):
 
 if __name__ == "__main__":
     my_arm = XyzArm()
+    # my_arm.set_echo_on(True)
     my_arm.setup_and_home('/dev/ttyUSB0')
     my_arm.home_y_x()
     
@@ -137,7 +138,7 @@ if __name__ == "__main__":
             my_arm.lift_warehouse()
             time.sleep(2)
             my_arm.drop_warehouse()
-            time.sleep(5)
+            time.sleep(3)
 
     if True:
         while True:

@@ -5,6 +5,7 @@ from crccheck.crc import Crc16Modbus  #pip3 install crccheck
 import sys
 sys.path.append('/home/znkzjs/pylib')
 from terminal_font import TerminalFont
+from robot_sensors import RobotSensors
 
 # https://electronics.stackexchange.com/questions/109631/best-way-to-do-i2c-twi-over-long-distance
 class ServoArrayDriver():
@@ -20,6 +21,8 @@ class ServoArrayDriver():
         self.__spinning = False
         self.plate_id = 1
         self.controller_got_ok = False
+
+
 
     def connect_serial_port(self, serial_port_name, baudrate,echo_is_on):
         self.__serialport.port = serial_port_name
@@ -183,7 +186,23 @@ class ServoArrayDriver():
             t.start()
             self.__spinning = True
 
+def test1():
+    pass
+def test2():
+    pass
+
 if __name__ == "__main__":
+
+    controller = RobotSensors(test1,test2)
+    controller.setup()
+    action = 1
+    controller.ouput_light(action)
+    controller.output_vacuum_fan(action)
+    controller.output_vacuum_fan(action)
+    controller.output_vacuum_fan(0)
+    controller.output_conveyor_motor(action)
+
+
     tester = ServoArrayDriver()
     tester.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
     # tester.spin()
@@ -199,7 +218,7 @@ if __name__ == "__main__":
     #     tester.spin_once()
     #     # tester2.spin_once()
 
-    map1=[0xf3,0xcf,0xff,0xff,0xff,0xff,0xff,0x3f,     0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff]
+    map1=[0xf3,0xcf,0xff,0xff,0xff,0xff,0xff,0x3f,     0xff,0xff,0xff,0xff,0xf3,0xcf,0xff,0x3f]
     # map1=[0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5]
    # map1.reverse()
     map2=[0xff,0xff, 0xff]
