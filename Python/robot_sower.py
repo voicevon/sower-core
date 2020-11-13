@@ -6,8 +6,6 @@ from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 
 from app_config import AppConfig
 
-import Jetson.GPIO as GPIO
-
 
 class RobotSower():
     '''
