@@ -70,7 +70,7 @@ class ServoArrayDriver():
         self.write_bytes(output)    
     
     def send_dual_map(self, plate_id, merged_map):
-        print('merged_map=' , merged_map)
+        # print('merged_map=' , merged_map)
         output = [0xaa, 0xaa, plate_id ]
         output += merged_map  # 19 bytes
         output += self.__get_crc16_list(output)
@@ -94,39 +94,45 @@ class ServoArrayDriver():
         for row_id in self.__rows_range:
             for col_id in self.__cols_range:
                 flag = self.chessboard_map[row_id] & (1 << col_id)
-                if flag:
+                if not flag:
                     return row_id, col_id
         return (-1,-1)
 
     def inform_minghao_placed_one_cell(self, col_id,row_id):
-        self.chessboard_map[row_id] += 1<<col_id
+        if col_id >= 0:
+            # there is some change for cell status
+            self.chessboard_map[row_id] += 1<<col_id
+
         dual_map = self.__current_plate_map + self.chessboard_map
         self.send_dual_map(self.plate_id, dual_map)
 
 
     def spin_once(self):
+        self.inform_minghao_placed_one_cell(-1,-1)
+        # print('chesssboard_map= %s, %s, %s'  %(self.chessboard_map[0],self.chessboard_map[1],self.chessboard_map[2]))
         # self.request_chessboard_map()
         # check what is received from serial port
         controller_response = self.__serialport.read(size=11)
         if len(controller_response) > 0:
             xx = list(controller_response)
-            print(len(xx),xx)
+            # print(len(xx),xx)
             # print(xx[0:2])
             if xx[0:2] == [0xaa,0xaa]:
                 if len(xx) == 11:
                     # The controller got plate map
                     plate_id = xx[2]  # 1..10
                     result = xx[3]  # 1 / 0
-                    new_chessboard = xx[4:7]
+                    self.chessboard_map = xx[4:7]
                     crc = xx[7:9]  
                     ender = xx[9:11]   # 0x0d,0x0a
                     if result == 0x01:
                         self.controller_got_ok = True
-                        print('minghao got map, feed back a OK...')
+                        if self.__echo_is_on:
+                            print('minghao got map, feed back a OK...')
                     else:
-                        print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Control.reset)
+                            print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Color.Control.reset)
                 else:
-                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFont.Control.reset)
+                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFont.Color.Control.reset)
 
             elif xx[0:2] == [0xaa,0xbb]:
                 # The controller got chessboard map
@@ -178,19 +184,19 @@ class ServoArrayDriver():
                 crc_high, crc_low = xx [5:7]
                 ender = xx[7:9]
 
-    def __main_loop_new_threading(self):
-        while True:
-            self.spin_once()
-            # time.sleep(0.02)
+    # def __main_loop_new_threading(self):
+    #     while True:
+    #         self.spin_once()
+    #         # time.sleep(0.02)
 
-    def spin(self):
-        '''
-        Will not block invoker
-        '''
-        if not self.__spinning:
-            t = Thread(target=self.__main_loop_new_threading)
-            t.start()
-            self.__spinning = True
+    # def spin(self):
+    #     '''
+    #     Will not block invoker
+    #     '''
+    #     if not self.__spinning:
+    #         t = Thread(target=self.__main_loop_new_threading)
+    #         t.start()
+    #         self.__spinning = True
 
 def test1():
     pass
@@ -204,7 +210,9 @@ if __name__ == "__main__":
     print(col,row)
     
     tester.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
-    # tester.spin()
+    tester.inform_minghao_placed_one_cell(1,2)
+    while True:
+        tester.spin_once()
 
 
     # tester2 = ServoArrayDriver()

@@ -39,9 +39,9 @@ class RobotSensors():
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(self.__PIN_ENCODER_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-        GPIO.setup(self.__PIN_LIGHTER, GPIO.OUT, initial=GPIO.HIGH)
-        GPIO.setup(self.__PIN_VACUUM_FAN, GPIO.OUT, initial=GPIO.HIGH)
-        GPIO.setup(self.__PIN_CONVEYOR_MOTOR, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(self.__PIN_LIGHTER, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.__PIN_VACUUM_FAN, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.__PIN_CONVEYOR_MOTOR, GPIO.OUT, initial=GPIO.LOW)
 
         GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_gpio_rising)
         GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_gpio_rising)
