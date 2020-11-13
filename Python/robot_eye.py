@@ -261,9 +261,9 @@ class RobotEye(object):
         self.__tray_config = dict()
         g_mqtt.append_on_message_callback(self.on_mqtt_message)
 
-    def start_with_new_thread(self, mqtt):
+    def spin(self, mqtt):
         self.__running_on_my_own_thread = True
-        t = threading(self.__main_task)
+        t = threading(self.__spin)
         t.start
 
     def setup(self,  callbacks):
@@ -300,22 +300,22 @@ class RobotEye(object):
             self.__camera.config(TriggerMode=trigger_mode, TriggerType=trigger_type, AeState=aestate, ExposureTime=exposure_time)
         print('[Info] robot_eye.py: camera config done!')
 
-    def main_loop(self):
+    def __spin(self):
         # This is mainly for debugging. do not use while loop in this function!
         # For better performance, invoke start_with_new_thread() instead.
 
         # stop my_own_thread
-        self.__running_on_my_own_thread = False
-        self.__main_task()
-        
+        while True:
+            # self.__running_on_my_own_thread = False
+            self.spin_once()
 
-    def __main_task(self):
+    def spin_once(self):
         # Try to get a plate map, When it happened, invoke the callback
         message_id = 0
         last_frame_id = 0
         if self.__camera.isopen:
             # while self.__mqtt.mqtt_system_turn_on:
-            while True:   #TODO
+            # while True:   #TODO
                 if self.__camera.frame_id != last_frame_id:
                     last_frame_id = self.__camera.frame_id
                     if self.__detect_config.get('ROI', []):
@@ -324,13 +324,15 @@ class RobotEye(object):
                             roi = self.__detect_config['ROI']
                         else:
                             print('[Error] robot_eye.py line [357]: invalid ROI!')
-                            continue
+                            # continue
+                            return
                     else:
                         cap_img = self.__camera.frame.copy()
                         roi = self.__corn_detect.extractROI(self.__camera.frame)
                         if roi is None:
                             print("[Warning] robot_eye.py line [363]: extract tray contour failed!")
-                            continue
+                            # continue
+                            return
                     #print('roi:', roi)
                     thres_R = self.__detect_config.get('threshold_R', 190)
                     thres_G = self.__detect_config.get('threshold_G', 190)
@@ -356,8 +358,6 @@ class RobotEye(object):
                             img_pub = img_encode.tobytes()
                             g_mqtt.publish("sower/img/bin", img_pub, retain=True)
                             print("[Info] robot_eye.py: publish image done!")
-
-    
 
     def on_mqtt_message(self, topic, payload):
         # will be invoked from manager, not mqtt_client directly

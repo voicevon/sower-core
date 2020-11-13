@@ -4,9 +4,10 @@ import sys
 # sys.path.append('/home/znkzjs/bot/python/reprap')   # on Jetson Nano user
 # sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on Jetson Nano xuming
 
-sys.path.append('/home/znkzjs/pylib')
+sys.path.append('/home/xm/pylib')
 from singleton import Singleton
-
+from app_config import AppConfig
+from mqtt_helper import g_mqtt
 from reprap_arm import ReprapArm
 
 import time
@@ -20,7 +21,6 @@ class XyzArm(ReprapArm, metaclass=Singleton):
     def __init__(self ):
         ReprapArm.__init__(self)
         self.__placed_counter = 0
-        self.__mqtt = None
 
     def setup_and_home(self, serial_port_name):
         ReprapArm.connect_reprap_controller(self, portname= serial_port_name, baudrate=115200)
@@ -83,7 +83,7 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         self.move_to_xyz(180, y+32 )
 
         self.__placed_counter += 1
-        self.__mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)
+        g_mqtt.publish_float('sower/xyzarm/placed_counter', self.__placed_counter)
 
     def pickup_then_place_to_cell(self, col, row):
         self.pickup_from_warehouse(row)

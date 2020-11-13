@@ -1,8 +1,7 @@
-from app_config import AppConfig
-
 import sys
-sys.path.append(AppConfig.path.text_color)
-from color_print import const 
+sys.path.append('/home/xm/pylib')  # for custom's jetson nano 
+from terminal_font import TerminalFont
+
 
 
 def get_welcome_a():
@@ -63,8 +62,8 @@ def get_welcome_b():
 def print_welcome(welcome):
     # print(welcome)
     for w in welcome:
-        print('                      ' + const.print_color.control.bold + const.print_color.fore.yellow + const.print_color.background.blue + w + const.print_color.control.reset)
-    print(const.print_color.control.reset)
+        print('                      ' + TerminalFont.Color.Control.bold + TerminalFont.Color.Fore.yellow + TerminalFont.Color.Background.blue + w + TerminalFont.Color.Control.reset)
+    print(TerminalFont.Color.Control.reset)
 
 
 if True:
@@ -79,10 +78,7 @@ if True:
 
     from manager import SowerManager
     system = SowerManager()
-    system.setup()
-    while True:
-        system.main_loop()
-
+    system.spin()
     # '(\_______/)'
     # ' (= ^.^ =)'
     # '  (")_(")'

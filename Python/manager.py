@@ -25,7 +25,7 @@ class SowerManager():
         self.__connect_to_mqtt_broker()
         self.__eye = RobotEye()
         self.__planner = Planner()
-        self.__robot_sower = RobotSower(do_init_marlin=True)
+        self.__robot_sower = RobotSower(do_init_marlin=True, do_home=True)
         self.__coming_row_id_of_current_plate = 0
 
         self.__goto = self.__on_state_begin
@@ -53,6 +53,7 @@ class SowerManager():
 
     def __on_state_begin(self):
         if self.__system_turn_on:
+            self.__robot_sower.turn_on_light_fan_conveyor()
             self.__goto = self.__on_state_working
 
     def __on_state_idle(self):
@@ -61,8 +62,8 @@ class SowerManager():
 
     def __on_state_working(self):
         if self.__system_turn_on:
-            self.__eye.main_loop()   # for single threading
-            self. __planner.spin_once()
+            self.__eye.spin_once()   # for single threading
+            # self. __planner.spin_once()  # For Xuming solution
             self.__robot_sower.spin_once()
         else:
             self.__goto = self.__on_state_begin
@@ -88,20 +89,20 @@ class SowerManager():
         self.__servos.output_i2c(servos_action.bytes)
         self.__chessboard.on_servos_released(servos_action.bytes)
 
-    def spin_once(self):
+    def spin(self):
         # self.__system_turn_on = self.__mqtt_agent.mqtt_system_turn_on 
-        last_function = self.__goto
-        self.__goto()
-        if last_function != self.__goto:
-            print(self.__YELLOW + TerminalFont.Color.Background.blue)
-            print(self.__goto.__name__)
-            print(self.__RESET)
+        while True:
+            last_function = self.__goto
+            self.__goto()
+            if last_function != self.__goto:
+                print(self.__YELLOW + TerminalFont.Color.Background.blue)
+                print(self.__goto.__name__)
+                print(self.__RESET)
 
 
 if __name__ == "__main__":
     runner = SowerManager()
-    while True:
-        runner.spin_once()
+    runner.spin()
 
 
 #

@@ -4,13 +4,13 @@ from datetime import datetime
 import cv2
 
 import sys
-sys.path.append('/home/znkzjs/pylib')  # for custom's jetson nano 
+sys.path.append('/home/xm/pylib')  # for custom's jetson nano 
 
 
 class AppConfig:
     # class g:
     #     mqtt = MqttHelper()
-    pylib_path = '/home/znkzjs/pylib'  # for custom's jetson nano
+    pylib_path = '/home/xm/pylib'  # for custom's jetson nano
         # text_color = '/home/xm/gitrepo/pylib'  # for xuming's jetson nano
 
     class server:
@@ -49,9 +49,8 @@ class AppConfig:
             baudrate = 115200
         
         class servo_controller:
-            solution = 'xuming'
-
-            # solution = 'minghao'
+            # solution = 'xuming'
+            solution = 'minghao'
             port_name = 'dev/ttyUSB1'
             baudrate = 115200
 

@@ -3,7 +3,7 @@ from app_config import AppConfig
 from  threading import Thread
 from crccheck.crc import Crc16Modbus  #pip3 install crccheck
 import sys
-sys.path.append('/home/znkzjs/pylib')
+sys.path.append('/home/xm/pylib')
 from terminal_font import TerminalFont
 from robot_sensors import RobotSensors
 
@@ -15,14 +15,14 @@ class ServoArrayDriver():
         self.__ROWS = 3
         self.__rows_range = range(0, self.__ROWS)
         self.__cols_range = range(0, self.__COLS)
-        self.chessboard_map = [[0] for i in self.__rows_range]
+        # self.chessboard_map = [[0] for i in self.__rows_range]
+        self.chessboard_map = [0 for i in self.__rows_range]
         self.__serialport = serial.Serial()
         self.__echo_is_on = False
         self.__spinning = False
         self.plate_id = 1
         self.controller_got_ok = False
-
-
+        self.__current_plate_map = [0 for i in range(0,16)]
 
     def connect_serial_port(self, serial_port_name, baudrate,echo_is_on):
         self.__serialport.port = serial_port_name
@@ -93,10 +93,16 @@ class ServoArrayDriver():
     def get_first_empty_cell(self):
         for row_id in self.__rows_range:
             for col_id in self.__cols_range:
-                flag = self.chessboard_map[row_id] & 1 << col_id
+                flag = self.chessboard_map[row_id] & (1 << col_id)
                 if flag:
                     return row_id, col_id
         return (-1,-1)
+
+    def inform_minghao_placed_one_cell(self, col_id,row_id):
+        self.chessboard_map[row_id] += 1<<col_id
+        dual_map = self.__current_plate_map + self.chessboard_map
+        self.send_dual_map(self.plate_id, dual_map)
+
 
     def spin_once(self):
         # self.request_chessboard_map()
@@ -193,17 +199,10 @@ def test2():
 
 if __name__ == "__main__":
 
-    controller = RobotSensors(test1,test2)
-    controller.setup()
-    action = 1
-    controller.ouput_light(action)
-    controller.output_vacuum_fan(action)
-    controller.output_vacuum_fan(action)
-    controller.output_vacuum_fan(0)
-    controller.output_conveyor_motor(action)
-
-
     tester = ServoArrayDriver()
+    col,row = tester.get_first_empty_cell()
+    print(col,row)
+    
     tester.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
     # tester.spin()
 

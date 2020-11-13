@@ -34,13 +34,14 @@ class RobotSensors():
 
 
     def setup(self):
+        GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(self.__PIN_ENCODER_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-        GPIO.setup(self.__PIN_LIGHTER, GPIO.OUT)
-        GPIO.setup(self.__PIN_VACUUM_FAN, GPIO.OUT)
-        GPIO.setup(self.__PIN_CONVEYOR_MOTOR, GPIO.OUT)
+        GPIO.setup(self.__PIN_LIGHTER, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(self.__PIN_VACUUM_FAN, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(self.__PIN_CONVEYOR_MOTOR, GPIO.OUT, initial=GPIO.HIGH)
 
         GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_gpio_rising)
         GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_gpio_rising)
@@ -82,11 +83,12 @@ if __name__ == "__main__":
     tester = RobotSensors(test_a,test_b)
     tester.setup()
     while True:
-        # tester.ouput_light(1)
-        # tester.output_vacuum_fan(1)
-        tester.output_conveyor_motor(1)
-        time.sleep(15)
-        tester.ouput_light(0)
+        # tester.ouput_light(0)
         tester.output_vacuum_fan(0)
         tester.output_conveyor_motor(0)
+        time.sleep(15)
+
+        tester.ouput_light(1)
+        # tester.output_vacuum_fan(1)
+        # tester.output_conveyor_motor(1)
         time.sleep(15)
