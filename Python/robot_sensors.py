@@ -8,7 +8,7 @@
 from enum import Enum
 import Jetson.GPIO as GPIO
 import time
-
+import os
 class RobotSensors():
 
     def __init__(self, on_new_plate_enter, on_new_row_enter):
@@ -18,6 +18,7 @@ class RobotSensors():
         self.__PIN_CONVEYOR_MOTOR = 13
         self.__PIN_VACUUM_FAN = 11
         self.__PIN_LIGHTER = 7
+        self.__PIN_POWER_OFF = 1
 
         self.__on_new_plate_enter = on_new_plate_enter
         self.__on_new_row_enter = on_new_row_enter
@@ -36,6 +37,8 @@ class RobotSensors():
     def setup(self):
         GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.__PIN_POWER_OFF, GPIO.IN)
+        GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(self.__PIN_ENCODER_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
@@ -65,9 +68,15 @@ class RobotSensors():
             if self.__encoder_distance / self.__encoder_distance_per_row == 0:
                 # current row must be fininshed. new row is coming
                 self.__on_new_row_enter()
+        
+        elif channel == self.__PIN_POWER_OFF:
+            # poew off the linux system.
+            os.system('systemctl poweroff') 
+
 
     def update_current_plate(self):
         self.__current_plate_enter_point = self.__next_plate_enter_point
+
 
         
     # def on_gpio_falling(self, channel):

@@ -350,7 +350,7 @@ class RobotEye(object):
                     self.__on_got_new_plate_callback(result)
                     # for callback in self.__on_got_new_plate_callback:
                     #     callback(result)
-
+                    print('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
                     if display:
                         img_show = cv2.resize(self.__corn_detect.corn_img, (400, 200))
                         is_success, img_encode = cv2.imencode(".jpg", img_show)
