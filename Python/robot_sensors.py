@@ -15,10 +15,11 @@ class RobotSensors():
         self.__PIN_IR_SWITCH = 37
         self.__PIN_ENCODER_A = 31
         self.__PIN_ENCODER_B = 32
+        self.__PIN_POWER_OFF = 29
+
         self.__PIN_CONVEYOR_MOTOR = 13
         self.__PIN_VACUUM_FAN = 11
         self.__PIN_LIGHTER = 7
-        self.__PIN_POWER_OFF = 1
 
         self.__on_new_plate_enter = on_new_plate_enter
         self.__on_new_row_enter = on_new_row_enter

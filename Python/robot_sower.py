@@ -6,21 +6,34 @@ from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 
 from app_config import AppConfig
 
+import serial.tools.list_ports
 
 class RobotSower():
     '''
     This is the hard robot, will take the plan and execute it.
     '''
+    def __get_serial_port_name_from_chip_name(self, chip_name):
+        myports = [tuple(p) for p in list(serial.tools.list_ports.comports())]
+        for port_name,chip,detail in myports:
+            print(port_name)
+            print(chip)
+            print(detail)
+            
+            if chip == chip_name:
+                return port_name
+
     def __init__(self, do_init_marlin=False, do_home=False):
         self.__xyz_arm = XyzArm()
         self.__servos_minghao = ServoArrayDriver()
-        self.__servos_minghao.connect_serial_port('/dev/ttyUSB1', 115200, echo_is_on=False)
+        port_name = self.__get_serial_port_name_from_chip_name('USB2.0-Serial')
+        self.__servos_minghao.connect_serial_port(port_name, 115200, echo_is_on=False)
         self.__sensors = RobotSensors(self.__on_new_plate_enter, self.__on_new_row_enter)
         self.__sensors.setup()
         self.__current_plate = Plate()
         self.__next_plate = Plate()
         if do_init_marlin:
-            self.__xyz_arm.setup_and_home('/dev/ttyUSB0')
+            port_name = self.__get_serial_port_name_from_chip_name('FT232R USB UART')
+            self.__xyz_arm.setup_and_home(port_name)
         if do_home:
             self.__xyz_arm.home_y_x()
         
