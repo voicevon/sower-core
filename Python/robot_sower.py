@@ -58,7 +58,7 @@ class RobotSower():
 
     def turn_on_light_fan_conveyor(self):
         self.__sensors.output_conveyor_motor(0)
-        self.__sensors.output_vacuum_fan(0)
+        self.__sensors.output_vacuum_fan(1)
         self.__sensors.ouput_light(1)
 
     def spin_once(self):

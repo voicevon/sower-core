@@ -17,6 +17,8 @@ class ServoArrayDriver():
         self.__cols_range = range(0, self.__COLS)
         # self.chessboard_map = [[0] for i in self.__rows_range]
         self.chessboard_map = [0 for i in self.__rows_range]
+        self.minghao_chessboard_map = [0 for i in self.__rows_range]
+        self.wait_minghao_sync = False
         self.__serialport = serial.Serial()
         self.__echo_is_on = False
         self.__spinning = False
@@ -101,17 +103,19 @@ class ServoArrayDriver():
     def inform_minghao_placed_one_cell(self, col_id,row_id):
         if col_id >= 0:
             # there is some change for cell status
+            # but still need feed back from minghao controller. so do not update self.chessboard_map
             self.chessboard_map[row_id] += 1<<col_id
-
+            self.wait_minghao_sync = True
+            # pass
+        
         dual_map = self.__current_plate_map + self.chessboard_map
         self.send_dual_map(self.plate_id, dual_map)
 
 
     def spin_once(self):
+        print('minghao  is spin_once()')
+            
         self.inform_minghao_placed_one_cell(-1,-1)
-        # print('chesssboard_map= %s, %s, %s'  %(self.chessboard_map[0],self.chessboard_map[1],self.chessboard_map[2]))
-        # self.request_chessboard_map()
-        # check what is received from serial port
         controller_response = self.__serialport.read(size=11)
         if len(controller_response) > 0:
             xx = list(controller_response)
@@ -122,31 +126,41 @@ class ServoArrayDriver():
                     # The controller got plate map
                     plate_id = xx[2]  # 1..10
                     result = xx[3]  # 1 / 0
-                    self.chessboard_map = xx[4:7]
+                    self.minghao_chessboard_map = xx[4:7]
+                    self.wait_minghao_sync = False
                     crc = xx[7:9]  
                     ender = xx[9:11]   # 0x0d,0x0a
                     if result == 0x01:
                         self.controller_got_ok = True
-                        if self.__echo_is_on:
-                            print('minghao got map, feed back a OK...')
+                        # if self.__echo_is_on:
+                        print('minghao got map, feed back a OK...')
+                        print('my chessboard_map = ' ,self.chessboard_map)
+                        print("minghao's chessboard_map = " ,self.minghao_chessboard_map)
+
                     else:
-                            print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Color.Control.reset)
+                        print(TerminalFont.Color.Fore.red)
+                        print(xx )
+                        print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Color.Control.reset)
                 else:
-                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFont.Color.Control.reset)
+                    print(xx)
+                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length should be 11, but is  = %d' % len(xx) + TerminalFont.Color.Control.reset)
+            else:
+                print('lost protocol head', xx)
+            # elif xx[0:2] == [0xaa,0xbb]:
+            #     # The controller got chessboard map
+            #     result = xx[2]
+            #     ender = xx[3:5]   # 0x0d,0x0a
 
-            elif xx[0:2] == [0xaa,0xbb]:
-                # The controller got chessboard map
-                result = xx[2]
-                ender = xx[3:5]   # 0x0d,0x0a
-
-            elif xx[0:2] == [0xaa,0xcc]:
-                # controller respomnse the chessboard map
-                self.chessboard_map[0] = xx[2]
-                self.chessboard_map[1] = xx[3]
-                self.chessboard_map[2] = xx[4]
-                print(self.chessboard_map)
-                crc_high, crc_low = xx [5:7]
-                ender = xx[7:9]
+            # elif xx[0:2] == [0xaa,0xcc]:
+            #     # controller respomnse the chessboard map
+            #     self.chessboard_map[0] = xx[2]
+            #     self.chessboard_map[1] = xx[3]
+            #     self.chessboard_map[2] = xx[4]
+            #     print(self.chessboard_map)
+            #     crc_high, crc_low = xx [5:7]
+            #     ender = xx[7:9]
+        else:
+            print(TerminalFont.Color.Fore.yellow +  'minghao spin_once().  timeout , no response' + TerminalFont.Color.Control.reset)
 
     def spin_once_version1(self):
         # self.request_chessboard_map()

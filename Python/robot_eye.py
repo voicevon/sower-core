@@ -162,7 +162,8 @@ class corn_detection(object):
         H_img = cv2.cvtColor(raw_img, cv2.COLOR_RGB2GRAY)
         res, img_detected = cv2.threshold(H_img, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         img_detected = cv2.morphologyEx(img_detected, cv2.MORPH_CLOSE, kernel=(5, 5))
-        img, contours, hierarchy = cv2.findContours(img_detected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
+        contours, hierarchy = cv2.findContours(img_detected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
+        #img, contours, hierarchy = cv2.findContours(img_detected, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
         areas = []
         contour = []
         for cont in contours:
@@ -208,7 +209,8 @@ class corn_detection(object):
             img_binary = cv2.morphologyEx(img_binary, cv2.MORPH_CLOSE, element)  # 闭运算连接空洞
             # img_binary = cv2.morphologyEx(img_binary, cv2.MORPH_OPEN, element)  # 开运算去噪
             # cv2.imwrite('gray.jpg', img_binary)
-            img, contours, hierarchy = cv2.findContours(img_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
+            #img, contours, hierarchy = cv2.findContours(img_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
+            contours, hierarchy = cv2.findContours(img_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)  # 检测轮廓
 
             areas = []
             for cont in contours:
@@ -223,9 +225,11 @@ class corn_detection(object):
             for cont in contours:
                 if cv2.contourArea(cont)> max_area/theshold_size:
                     cont_res.append(cont)
-                    x,y,w,h = cv2.boundingRect(cont)  # 提取矩形坐标
+                    rect = cv2.boundingRect(cont)  # 提取矩形坐标
+                    #x,y,w,h = cv2.boundingRect(cont)  # 提取矩形坐标
                     if display:
-                        cv2.rectangle(self.corn_img, (x,y),(x+w,y+h), (0, 0, 255), 5)  # 绘制矩形
+                        cv2.rectangle(self.corn_img, rect, (0, 0, 255), 5)  # 绘制矩形
+                        #cv2.rectangle(self.corn_img, (x,y),(x+w,y+h), (0, 0, 255), 5)  # 绘制矩形
             # contours = np.array(contours)
             # cont_res = contours[np.argwhere(areas > max_area / theshold_size).squeeze()]  # 计算有效玉米轮廓
             #if display:
@@ -240,9 +244,12 @@ class corn_detection(object):
                     tray_rect = [interval_w * col, interval_h * row]
                     # 遍历找到的所有玉米粒
                     for cont in cont_res:
-                        x,y,w,h = cv2.boundingRect(cont)  # 提取矩形坐标
-                        if x + w > tray_rect[0] and tray_rect[0] + interval_w >x and \
-                                y+ h > tray_rect[1] and tray_rect[1] + interval_h > y:
+                        rect = cv2.boundingRect(cont)  # 提取矩形坐标
+                        #x,y,w,h = cv2.boundingRect(cont)  # 提取矩形坐标
+                        #if x + w > tray_rect[0] and tray_rect[0] + interval_w >x and \
+                        #        y+ h > tray_rect[1] and tray_rect[1] + interval_h > y:
+                        if rect[0] + rect[2] > tray_rect[0] and tray_rect[0] + interval_w >rect[0] and \
+                                rect[1] + rect[3] > tray_rect[1] and tray_rect[1] + interval_h > rect[1]:
                             corn_result[row, col] = True
                             break
             return corn_result
@@ -345,7 +352,8 @@ class RobotEye(object):
                                                                  thres_B, thres_size)
                     end_time = time.perf_counter()
                     print("[Info] robot_eye.py: detect done! result: ", result, "time: ", end_time-start_time, " s")
-                    g_mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
+                    # g_mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
+                    # g_mqtt.publish_float("sower/eye/detect", result.tostring(),retain=True)
                     # self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
                     self.__on_got_new_plate_callback(result)
                     # for callback in self.__on_got_new_plate_callback:
