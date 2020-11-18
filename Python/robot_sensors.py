@@ -14,8 +14,9 @@ class RobotSensors():
     def __init__(self, on_new_plate_enter, on_new_row_enter):
         self.__PIN_IR_SWITCH = 37
         self.__PIN_ENCODER_A = 31
-        self.__PIN_ENCODER_B = 32
+        self.__PIN_ENCODER_B = 33
         self.__PIN_POWER_OFF = 29
+        self.__PIN_INPUT_TEST = 35
 
         self.__PIN_CONVEYOR_MOTOR = 13
         self.__PIN_VACUUM_FAN = 11
@@ -38,6 +39,7 @@ class RobotSensors():
     def setup(self):
         GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
+        GPIO.setup(self.__PIN_INPUT_TEST, GPIO.IN)
         GPIO.setup(self.__PIN_POWER_OFF, GPIO.IN)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
@@ -78,6 +80,13 @@ class RobotSensors():
     def update_current_plate(self):
         self.__current_plate_enter_point = self.__next_plate_enter_point
 
+    def read_gpio_input(self):
+        print(GPIO.input(self.__PIN_INPUT_TEST))
+        print(GPIO.input(self.__PIN_IR_SWITCH))
+        print(GPIO.input(self.__PIN_POWER_OFF))
+        print(GPIO.input(self.__PIN_ENCODER_A))
+        print(GPIO.input(self.__PIN_ENCODER_B))
+        print('---------------------------------------')
 
         
     # def on_gpio_falling(self, channel):
@@ -93,6 +102,10 @@ if __name__ == "__main__":
     tester = RobotSensors(test_a,test_b)
     tester.setup()
     while True:
+        tester.read_gpio_input()
+        time.sleep(0.3)
+
+    while False:
         # tester.ouput_light(0)
         tester.output_vacuum_fan(0)
         tester.output_conveyor_motor(0)
