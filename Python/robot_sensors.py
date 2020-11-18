@@ -19,7 +19,7 @@ class RobotSensors():
         self.__PIN_INPUT_TEST = 35
 
         self.__PIN_CONVEYOR_MOTOR = 13
-        self.__PIN_VACUUM_FAN = 11
+        self.__PIN_VACUUM_FAN = 15
         self.__PIN_LIGHTER = 7
 
         self.__on_new_plate_enter = on_new_plate_enter
@@ -101,17 +101,19 @@ def test_b():
 if __name__ == "__main__":
     tester = RobotSensors(test_a,test_b)
     tester.setup()
-    while True:
+    while False:
         tester.read_gpio_input()
         time.sleep(0.3)
 
-    while False:
-        # tester.ouput_light(0)
+    while True:
+        # turn off all
+        tester.ouput_light(0)
         tester.output_vacuum_fan(0)
         tester.output_conveyor_motor(0)
-        time.sleep(15)
+        time.sleep(5)
 
+        # turn on 
         tester.ouput_light(1)
-        # tester.output_vacuum_fan(1)
-        # tester.output_conveyor_motor(1)
-        time.sleep(15)
+        tester.output_vacuum_fan(1)
+        tester.output_conveyor_motor(1)
+        time.sleep(5)
