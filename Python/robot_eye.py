@@ -11,6 +11,7 @@ import cv2
 import threading
 import json
 import time
+# from functools import reduce
 
 import  app_config
 from singleton import Singleton
@@ -236,11 +237,11 @@ class corn_detection(object):
             #    cv2.drawContours(self.corn_img, cont_res, -1, (255, 0, 0), 2)  # 绘制轮廓
                 #cv2.drawContours(self.corn_img, cont_res.tolist(), -1, (255, 0, 0), 2)  # 绘制轮廓
 
-            interval_h = int(self.ROI[3] /2 / self.tray_height)  # 穴大小
+            interval_h = int(self.ROI[3] /2 / self.tray_height)  # 穴大小 8
             interval_w = int(self.ROI[2] / 2/ self.tray_width)
 
-            for row in range(self.tray_height):
-                for col in range(self.tray_width):
+            for row in range(self.tray_height):#8
+                for col in range(self.tray_width):#16
                     tray_rect = [interval_w * col, interval_h * row]
                     # 遍历找到的所有玉米粒
                     for cont in cont_res:
@@ -252,7 +253,24 @@ class corn_detection(object):
                                 rect[1] + rect[3] > tray_rect[1] and tray_rect[1] + interval_h > rect[1]:
                             corn_result[row, col] = True
                             break
-            return corn_result
+            print('[Info] robot_eye.py: corn result = ', corn_result)
+            corn_map = self.translate_map(corn_result)
+            print('[Info] robot_eye.py: corn map = ', corn_map)
+            return corn_map
+    
+    def translate_map(self, corn_result):
+        temp = []
+        corn_result = np.array(corn_result)
+        for col in reversed(range(corn_result.shape[1])):
+            byte_index = 0
+            for row in range(corn_result.shape[0]):
+                byte_index += corn_result[row, col]*pow(2,row)
+            temp.append(byte_index)
+        return temp
+
+
+
+
 
 
 class RobotEye(object):
@@ -267,6 +285,7 @@ class RobotEye(object):
         self.__detect_config = {'ROI': [80,405,1872,975]}
         self.__tray_config = dict()
         g_mqtt.append_on_message_callback(self.on_mqtt_message)
+        self.__last_frame_id = 0
 
     def spin(self, mqtt):
         self.__running_on_my_own_thread = True
@@ -318,13 +337,12 @@ class RobotEye(object):
 
     def spin_once(self):
         # Try to get a plate map, When it happened, invoke the callback
-        message_id = 0
-        last_frame_id = 0
+        # last_frame_id = 0
         if self.__camera.isopen:
             # while self.__mqtt.mqtt_system_turn_on:
             # while True:   #TODO
-                if self.__camera.frame_id != last_frame_id:
-                    last_frame_id = self.__camera.frame_id
+                if self.__camera.frame_id != self.__last_frame_id:
+                    self.__last_frame_id = self.__camera.frame_id
                     if self.__detect_config.get('ROI', []):
                         if len(self.__detect_config['ROI']) == 4 and self.__detect_config['ROI'][0] != 0 \
                                 and self.__detect_config['ROI'][1] !=0 and self.__detect_config['ROI'][2] !=0 and self.__detect_config['ROI'][3] != 0:
@@ -358,7 +376,7 @@ class RobotEye(object):
                     self.__on_got_new_plate_callback(result)
                     # for callback in self.__on_got_new_plate_callback:
                     #     callback(result)
-                    # print('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+                    print('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
                     if display:
                         img_show = cv2.resize(self.__corn_detect.corn_img, (400, 200))
                         is_success, img_encode = cv2.imencode(".jpg", img_show)
