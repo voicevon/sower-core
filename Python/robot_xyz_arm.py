@@ -83,7 +83,7 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         self.move_to_xyz(180, y+32 )
 
         self.__placed_counter += 1
-        g_mqtt.publish_float('sower/xyzarm/placed_counter', self.__placed_counter)
+        g_mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)
 
     def pickup_then_place_to_cell(self, col, row):
         self.pickup_from_warehouse(row)
