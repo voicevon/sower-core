@@ -17,8 +17,8 @@ class ServoArrayDriver():
         self.__cols_range = range(0, self.__COLS)
         # self.chessboard_map = [[0] for i in self.__rows_range]
         self.chessboard_map = [0 for i in self.__rows_range]
-        self.minghao_chessboard_map = [0 for i in self.__rows_range]
-        self.wait_minghao_sync = False
+        self.__minghao_chessboard_map = [0 for i in self.__rows_range]
+        self.__chessboard_is_initialized_from_minghao = False
         self.__serialport = serial.Serial()
         self.__echo_is_on = False
         self.__spinning = False
@@ -77,6 +77,7 @@ class ServoArrayDriver():
         output += merged_map  # 19 bytes
         output += self.__get_crc16_list(output)
         output += [0x0d, 0x0a]
+        print('>>>>>>>>>>  ',output)
         self.write_bytes(output)
 
     def send_chessboard_map(self, chessboard_map):
@@ -97,6 +98,8 @@ class ServoArrayDriver():
             for col_id in self.__cols_range:
                 flag = self.chessboard_map[row_id] & (1 << col_id)
                 if not flag:
+                    # 1 == True == There is a seed in cell
+                    # 0 == False == Cell is empty.
                     return row_id, col_id
         return (-1,-1)
 
@@ -105,47 +108,77 @@ class ServoArrayDriver():
             # there is some change for cell status
             # but still need feed back from minghao controller. so do not update self.chessboard_map
             self.chessboard_map[row_id] += 1<<col_id
-            self.wait_minghao_sync = True
+            # self.__synced_from_minghao = False
+            return
             # pass
         
         dual_map = self.__current_plate_map + self.chessboard_map
         self.send_dual_map(self.plate_id, dual_map)
 
+    def send_new_platmap(self, plate_map):
+        self.plate_id += 1
+        if self.plate_id >9:
+            self.plate_id = 1
+            
+        self.__current_plate_map = plate_map
+        self.__current_plate_map = [0x55,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
+        self.inform_minghao_placed_one_cell(-1,-1)
+
+
+    def compare_chessboard_map(self):
+        for row_id in range(3):
+            if self.chessboard_map[row_id] != self.__minghao_chessboard_map[row_id]:
+                mask = self.chessboard_map[row_id] ^ self.__minghao_chessboard_map[row_id]
+                mask &= self.chessboard_map[row_id]  # mask is the number that bits from one to zero 
+                mask = - mask -1   # from 0b0000-0001 to 0b1111-1110 
+                print('mask' , mask)
+                self.chessboard_map[row_id] &= mask
+                return False  
+        return True
 
     def spin_once(self):
-        print('minghao  is spin_once()')
-            
+        print('-------------------------------------------------------------------------------------------------------------------------')
+        # print('>>>    ' ,self.chessboard_map)
+        time.sleep(0.5)   # TODO: async from os time, if not achive 0.5s, just return
         self.inform_minghao_placed_one_cell(-1,-1)
         controller_response = self.__serialport.read(size=11)
         if len(controller_response) > 0:
             xx = list(controller_response)
-            # print(len(xx),xx)
+            print('++++++++++++++++++  ' ,len(xx),xx)
             # print(xx[0:2])
             if xx[0:2] == [0xaa,0xaa]:
                 if len(xx) == 11:
                     # The controller got plate map
                     plate_id = xx[2]  # 1..10
                     result = xx[3]  # 1 / 0
-                    self.minghao_chessboard_map = xx[4:7]
-                    self.wait_minghao_sync = False
+                    self.__minghao_chessboard_map = xx[4:7]
+                    # self.__synced_from_minghao = False
                     crc = xx[7:9]  
                     ender = xx[9:11]   # 0x0d,0x0a
                     if result == 0x01:
                         self.controller_got_ok = True
+                        if not self.__chessboard_is_initialized_from_minghao:
+                            self.chessboard_map[0] = xx[4]
+                            self.chessboard_map[1] = xx[5]
+                            self.chessboard_map[2] = xx[6]
+                            self.__chessboard_is_initialized_from_minghao = True
                         # if self.__echo_is_on:
                         print('minghao got map, feed back a OK...')
-                        print('my chessboard_map = ' ,self.chessboard_map)
-                        print("minghao's chessboard_map = " ,self.minghao_chessboard_map)
+                        print("minghao's chessboard_map = " ,self.__minghao_chessboard_map)
 
                     else:
                         print(TerminalFont.Color.Fore.red)
                         print(xx )
                         print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Color.Control.reset)
                 else:
+                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length should be 11, but is  = %d' % len(xx))
                     print(xx)
-                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length should be 11, but is  = %d' % len(xx) + TerminalFont.Color.Control.reset)
+                    print(TerminalFont.Color.Control.reset)
+
             else:
-                print('lost protocol head', xx)
+                print(TerminalFont.Color.Fore.red + 'Packet length is OK, but lost protocol head')
+                print(xx)
+                print(TerminalFont.Color.Control.reset)
             # elif xx[0:2] == [0xaa,0xbb]:
             #     # The controller got chessboard map
             #     result = xx[2]
@@ -162,6 +195,7 @@ class ServoArrayDriver():
         else:
             print(TerminalFont.Color.Fore.yellow +  'minghao spin_once().  timeout , no response' + TerminalFont.Color.Control.reset)
 
+            
     def spin_once_version1(self):
         # self.request_chessboard_map()
         # check what is received from serial port

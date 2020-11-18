@@ -346,26 +346,26 @@ class RobotEye(object):
                     thres_B = self.__detect_config.get('threshold_B', 150)
                     thres_size = self.__detect_config.get('threshold_size', 8)
                     display = self.__detect_config.get('display', False)
-                    print('[Info] robot_eye.py: start detect.................')
+                    # print('[Info] robot_eye.py: start detect.................')
                     start_time = time.perf_counter()
                     result = self.__corn_detect.corn_recognition(self.__camera.frame, roi, display, thres_R, thres_G,
                                                                  thres_B, thres_size)
                     end_time = time.perf_counter()
-                    print("[Info] robot_eye.py: detect done! result: ", result, "time: ", end_time-start_time, " s")
+                    # print("[Info] robot_eye.py: detect done! result: ", result, "time: ", end_time-start_time, " s")
                     # g_mqtt.publish("sower/eye/detect", result.tostring(),retain=True)
                     # g_mqtt.publish_float("sower/eye/detect", result.tostring(),retain=True)
                     # self.__on_got_new_plate_callback(result, self.__corn_detect.corn_img)
                     self.__on_got_new_plate_callback(result)
                     # for callback in self.__on_got_new_plate_callback:
                     #     callback(result)
-                    print('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+                    # print('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
                     if display:
                         img_show = cv2.resize(self.__corn_detect.corn_img, (400, 200))
                         is_success, img_encode = cv2.imencode(".jpg", img_show)
                         if is_success:
                             img_pub = img_encode.tobytes()
-                            g_mqtt.publish("sower/img/bin", img_pub, retain=True)
-                            print("[Info] robot_eye.py: publish image done!")
+                            # g_mqtt.publish_cv_image("sower/img/bin", img_pub, retain=True)
+                            # print("[Info] robot_eye.py: publish image done!")
 
     def on_mqtt_message(self, topic, payload):
         # will be invoked from manager, not mqtt_client directly
