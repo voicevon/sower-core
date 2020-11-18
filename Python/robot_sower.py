@@ -38,7 +38,6 @@ class RobotSower():
             self.__xyz_arm.home_y_x()
         
     def on_eye_got_new_plate(self, plate_array):
-        print ('ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp')
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
             new_map = plate_array
@@ -66,15 +65,16 @@ class RobotSower():
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
             self.__servos_minghao.spin_once()
-            if self.__servos_minghao.compare_chessboard_map():
+            self.__servos_minghao.update_chessmap_from_minghao_controller()
+
+            row_id, col_id = self.__servos_minghao.get_first_empty_cell()
+            if row_id >= 0:
+                # TODO: this is a long time processing, should start a new thread 
                 # there is an empty cell
-                row_id, col_id = self.__servos_minghao.get_first_empty_cell()
-                if row_id >= 0:
-                    # TODO: this is a long time processing, should start a new thread 
-                    self.__xyz_arm.pickup_from_warehouse(col_id)
-                    self.__xyz_arm.place_to_cell(row_id, col_id)
-                    # update map and send new map to Minghao's subsystem
-                    self.__servos_minghao.inform_minghao_placed_one_cell(row_id=row_id, col_id=col_id)
+                self.__xyz_arm.pickup_from_warehouse(col_id)
+                self.__xyz_arm.place_to_cell(row_id, col_id)
+                # update map and send new map to Minghao's subsystem
+                self.__servos_minghao.update_chessmap_from_xyz_arm(row_id=row_id, col_id=col_id)
 
         if solution == 'xuming':
             if g_chessboard_need_a_new_plan:    
