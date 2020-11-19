@@ -62,10 +62,10 @@ class Servos():
         print("Initializing ServoKit")
         self.__kit_0 = ServoKit(channels=16, i2c=i2c_bus0, address=0x40)
         print("initialied 0x40")
-        self.__kit_1 = ServoKit(channels=16, i2c=i2c_bus0, address=0x41)
+        # self.__kit_1 = ServoKit(channels=16, i2c=i2c_bus0, address=0x41)
         # kit[0] is the bottom servo
         # kit[1] is the top servo
-        print("initialied 0x41")
+        # print("initialied 0x41")
         # print("Done initializing")
         # while True:
         #     # sweep = range(0,180)
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     servos = Servos()
     servos.setup_gpio_i2cbus()
     while True:
-        for s in range(0,32):
+        for s in range(0,16):
             servos.update_servo_angle(s,0)
             print('.')
             # for a in range(0,180, 60):
@@ -113,10 +113,10 @@ if __name__ == "__main__":
             # print('')
         time.sleep(2)
 
-        for s in range(0,32):
-            servos.update_servo_angle(s,180)
+        for s in range(0,16):
+            servos.update_servo_angle(s,90)
             print('*')
-            # for a in range(180,0, -60):
+            # for a in range(180,0, -60): 
             #     servos.update_servo_angle(s, a)
             #     print('.', end='')
             # time.sleep(0.05)
