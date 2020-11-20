@@ -37,7 +37,7 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         From manual calibration:  col,row :(0,0)  maps to x,y (30,20)
         '''
         x = 30 + col * 32
-        y = 20 + row * 32
+        y = 5 + (7-row) * 32
         if col == -1:
             x = 180
         return x, y
@@ -79,8 +79,8 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         '''
         x, y = self.__get_xy_from_col_row(col,row)
         self.move_to_xyz (x , y )
-        self.move_to_xyz(x , y + 32)
-        self.move_to_xyz(180, y+32 )
+        self.move_to_xyz(x , y+32)
+        self.move_to_xyz(180, y+32)
 
         self.__placed_counter += 1
         g_mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)

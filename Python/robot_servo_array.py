@@ -24,7 +24,7 @@ class ServoArrayDriver():
         self.__spinning = False
         self.plate_id = 1
         self.controller_got_ok = False
-        self.__current_plate_map = [0 for i in range(0,16)]
+        self.__current_plate_map = [0xff for i in range(0,16)]
 
     def connect_serial_port(self, serial_port_name, baudrate,echo_is_on):
         self.__serialport.port = serial_port_name
@@ -138,7 +138,7 @@ class ServoArrayDriver():
             self.plate_id = 1
             
         self.__current_plate_map = plate_map
-        self.__current_plate_map = [0x7f,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
+        # self.__current_plate_map = [0x55,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
         # self.inform_minghao_placed_one_cell(-1,-1)
         self.write_dual_map_via_serial_port(self.plate_id)
 

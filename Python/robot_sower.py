@@ -62,9 +62,8 @@ class RobotSower():
         self.__sensors.ouput_light(1)
 
     def spin_once(self):
-        self.__xyz_arm.test_minghao()
+        # self.__xyz_arm.test_minghao()
 
-        
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
             self.__servos_minghao.spin_once()
