@@ -76,14 +76,19 @@ class Servos():
         # ??? 
         self.__planned_actions.append(servos_action)
 
-    def set_servos_position(self, action_byte):
+    def set_servos_position(self, action_bytes):
+        '''
+        action_bytes: 
+            bit == 1 will open the gate; bit == 0 ,will close the gate
+            The length of action_bytes normally is 2/4/6/8... etc.
+        '''
         for servo_id in range(0,16):
             kit_id = int(servo_id / 16)
             servo_id_in_kit = int(servo_id % 16)
 
             row_id = int(servo_id / 8)
             col_id = int(servo_id % 8)
-            bit = action_byte[row_id] & (1<<col_id)
+            bit = action_bytes[row_id] & (1<<col_id)
             oepn_angle, close_angle = self.__servos_angle[servo_id]
             target_angle =  close_angle
             if bit:
