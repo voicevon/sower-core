@@ -114,6 +114,14 @@ class XyzArm(ReprapArm, metaclass=Singleton):
         # x, y = (180,180)
         self.move_to_xyz(x, y, speed_mm_per_min=18000)
 
+    def test_minghao(self):
+        while True:
+            for row_id in range(0,3):
+                for col_id in range(0,8):
+                    self.pickup_from_warehouse(col_id)
+                    self.place_to_cell(row_id, col_id)    
+        
+
 
 if __name__ == "__main__":
     my_arm = XyzArm()
@@ -142,17 +150,11 @@ if __name__ == "__main__":
 
     if True:
         while True:
-            my_arm.pickup_from_warehouse(7)
-            my_arm.place_to_cell(0,7)
-            time.sleep(5)
+            for row_id in range(0,3):
+                for col_id in range(0,8):
+                    my_arm.pickup_from_warehouse(col_id)
+                    my_arm.place_to_cell(row_id, col_id)
 
-            my_arm.pickup_from_warehouse(5)
-            my_arm.place_to_cell(1,5)
-            time.sleep(5)
-
-            my_arm.pickup_from_warehouse(0)
-            my_arm.place_to_cell(2,0)
-            time.sleep(5)
 
 
     # my_arm.Init_Marlin()
