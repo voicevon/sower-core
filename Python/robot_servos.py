@@ -48,6 +48,7 @@ class Servos_action():
         self.byte_2 = 0
 
 
+
 class Servos():
     # https://pypi.org/project/Jetson.GPIO/
     # https://www.jetsonhacks.com/2019/07/22/jetson-nano-using-i2c/
@@ -55,70 +56,50 @@ class Servos():
     def __init__(self):
         self.last_finished_row = 0
         self.__planned_actions = []
-
+        self.__kits = []
+        self.__servos_angle = [(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),
+                               (30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),
+                              ]
     def setup_gpio_i2cbus(self):
         print("Initializing Servos")
         i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1))
         print("Initializing ServoKit")
-        self.__kit_0 = ServoKit(channels=16, i2c=i2c_bus0, address=0x40)
-        print("initialied 0x40")
-        # self.__kit_1 = ServoKit(channels=16, i2c=i2c_bus0, address=0x41)
-        # kit[0] is the bottom servo
-        # kit[1] is the top servo
-        # print("initialied 0x41")
-        # print("Done initializing")
-        # while True:
-        #     # sweep = range(0,180)
-        #     #for degree in sweep:
-        #     kit.servo[0].angle=180
+        kits_count = int(len(self.__servos_angle) / 16)
+        kit_address = 0x40
+        for i in range(0, kits_count):
+            kit = ServoKit(channels=16, i2c=i2c_bus0, address=kit_address)
+            self.__kits.append(kit)
+            print("initialied ", kit_address)
+            kit_address += 1
 
     def append_planned_action(self, servos_action):
         # ??? 
         self.__planned_actions.append(servos_action)
 
-    def output_i2c(self, row_id):
-        # https://learn.adafruit.com/circuitpython-libraries-on-linux-and-the-nvidia-jetson-nano?view=all#i2c-sensors-devices
-        self.__kit.servo[0].angle =  100
+    def set_servos_position(self, action_byte):
+        for servo_id in range(0,16):
+            kit_id = int(servo_id / 16)
+            servo_id_in_kit = int(servo_id % 16)
 
-    def update_servo_angle(self, servo_id, target_angle):
-        kit = self.__kit_0
-        if servo_id >= 16:
-            kit = self.__kit_1
-            servo_id -= 16
-        print(servo_id)
-
-        kit.servo[servo_id].angle = target_angle
-
-# kit = ServoKit(channels=8)
- 
-# kit.servo[0].angle = 180
-# kit.continuous_servo[1].throttle = 1
-# time.sleep(1)
-# kit.continuous_servo[1].throttle = -1
-# time.sleep(1)
-# kit.servo[0].angle = 0
-# kit.continuous_servo[1].throttle = 0
-
+            row_id = int(servo_id / 8)
+            col_id = int(servo_id % 8)
+            bit = action_byte[row_id] & (1<<col_id)
+            oepn_angle, close_angle = self.__servos_angle[servo_id]
+            target_angle =  close_angle
+            if bit:
+                target_angle = oepn_angle
+            self.__kits[kit_id].servo[servo_id_in_kit].angle = target_angle
+                
 if __name__ == "__main__":
     servos = Servos()
     servos.setup_gpio_i2cbus()
     while True:
-        for s in range(0,16):
-            servos.update_servo_angle(s,0)
-            print('.')
-            # for a in range(0,180, 60):
-            #     servos.update_servo_angle(s, a)
-            #     print('.', end='')
-            # time.sleep(0.05)
-            # print('')
-        time.sleep(2)
+        gates = [0x80,0x00]
+        servos.set_servos_position(gates)
+        print('Opened')
+        time.sleep(3)
 
-        for s in range(0,16):
-            servos.update_servo_angle(s,90)
-            print('*')
-            # for a in range(180,0, -60): 
-            #     servos.update_servo_angle(s, a)
-            #     print('.', end='')
-            # time.sleep(0.05)
-            # print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        time.sleep(2)
+        gates = [0xbf,0xff]
+        servos.set_servos_position(gates)
+        print('closed')
+        time.sleep(3)
