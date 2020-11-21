@@ -13,10 +13,10 @@ class RobotSensors():
 
     def __init__(self, on_new_plate_enter, on_new_row_enter):
         self.__PIN_IR_SWITCH = 37
-        self.__PIN_ENCODER_A = 31
+        self.__PIN_ENCODER_A = 35
         self.__PIN_ENCODER_B = 33
-        self.__PIN_POWER_OFF = 29
-        self.__PIN_INPUT_TEST = 35
+        # self.__PIN_POWER_OFF = 29
+        # self.__PIN_INPUT_TEST = 35
 
         self.__PIN_CONVEYOR_MOTOR = 13
         self.__PIN_VACUUM_FAN = 15
@@ -39,8 +39,8 @@ class RobotSensors():
     def setup(self):
         GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.__PIN_INPUT_TEST, GPIO.IN)
-        GPIO.setup(self.__PIN_POWER_OFF, GPIO.IN)
+        # GPIO.setup(self.__PIN_INPUT_TEST, GPIO.IN)
+        # GPIO.setup(self.__PIN_POWER_OFF, GPIO.IN)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
@@ -64,26 +64,26 @@ class RobotSensors():
         if channel == self.__PIN_IR_SWITCH:
             # There are two plates in operation.
             self.__next_plate_enter_point = self.__encoder_distance
+            print('IR_rasing')
 
         elif channel == self.__PIN_ENCODER_A:
             self.__encoder_distance += 1
-            
+            print('encoder_distance=%d' %self.__encoder_distance)
             if self.__encoder_distance / self.__encoder_distance_per_row == 0:
                 # current row must be fininshed. new row is coming
                 self.__on_new_row_enter()
         
-        elif channel == self.__PIN_POWER_OFF:
-            # poew off the linux system.
-            os.system('systemctl poweroff') 
-
+        # elif channel == self.__PIN_POWER_OFF:
+        #     # poew off the linux system.
+        #     os.system('systemctl poweroff') 
 
     def update_current_plate(self):
         self.__current_plate_enter_point = self.__next_plate_enter_point
 
     def read_gpio_input(self):
-        print(GPIO.input(self.__PIN_INPUT_TEST))
+        # print(GPIO.input(self.__PIN_INPUT_TEST))
         print(GPIO.input(self.__PIN_IR_SWITCH))
-        print(GPIO.input(self.__PIN_POWER_OFF))
+        # print(GPIO.input(self.__PIN_POWER_OFF))
         print(GPIO.input(self.__PIN_ENCODER_A))
         print(GPIO.input(self.__PIN_ENCODER_B))
         print('---------------------------------------')
