@@ -89,7 +89,7 @@ class Servos():
             row_id = int(servo_id / 8)
             col_id = int(servo_id % 8)
             bit = action_bytes[row_id] & (1<<col_id)
-            oepn_angle, close_angle = self.__servos_angle[servo_id]
+            close_angle, oepn_angle = self.__servos_angle[servo_id]
             target_angle =  close_angle
             if bit:
                 target_angle = oepn_angle
@@ -99,12 +99,12 @@ if __name__ == "__main__":
     servos = Servos()
     servos.setup_gpio_i2cbus()
     while True:
-        gates = [0x80,0x00]
-        servos.set_servos_position(gates)
-        print('Opened')
-        time.sleep(3)
-
-        gates = [0xbf,0xff]
+        gates = [0x00,0x01]
         servos.set_servos_position(gates)
         print('closed')
+        time.sleep(3)
+
+        gates = [0xfe,0xff]
+        servos.set_servos_position(gates)
+        print('Opened ')
         time.sleep(3)
