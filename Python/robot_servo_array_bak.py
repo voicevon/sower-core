@@ -18,10 +18,6 @@ class ServoArrayDriver():
         # self.__chessboard_map = [[0] for i in self.__rows_range]
         self.__chessboard_map = [0 for i in self.__rows_range]
         self.__minghao_chessboard_map = [0 for i in self.__rows_range]
-        # self.__edges_of_updating_pre_feeded = [0,0,0]
-        self.__edges_unsynced = [0,0,0]
-        self.__edges_syncing = [0,0,0]
-
         self.__chessboard_is_initialized_from_minghao = False
         self.__serialport = serial.Serial()
         self.__echo_is_on = False
@@ -58,29 +54,77 @@ class ServoArrayDriver():
         # print('crc16_bytes= ',crc16_bytes)
         return crc16_bytes
     
-    # def get_edges(self):
-    #     '''
-    #     For sending via serial port
-    #     get data from self.__edges_unsynced
-    #     '''
-    #      self.__edges_unsynced 
-    
-    def __reset_sync_download_data(self):
-        '''
-        Will be invoked after receiving from minghao's controller.
-        After this functin invoked, please call transfer_edges_from_unsynced_to_synced() ??
-        '''
-        # transfer edges from unsynced to syncing
-        for row_id in range(0,3):
-            self.__edges_syncing[row_id] += self.__edges_unsynced[row_id]
-        # clear unsynced
-        self.__edges_unsynced = [0,0,0]
+    def __useless_write_string(self, raw_string):
+        self.__serialport.write(str.encode(raw_string +'\r\n'))
+        if self.__echo_is_on:
+            print ('>>> %s' % raw_string)
 
-    def write_via_serial_port(self, plate_id):
-        # print('merged_map=' , merged_map)
-        data = self.__current_plate_map + self.__edges_syncing
+    def __useless_send_plate_map(self, plate_id, plate_map):
         output = [0xaa, 0xaa, plate_id ]
-        output += data  # 19 bytes
+        output += plate_map  # 16 bytes
+        output += self.__get_crc16_list(output)
+        output += [0x0d, 0x0a]
+        self.write_bytes(output)    
+
+    def __useless_send_chessboard_map(self, chessboard_map):
+        output = [0xaa,0xbb]
+        output += chessboard_map  # 3 bytes
+        output += self.__get_crc16_list(output)
+        output += [0x0d, 0x0a]
+        self.write_bytes(output)
+
+    def __useless_request_chessboard_map(self):
+        output = [0xaa, 0xcc]
+        output += self.__get_crc16_list(output)
+        output += [0x0d, 0x0a]
+        self.write_bytes(output)
+
+    def __useless_spin_once_version_old_protocol(self):
+        # self.request_chessboard_map()
+        # check what is received from serial port
+        controller_response = self.__serialport.readline()
+        if len(controller_response) > 0:
+            xx = list(controller_response)
+            # print(xx)
+            # print(xx[0:2])
+            if xx[0:2] == [0xaa,0xaa]:
+                if len(xx) == 6:
+                    # The controller got plate map
+                    plate_id = xx[2]
+                    result = xx[3]
+                    ender = xx[4:6]   # 0x0d,0x0a
+                    if result == 0x01:
+                        self.controller_got_ok = True
+                        print('minghao got map, feed back a OK...')
+                    else:
+                        print(TerminalFont.Color.Fore.red + 'minghao said something is wrong!!!!!' + TerminalFont.Control.reset)
+                else:
+                    print(TerminalFont.Color.Fore.red + 'Plate map lenth wrong , the received bytes length  = %d' % len(xx) + TerminalFont.Control.reset)
+
+            elif xx[0:2] == [0xaa,0xbb]:
+                # The controller got chessboard map
+                result = xx[2]
+                ender = xx[3:5]   # 0x0d,0x0a
+
+            elif xx[0:2] == [0xaa,0xcc]:
+                # controller respomnse the chessboard map
+                self.__chessboard_map[0] = xx[2]
+                self.__chessboard_map[1] = xx[3]
+                self.__chessboard_map[2] = xx[4]
+                print(self.__chessboard_map)
+                crc_high, crc_low = xx [5:7]
+                ender = xx[7:9]
+
+    def __useless_write_bytes(self, bytes_array):
+        self.__serialport.write(bytes_array)
+        if self.__echo_is_on:
+            print('>>>' + str(bytes_array))
+
+    def write_dual_map_via_serial_port(self, plate_id):
+        # print('merged_map=' , merged_map)
+        dual_map = self.__current_plate_map + self.__chessboard_map
+        output = [0xaa, 0xaa, plate_id ]
+        output += dual_map  # 19 bytes
         output += self.__get_crc16_list(output)
         output += [0x0d, 0x0a]
         print('>>>>>>>>>>  ',output)
@@ -94,36 +138,26 @@ class ServoArrayDriver():
             self.plate_id = 1
             
         self.__current_plate_map = plate_map
-        self.__current_plate_map = [0x55,0xaa,0x55,0xaa, 0x55,0xaa,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
+        # self.__current_plate_map = [0x55,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
         # self.inform_minghao_placed_one_cell(-1,-1)
-        self.write_via_serial_port(self.plate_id)
+        self.write_dual_map_via_serial_port(self.plate_id)
 
     def get_first_empty_cell(self):
-        print ('calling get_empty_cell()')
-        print('My chessboard map', self.__chessboard_map)
         for row_id in self.__rows_range:
             for col_id in self.__cols_range:
                 flag = self.__chessboard_map[row_id] & (1 << col_id)
                 if not flag:
                     # 1 == True == There is a seed in cell
                     # 0 == False == Cell is empty.
-                    print ('empty cell at ', row_id, col_id)
                     return row_id, col_id
-
         return (-1,-1)
 
     def update_chessmap_from_xyz_arm(self, col_id, row_id):
         self.__chessboard_map[row_id] += 1 << col_id
-        # append_edges_unsynced
-        self.__edges_unsynced[row_id] += 1 << col_id
-        print('update_my_chessbaord_map', self.__chessboard_map)
-        print('unsynced edges =', self.__edges_unsynced)
-        print('syncing edges =', self.__edges_syncing)
 
     def update_chessmap_from_minghao_controller(self):
         # update chessboard_map from minghao's controller, Only from one to zero is acceptable.
         # if there is update, return True
-        print('mymap-------------------------------------------',self.__chessboard_map)
         for row_id in range(3):
             if self.__chessboard_map[row_id] != self.__minghao_chessboard_map[row_id]:
                 mask = self.__chessboard_map[row_id] ^ self.__minghao_chessboard_map[row_id]
@@ -131,20 +165,16 @@ class ServoArrayDriver():
                 mask = - mask -1   # from 0b0000-0001 to 0b1111-1110 
                 print('mask' , mask)
                 self.__chessboard_map[row_id] &= mask
-        #         return True  
-        # return False
+                return True  
+        return False
 
     def spin_once(self):
+        print('-------------------------------------------------------------------------------------------------------------------------')
         # print('>>>    ' ,self.__chessboard_map)
         time.sleep(0.5)   # TODO: async from os time, if not achive 0.5s, just return
         # self.inform_minghao_placed_one_cell(-1,-1)
-        self.__reset_sync_download_data()
-        self.write_via_serial_port(self.plate_id)
+        self.write_dual_map_via_serial_port(self.plate_id)
         controller_response = self.__serialport.read(size=11)
-        controller_response2 = self.__serialport.read(size=11)
-        if len(controller_response2) > 0:
-            print('22222222222222222222222222222222222222222222222222222222222222', controller_response2)
-        # controller_response = self.__serialport.read(size=11)
         if len(controller_response) > 0:
             xx = list(controller_response)
             print('++++++++++++++++++  ' ,len(xx),xx)
@@ -160,14 +190,12 @@ class ServoArrayDriver():
                     ender = xx[9:11]   # 0x0d,0x0a
                     if result == 0x01:
                         self.controller_got_ok = True
-                        self.update_chessmap_from_minghao_controller()
-                        self.__edges_syncing = [0,0,0]
                         if not self.__chessboard_is_initialized_from_minghao:
                             self.__chessboard_map[0] = xx[4]
                             self.__chessboard_map[1] = xx[5]
                             self.__chessboard_map[2] = xx[6]
                             self.__chessboard_is_initialized_from_minghao = True
-                            # if self.__echo_is_on:
+                        # if self.__echo_is_on:
                         # print('minghao got map, feed back a OK...')
                         if self.__chessboard_map[0] != 0xff or self.__chessboard_map[1] != 0xff or self.__chessboard_map[2] != 0xff:
                             print("minghao's chessboard_map = " ,self.__minghao_chessboard_map)

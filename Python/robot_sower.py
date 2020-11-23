@@ -63,11 +63,10 @@ class RobotSower():
 
     def spin_once(self):
         # self.__xyz_arm.test_minghao()
+        print('-------------------------------------------------------------------------------------------------------------------------')
 
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
-            self.__servos_minghao.spin_once()
-            self.__servos_minghao.update_chessmap_from_minghao_controller()
 
             row_id, col_id = self.__servos_minghao.get_first_empty_cell()
             if row_id >= 0:
@@ -76,8 +75,10 @@ class RobotSower():
                 self.__xyz_arm.pickup_from_warehouse(col_id)
                 self.__xyz_arm.place_to_cell(row_id, col_id)
                 # update map and send new map to Minghao's subsystem
+                print('after place_to_cell row_id, col_id ', row_id, col_id )
                 self.__servos_minghao.update_chessmap_from_xyz_arm(row_id=row_id, col_id=col_id)
-
+            self.__servos_minghao.spin_once()
+            # self.__servos_minghao.update_chessmap_from_minghao_controller()
         if solution == 'xuming':
             if g_chessboard_need_a_new_plan:    
                 g_chessboard.loadplan()
