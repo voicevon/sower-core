@@ -57,16 +57,20 @@ class Servos():
         self.last_finished_row = 0
         self.__planned_actions = []
         self.__kits = []
-        self.__servos_angle = [(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),
-                               (30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),(30,60),
-                              ]
-    def setup_gpio_i2cbus(self):
+        #  [ (closed_angle, opened_angle), .... ]
+        self.__servos_angle = [(40,70),(28,58),(0,30),(19,50),(18,45),(20,50),(20,50),(30,60),
+                               (15,50),(23,60),(35,65),(8,40),(13,43),(35,65),(16,46),(30,60),
+                            #    (40,70),(28,58),(0,30),(19,50),(18,45),(20,50),(20,50),(30,60),
+                            #    (15,50),(23,60),(35,65),(8,40),(13,43),(35,65),(16,46),(30,60),
+                              ]    
+        self.__KIT_COUNT = int(len(self.__servos_angle) / 16)   
+
+    def setup_gpio_i2cbus(self): 
         print("Initializing Servos")
-        i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1))
+        i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=10000))
         print("Initializing ServoKit")
-        kits_count = int(len(self.__servos_angle) / 16)
         kit_address = 0x40
-        for i in range(0, kits_count):
+        for i in range(0, self.__KIT_COUNT):
             kit = ServoKit(channels=16, i2c=i2c_bus0, address=kit_address)
             self.__kits.append(kit)
             print("initialied ", kit_address)
@@ -82,7 +86,7 @@ class Servos():
             bit == 1 will open the gate; bit == 0 ,will close the gate
             The length of action_bytes normally is 2/4/6/8... etc.
         '''
-        for servo_id in range(0,16):
+        for servo_id in range(0,self.__KIT_COUNT):
             kit_id = int(servo_id / 16)
             servo_id_in_kit = int(servo_id % 16)
 
@@ -98,13 +102,48 @@ class Servos():
 if __name__ == "__main__":
     servos = Servos()
     servos.setup_gpio_i2cbus()
-    while True:
-        gates = [0x00,0x01]
+    
+    test_id = 0x0
+    while test_id == 0:
+        gates = [0x00,0x01,0x00,0x00]  # bit 8 is always opened
         servos.set_servos_position(gates)
         print('closed')
         time.sleep(3)
 
-        gates = [0xfe,0xff]
+        gates = [0x00,0x01,0x00,0x00]  # bit 0 is always closed
+        servos.set_servos_position(gates)
+        print('Opened ')
+        time.sleep(3)        
+
+    while test_id == 0x40:
+        gates = [0x00,0x01,0x00,0x00]  # bit 8 is always opened
+        servos.set_servos_position(gates)
+        print('closed')
+        time.sleep(3)
+
+        gates = [0xfe,0xff,0xff,0xff]  # bit 0 is always closed
+        servos.set_servos_position(gates)
+        print('Opened ')
+        time.sleep(3)    
+
+    while test_id == 0x41:
+        gates = [0x00,0x00,0x00,0x01]  # bit 8 is always opened
+        servos.set_servos_position(gates)
+        print('closed')
+        time.sleep(3)
+
+        gates = [0xff,0xff,0xfe,0xff]  # bit 0 is always closed
+        servos.set_servos_position(gates)
+        print('Opened ')
+        time.sleep(3)    
+
+    while test_id == 1:
+        gates = [0x00,0x00]
+        servos.set_servos_position(gates)
+        print('closed')
+        time.sleep(3)
+
+        gates = [0xff,0xff]  
         servos.set_servos_position(gates)
         print('Opened ')
         time.sleep(3)
