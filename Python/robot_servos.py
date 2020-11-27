@@ -65,8 +65,8 @@ class Servos():
                                (40,70),(28,58),(0,30),(19,50),(18,45),(20,50),(20,50),(30,60),
                                (15,50),(23,60),(35,65),(8,40),(13,43),(35,65),(16,46),(30,60),
                                 #0x41, 16 servos,  From #0 to #15
-                               (30,60),(28,58),(0,30),(19,50),(18,45),(20,50),(20,50),(30,60),
-                               (40,60),(23,60),(35,65),(8,40),(13,43),(35,65),(16,46),(30,60),
+                               (20,50),(24,54),(0,30),(19,50),(18,48),(19,50),(19,49),(25,55),
+                               (20,50),(24,54),(36,65),(15,45),(15,45),(21,51),(16,46),(27,57),
                               ]    
         self.__SERVO_COUNT = len(self.__servos_angle)
         self.__KIT_COUNT = int(len(self.__servos_angle) / 16)   
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     servos = Servos()
     servos.setup_gpio_i2cbus()
     
-    test_id = 0x41
+    test_id = 0x1
     while test_id == 0:
         gates = [0x00,0x01,0x00,0x00]  # bit 8 is always opened
         servos.set_servos_position(gates)
@@ -145,12 +145,12 @@ if __name__ == "__main__":
         time.sleep(3)    
 
     while test_id == 1:
-        gates = [0x00,0x00]
+        gates = [0x00,0x00,0x00,0x00]
         servos.set_servos_position(gates)
         print('closed')
         time.sleep(0.0+3)
 
-        gates = [0xff,0xff]  
+        gates = [0xff,0xff,0xff,0xff]  
         servos.set_servos_position(gates)
         print('Opened ')
         time.sleep(0.0+3)
