@@ -23,14 +23,19 @@ class RobotSower():
                 return port_name
 
     def __init__(self, do_init_marlin=False, do_home=False):
+        self.SOLUTION = AppConfig.robot_arms.servo_controller.solution
+        if self.SOLUTION == 'minghao':
+            self.__servos_minghao = ServoArrayDriver()
+            port_name = self.__get_serial_port_name_from_chip_name('USB2.0-Serial')
+            self.__servos_minghao.connect_serial_port(port_name, 115200, echo_is_on=False)
+
+        if self.SOLUTION == 'xuming':
+            self.__sensors = RobotSensors(self.__on_new_plate_enter, self.__on_new_row_enter)
+            self.__sensors.setup()
+            self.__current_plate = Plate()
+            self.__next_plate = Plate()
+
         self.__xyz_arm = XyzArm()
-        self.__servos_minghao = ServoArrayDriver()
-        port_name = self.__get_serial_port_name_from_chip_name('USB2.0-Serial')
-        self.__servos_minghao.connect_serial_port(port_name, 115200, echo_is_on=False)
-        self.__sensors = RobotSensors(self.__on_new_plate_enter, self.__on_new_row_enter)
-        self.__sensors.setup()
-        self.__current_plate = Plate()
-        self.__next_plate = Plate()
         if do_init_marlin:
             port_name = self.__get_serial_port_name_from_chip_name('FT232R USB UART')
             self.__xyz_arm.setup_and_home(port_name)
@@ -42,7 +47,8 @@ class RobotSower():
         if solution == 'minghao':
             new_map = plate_array
             self.__servos_minghao.send_new_platmap(new_map)
-        elif solution == 'xuming':
+
+        if solution == 'xuming':
             plate_map = plate_array
             self.__next_plate.from_map(plate_map)
 
@@ -63,7 +69,7 @@ class RobotSower():
 
     def spin_once(self):
         # self.__xyz_arm.test_minghao()
-        print('-------------------------------------------------------------------------------------------------------------------------')
+        # print('-------------------------------------------------------------------------------------------------------------------------')
 
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':

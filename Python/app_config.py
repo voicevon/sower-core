@@ -49,10 +49,10 @@ class AppConfig:
             baudrate = 115200
         
         class servo_controller:
-            # solution = 'xuming'
-            solution = 'minghao'
-            port_name = 'dev/ttyUSB1'
-            baudrate = 115200
+            solution = 'xuming'
+            # solution = 'minghao'
+            # port_name = 'dev/ttyUSB1'
+            # baudrate = 115200
 
     class robot_eye:
         camera_index = 0
