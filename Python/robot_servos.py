@@ -37,18 +37,6 @@ from adafruit_servokit import ServoKit  # pip3 install adafruit-circuitpython-se
 # Try to create an I2C device
   
 
-class Servos_action():
-    '''
-    From right to left, named byte_0, byte_1, byte_2
-    '''
-    def __init__(self):
-        self.row_id = 0
-        self.byte_0 = 0
-        self.byte_1 = 0
-        self.byte_2 = 0
-
-
-
 class Servos():
     # https://pypi.org/project/Jetson.GPIO/
     # https://www.jetsonhacks.com/2019/07/22/jetson-nano-using-i2c/
@@ -57,7 +45,7 @@ class Servos():
         self.last_finished_row = 0
         self.__planned_actions = []
         self.__kits = []
-
+        self.__I2C_BASE_ADDRESS = 0x40
         
         #  [ (closed_angle, opened_angle), .... ]
         self.__servos_angle = [
@@ -67,6 +55,9 @@ class Servos():
                                 #0x41, 16 servos,  From #0 to #15
                                (19,49),(23,53),(15,45),(14,44),(16,46),(16,46),(17,47),(22,52),
                                (17,47),(22,52),(36,66),(12,42),(15,45),(21,51),(16,46),(27,57),
+                                #0x42, 16 servos,  From #0 to #15
+                            #    (19,49),(23,53),(15,45),(14,44),(16,46),(16,46),(17,47),(22,52),
+                            #    (17,47),(22,52),(36,66),(0,90),(15,45),(0,90),(16,46),(0,90),                               
                               ] 
 
         # self.__servos_angle = [
@@ -84,7 +75,7 @@ class Servos():
         print("Initializing Servos")
         i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
         print("Initializing ServoKit")
-        kit_address = 0x40
+        kit_address = self.__I2C_BASE_ADDRESS
         for i in range(0, self.__KIT_COUNT):
             kit = ServoKit(channels=16, i2c=i2c_bus0, address=kit_address)
             self.__kits.append(kit)
@@ -165,12 +156,16 @@ if __name__ == "__main__":
         time.sleep(0.0+3)
 
     while test_id == 2:
-        gates = [0x55,0xaa,0x55,0xaa]
+        gates = [0x55,0xaa,0x55,0xaa] # for dual modules
+        gates = [0x55,0xaa,0x55,0xaa,0x55,0xaa] # for tripple modules
+        # gates = [0x00,0x00,0x00,0x00,0x55,0xaa] # for tripple modules
         servos.set_servos_position(gates)
         print('closed')
         time.sleep(0.0+3)
 
-        gates = [0xaa,0x55,0xaa,0x55]  
+        gates = [0xaa,0x55,0xaa,0x55]  # for dual modules
+        gates = [0xaa,0x55,0xaa,0x55,0xaa,0x55] # for tripple modules
+        # gates = [0x00,0x00,0x00,0x00,0xaa,0x55] # for tripple modules
         servos.set_servos_position(gates)
         print('Opened ')
         time.sleep(0.0+3)
