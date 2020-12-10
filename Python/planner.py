@@ -9,6 +9,8 @@ class Planner():
         self.__next_plate = Plate()
     
     def update_next_plate_from_eye_result(self, result):
+        return
+        
         if True:
             # For solution voicevon@gmail.com
             plate_map = result

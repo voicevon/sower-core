@@ -38,7 +38,7 @@ class RobotSensors():
 
 
     def setup(self):
-        # GPIO.cleanup()
+        GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
         GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
@@ -68,7 +68,7 @@ class RobotSensors():
     def on_gpio_rising(self, channel):
         if channel == self.__PIN_ENCODER_A:
             self.__encoder_distance += 1
-            print('encoder_distance=%d' %self.__encoder_distance)
+            # print('encoder_distance=%d' %self.__encoder_distance)
             if self.__encoder_distance / self.__encoder_distance_per_row == 0:
                 # current row must be fininshed. new row is coming
                 self.__on_new_row_enter()

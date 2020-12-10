@@ -284,7 +284,7 @@ class RobotEye(object):
         self.__camera_config = dict() 
         self.__detect_config = {'ROI': [80,405,1872,975]}
         self.__tray_config = dict()
-        g_mqtt.append_on_message_callback(self.on_mqtt_message)
+        g_mqtt.append_on_message_callback(self.on_mqtt_message, do_debug_print_out=False)
         self.__last_frame_id = 0
 
     def spin(self, mqtt):

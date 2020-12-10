@@ -73,7 +73,6 @@ class RobotSower():
 
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
-
             row_id, col_id = self.__servos_minghao.get_first_empty_cell()
             if row_id >= 0:
                 # TODO: this is a long time processing, should start a new thread 
@@ -85,7 +84,9 @@ class RobotSower():
                 self.__servos_minghao.update_chessmap_from_xyz_arm(row_id=row_id, col_id=col_id)
             self.__servos_minghao.spin_once()
             # self.__servos_minghao.update_chessmap_from_minghao_controller()
+
         if solution == 'xuming':
+            return
             if g_chessboard_need_a_new_plan:    
                 g_chessboard.loadplan()
                 g_chessboard_need_a_new_plan = False

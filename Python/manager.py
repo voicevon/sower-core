@@ -36,8 +36,12 @@ class SowerManager():
         self.__RESET = TerminalFont.Color.Control.reset
 
         # subscribe all topics from config files
+        topic_count = 0
         for topic in AppConfig.server.mqtt.subscript_topics.topic_dict.keys():
             g_mqtt.subscribe(topic)
+            topic_count += 1
+            print('subscribed MQTT topics from config :  %i, %s' %(topic_count,topic))
+
 
         print('MQTT subscription is done')
 
