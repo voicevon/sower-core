@@ -41,7 +41,7 @@ class SowerServoKit():
     # https://pypi.org/project/Jetson.GPIO/
     # https://www.jetsonhacks.com/2019/07/22/jetson-nano-using-i2c/
     # https://elinux.org/Jetson/I2C
-    def __init__(self, name, i2c_bus, kit_address, on_off_angles=[0,0]):
+    def __init__(self, name, i2c_bus, kit_address, on_off_angles):
         self.__name = name
         self.__kit = ServoKit(channels=16, i2c=i2c_bus, address=kit_address)
         self.__on_off_angles = on_off_angles

@@ -1,7 +1,7 @@
 from robot_sensors import RobotSensors
 from robot_xyz_arm import XyzArm
 from robot_servo_array import  ServoArrayDriver  # For Minghao solution only
-from robot_sensors import Servos   # For Xuming solution only
+# from robot_sensors import Servos   # For Xuming solution only
 from chessboard import  g_chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
 from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 
@@ -11,18 +11,20 @@ from app_config import AppConfig
 import sys
 sys.path.append('/home/xm/pylib')
 from devices_helper import DevicesHelper
+from robot_servo_kit import SowerServoKit
 
-
+import Jetson.GPIO as GPIO
+import board  # pip3 install adafruit-blinka
+import busio
 class RobotBody():
 
-    def __init__(self, serial_port_name, do_init_marlin=False, do_home=False):
+    def __init__(self, body_name, xyz_arm_serial_port_name,i2c_bus,kit_address,on_off_angles):
+        self.__body_name = body_name
         self.xyz_arm = XyzArm()
-        self.servo_gate = Servos()
-    
-        if do_init_marlin:
-            self.xyz_arm.setup_and_home(serial_port_name)
-        if do_home:
-            self.xyz_arm.home_y_x()   
+        self.xyz_arm.connect_and_init(xyz_arm_serial_port_name)
+        self.xyz_arm.home_y_x()
+        self.servos_kit = SowerServoKit(body_name, i2c_bus, kit_address, on_off_angles)
+        
 
 
 class RobotSower():
@@ -33,7 +35,7 @@ class RobotSower():
     # '''
 
 
-    def __init__(self, do_init_marlin=False, do_home=False):
+    def __init__(self):
 
         self.SOLUTION = AppConfig.robot_arms.servo_controller.solution
         if self.SOLUTION == 'minghao':
@@ -47,15 +49,26 @@ class RobotSower():
             self.__current_plate = Plate()
             self.__next_plate = Plate()
 
-        helper = DevicesHelper()
-        helper.serial_port_list_all()
+            helper = DevicesHelper()
+            helper.serial_port_list_all()
 
-        port_name = helper.serial_port_from_location('1-2.1.2')
-        print('first arm, port_name =', port_name)
-        self.__robot_body_first = RobotBody(port_name,do_init_marlin, do_home)
+            i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
+            on_off_angles = [ #0x41, 16 servos,  From #0 to #15
+                               (19,49),(23,53),(15,45),(14,44),(16,46),(16,46),(17,47),(22,52),
+                               (17,47),(22,52),(36,66),(12,42),(15,45),(21,51),(16,46),(27,57)
+                            ]         
+            xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.2')
+            self.__robot_body_first = RobotBody('first robot', xyz_arm_serial_port_name, i2c_bus0, 0x41, on_off_angles)
 
-        port_name = helper.serial_port_from_location('1-2.1.2')
-        self.__robot_body_second = RobotBody(port_name, do_home)
+            on_off_angles = [
+                                # 0x40, 16 servos.  From #0 to #15. 
+                                (40,70),(24,54),(18,48),(15,45),(18,48),(18,48),(18,48),(29,59),
+                                (15,45),(22,52),(32,62),(4,34),(10,40),(35,65),(10,40),(30,60)
+                            ]
+            xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.1')
+            self.__robot_body_second = RobotBody('second robot',xyz_arm_serial_port_name, i2c_bus0, 0x42, on_off_angles)  
+
+
 
     def on_eye_got_new_plate(self, plate_array):
         solution = AppConfig.robot_arms.servo_controller.solution
@@ -113,7 +126,8 @@ class RobotSower():
                 g_chessboard.set_one_cell(row_id, col_id)
 
 if __name__ == "__main__":
-    # GPIO.setmode(GPIO.BOARD)
-    t = RobotSower(do_init_marlin=True,do_home=True)
+    GPIO.cleanup()
+    GPIO.setmode(GPIO.BOARD)
 
+    t = RobotSower()
     t.turn_on_light_fan_conveyor()

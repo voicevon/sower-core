@@ -23,7 +23,7 @@ class XyzArm(ReprapArm):
         ReprapArm.__init__(self)
         self.__placed_counter = 0
 
-    def setup_and_home(self, serial_port_name):
+    def connect_and_init(self, serial_port_name):
         ReprapArm.connect_reprap_controller(self, portname= serial_port_name, baudrate=115200)
         self.allow_cold_extrusion()
 
@@ -137,7 +137,7 @@ class XyzArm(ReprapArm):
 if __name__ == "__main__":
     my_arm = XyzArm()
     # my_arm.set_echo_on(True)
-    my_arm.setup_and_home('/dev/ttyUSB0')
+    my_arm.connect_and_init('/dev/ttyUSB0')
     my_arm.home_y_x()
     
     if True:
