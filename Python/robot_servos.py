@@ -53,9 +53,9 @@ class Servos():
                                (40,70),(24,54),(18,48),(15,45),(18,48),(18,48),(18,48),(29,59),
                                (15,45),(22,52),(32,62),(4,34),(10,40),(35,65),(10,40),(30,60),
                                 #0x41, 16 servos,  From #0 to #15
-                            #    (19,49),(23,53),(15,45),(14,44),(16,46),(16,46),(17,47),(22,52),
-                            #    (17,47),(22,52),(36,66),(12,42),(15,45),(21,51),(16,46),(27,57),
-                                #0x42, 16 servos,  From #0 to #15
+                               (19,49),(23,53),(15,45),(14,44),(16,46),(16,46),(17,47),(22,52),
+                               (17,47),(22,52),(36,66),(12,42),(15,45),(21,51),(16,46),(27,57),
+                                # 0x42, 16 servos,  From #0 to #15
                             #    (19,49),(23,53),(15,45),(14,44),(16,46),(16,46),(17,47),(22,52),
                             #    (17,47),(22,52),(36,66),(0,90),(15,45),(0,90),(16,46),(0,90),                               
                               ] 
@@ -103,14 +103,14 @@ class Servos():
             target_angle =  close_angle
             if bit:
                 target_angle = oepn_angle
-            print(kit_id, servo_id_in_kit, target_angle)
+            # print(kit_id, servo_id_in_kit, target_angle)
             self.__kits[kit_id].servo[servo_id_in_kit].angle = target_angle
                 
 if __name__ == "__main__":
     servos = Servos()
     servos.setup_gpio_i2cbus()
     
-    test_id = 99                                      
+    test_id = 99                                     
     while test_id == 0:
         gates = [0x00,0x01,0x00,0x00]  # bit 8 is always opened
         servos.set_servos_position(gates)
@@ -182,9 +182,10 @@ if __name__ == "__main__":
         time.sleep(0.0+3)
 
     while test_id == 99:
-        gates = [0,0,0,0]
+        gates = [0x00,0x00,0x00,0x00]
         for row in range(0,4):
             for col in range(0,8):
-                gates[row] = gates[row] + 1<<col
+                gates[row] +=  + 1<<col
+                print(gates)
                 servos.set_servos_position(gates)
                 time.sleep(2)
