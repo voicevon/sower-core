@@ -110,7 +110,7 @@ if __name__ == "__main__":
     servos = Servos()
     servos.setup_gpio_i2cbus()
     
-    test_id = 0x2                                        
+    test_id = 99                                      
     while test_id == 0:
         gates = [0x00,0x01,0x00,0x00]  # bit 8 is always opened
         servos.set_servos_position(gates)
@@ -180,3 +180,11 @@ if __name__ == "__main__":
         servos.set_servos_position(gates)
         print('Opened ')
         time.sleep(0.0+3)
+
+    while test_id == 99:
+        gates = [0,0,0,0]
+        for row in range(0,4):
+            for col in range(0,8):
+                gates[row] = gates[row] + 1<<col
+                servos.set_servos_position(gates)
+                time.sleep(2)

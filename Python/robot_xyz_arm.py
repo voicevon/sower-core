@@ -5,7 +5,7 @@ import sys
 # sys.path.append('/home/xm/gitrepo/bot/python/reprap')   # on Jetson Nano xuming
 
 sys.path.append('/home/xm/pylib')
-from singleton import Singleton
+# from singleton import Singleton
 from app_config import AppConfig
 from mqtt_helper import g_mqtt
 from reprap_arm import ReprapArm
@@ -13,7 +13,8 @@ from reprap_arm import ReprapArm
 import time
 from  threading import Thread
 
-class XyzArm(ReprapArm, metaclass=Singleton):
+# class XyzArm(ReprapArm, metaclass=Singleton):
+class XyzArm(ReprapArm):
     '''
     This robot arm is a human level robot.
     Warehouse postion: When idle, it's at bottom.

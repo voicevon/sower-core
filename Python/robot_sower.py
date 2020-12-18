@@ -1,28 +1,40 @@
 from robot_sensors import RobotSensors
 from robot_xyz_arm import XyzArm
-from robot_servo_array import  ServoArrayDriver
+from robot_servo_array import  ServoArrayDriver  # For Minghao solution only
+from robot_sensors import Servos   # For Xuming solution only
 from chessboard import  g_chessboard, ChessboardCell, CHESSBOARD_CELL_STATE
 from plate import Plate, PlateCell, PLATE_CELL_STATE, PLATE_STATE
 
 from app_config import AppConfig
 
-import serial.tools.list_ports
+# import serial.tools.list_ports
+import sys
+sys.path.append('/home/xm/pylib')
+from devices_helper import DevicesHelper
+
+
+class RobotBody():
+
+    def __init__(self, serial_port_name, do_init_marlin=False, do_home=False):
+        self.xyz_arm = XyzArm()
+        self.servo_gate = Servos()
+    
+        if do_init_marlin:
+            self.xyz_arm.setup_and_home(serial_port_name)
+        if do_home:
+            self.xyz_arm.home_y_x()   
+
 
 class RobotSower():
-    '''
-    This is the hard robot, will take the plan and execute it.
-    '''
-    def __get_serial_port_name_from_chip_name(self, chip_name):
-        myports = [tuple(p) for p in list(serial.tools.list_ports.comports())]
-        for port_name,chip,detail in myports:
-            print(port_name)
-            print(chip)
-            print(detail)
-            
-            if chip == chip_name:
-                return port_name
+    # '''
+    # This is the hard robot, will take the plan and execute it.
+    # There are two RobotBody()
+    # each body have a set of XYZ_arm + servo_gates, we call it RobotBody
+    # '''
+
 
     def __init__(self, do_init_marlin=False, do_home=False):
+
         self.SOLUTION = AppConfig.robot_arms.servo_controller.solution
         if self.SOLUTION == 'minghao':
             self.__servos_minghao = ServoArrayDriver()
@@ -35,13 +47,16 @@ class RobotSower():
             self.__current_plate = Plate()
             self.__next_plate = Plate()
 
-        self.__xyz_arm = XyzArm()
-        if do_init_marlin:
-            port_name = self.__get_serial_port_name_from_chip_name('FT232R USB UART')
-            self.__xyz_arm.setup_and_home(port_name)
-        if do_home:
-            self.__xyz_arm.home_y_x()
-        
+        helper = DevicesHelper()
+        helper.serial_port_list_all()
+
+        port_name = helper.serial_port_from_location('1-2.1.2')
+        print('first arm, port_name =', port_name)
+        self.__robot_body_first = RobotBody(port_name,do_init_marlin, do_home)
+
+        port_name = helper.serial_port_from_location('1-2.1.2')
+        self.__robot_body_second = RobotBody(port_name, do_home)
+
     def on_eye_got_new_plate(self, plate_array):
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
@@ -77,8 +92,8 @@ class RobotSower():
             if row_id >= 0:
                 # TODO: this is a long time processing, should start a new thread 
                 # there is an empty cell
-                self.__xyz_arm.pickup_from_warehouse(col_id)
-                self.__xyz_arm.place_to_cell(row_id, col_id)
+                self.__xyz_arm_first.pickup_from_warehouse(col_id)
+                self.__xyz_arm_first.place_to_cell(row_id, col_id)
                 # update map and send new map to Minghao's subsystem
                 print('after place_to_cell row_id, col_id ', row_id, col_id )
                 self.__servos_minghao.update_chessmap_from_xyz_arm(row_id=row_id, col_id=col_id)
@@ -86,7 +101,6 @@ class RobotSower():
             # self.__servos_minghao.update_chessmap_from_minghao_controller()
 
         if solution == 'xuming':
-            return
             if g_chessboard_need_a_new_plan:    
                 g_chessboard.loadplan()
                 g_chessboard_need_a_new_plan = False
@@ -94,12 +108,12 @@ class RobotSower():
             row_id, col_id = g_chessboard.get_first_empty_cell()
             if row_id >= 0:
                 # TODO: this is a long time processing, should start a new thread 
-                self.__xyz_arm.pickup_from_warehouse(row_id)
-                self.__xyz_arm.place_to_cell(row_id, col_id)
+                self.__xyz_arm_first.pickup_from_warehouse(row_id)
+                self.__xyz_arm_first.place_to_cell(row_id, col_id)
                 g_chessboard.set_one_cell(row_id, col_id)
 
 if __name__ == "__main__":
     # GPIO.setmode(GPIO.BOARD)
-    t = RobotSower()
+    t = RobotSower(do_init_marlin=True,do_home=True)
 
     t.turn_on_light_fan_conveyor()
