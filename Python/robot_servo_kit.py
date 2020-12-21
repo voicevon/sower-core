@@ -60,6 +60,11 @@ class SowerServoKit():
 
 
     def __set_single_servo_on_off(self, servo_id, action):
+        '''
+        TODO 
+            Need try exception. to avoid hardware "OSError: [Error 121] Remote I/O error"
+
+        '''
         close_angle, idle_angle, oepn_angle = self.__on_off_angles[servo_id]
         target_angle = idle_angle
         if action == 'OPEN':
