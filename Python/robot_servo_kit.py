@@ -83,15 +83,16 @@ class SowerServoKit():
 
                 
 if __name__ == "__main__":
+
+    test_id =2
+    test_address = 0x42
     i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
 
-    # servos = SowerServoKit('second servo kit',i2c_bus0, 0x41)
-    servos = SowerServoKit('second servo kit',i2c_bus0, 0x42)
+    servos = SowerServoKit('second servo kit',i2c_bus0, test_address)
     print('init is ok')
     row = 0
     col = 4
 
-    test_id = 2  
 
     while test_id == 1:
         for row in range(0,2):

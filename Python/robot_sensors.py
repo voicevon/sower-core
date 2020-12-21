@@ -13,8 +13,8 @@ class RobotSensors():
 
     def __init__(self, on_new_plate_enter, on_new_row_enter):
         self.__PIN_IR_SWITCH = 33
-        self.__PIN_ENCODER_A = 37
-        self.__PIN_ENCODER_B = 35
+        # self.__PIN_ENCODER_A = 37
+        self.__PIN_ENCODER_B = 37
         # self.__PIN_POWER_OFF = 29
         # self.__PIN_INPUT_TEST = 35
 
@@ -41,14 +41,14 @@ class RobotSensors():
         GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN)
-        GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+        # GPIO.setup(self.__PIN_ENCODER_A, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(self.__PIN_ENCODER_B, GPIO.IN, pull_up_down = GPIO.PUD_UP)
         GPIO.setup(self.__PIN_LIGHTER, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.__PIN_VACUUM_FAN, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.__PIN_CONVEYOR_MOTOR, GPIO.OUT, initial=GPIO.LOW)
 
         GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.FALLING, callback=self.on_gpio_falling)
-        GPIO.add_event_detect(self.__PIN_ENCODER_A, GPIO.RISING, callback=self.on_gpio_rising)
+        GPIO.add_event_detect(self.__PIN_ENCODER_B, GPIO.RISING, callback=self.on_gpio_rising)
         # GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.FALLING, callback=self.on_gpio_falling)
 
     def ouput_light(self, ON_OFF):
@@ -66,9 +66,9 @@ class RobotSensors():
             self.ir_count += 1
 
     def on_gpio_rising(self, channel):
-        if channel == self.__PIN_ENCODER_A:
+        if channel == self.__PIN_ENCODER_B:
             self.__encoder_distance += 1
-            # print('encoder_distance=%d' %self.__encoder_distance)
+            print('encoder_distance=%d' %self.__encoder_distance)
             if self.__encoder_distance / self.__encoder_distance_per_row == 0:
                 # current row must be fininshed. new row is coming
                 self.__on_new_row_enter()
@@ -82,11 +82,11 @@ class RobotSensors():
 
     def read_gpio_input(self):
         # print(GPIO.input(self.__PIN_INPUT_TEST))
-        print(GPIO.input(self.__PIN_IR_SWITCH))
+        print('IR= %i, ENCODER_B= %i' %(GPIO.input(self.__PIN_IR_SWITCH),GPIO.input(self.__PIN_ENCODER_B)))
         # print(GPIO.input(self.__PIN_POWER_OFF))
-        print(GPIO.input(self.__PIN_ENCODER_A))
-        print(GPIO.input(self.__PIN_ENCODER_B))
-        print('---------------------------------------')
+        # print(GPIO.input(self.__PIN_ENCODER_A))
+        # print()
+        # print('---------------------------------------')
 
         
     # def on_gpio_falling(self, channel):
@@ -117,6 +117,9 @@ if __name__ == "__main__":
         tester.output_vacuum_fan(1)
         tester.output_conveyor_motor(1)
         time.sleep(5)
-
+    if True:
+        tester.ouput_light(1)
+        tester.output_vacuum_fan(1)
+        tester.output_conveyor_motor(1)
     while True:
         pass

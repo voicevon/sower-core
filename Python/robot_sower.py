@@ -18,12 +18,12 @@ import board  # pip3 install adafruit-blinka
 import busio
 class RobotBody():
 
-    def __init__(self, body_name, xyz_arm_serial_port_name,i2c_bus,kit_address,on_off_angles):
+    def __init__(self, body_name, xyz_arm_serial_port_name, i2c_bus,kit_address):
         self.__body_name = body_name
         self.xyz_arm = XyzArm()
         self.xyz_arm.connect_and_init(xyz_arm_serial_port_name)
         self.xyz_arm.home_y_x()
-        self.servos_kit = SowerServoKit(body_name, i2c_bus, kit_address, on_off_angles)
+        self.servos_kit = SowerServoKit(body_name, i2c_bus, kit_address,)
         
 
 
@@ -53,20 +53,12 @@ class RobotSower():
             helper.serial_port_list_all()
 
             i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
-            on_off_angles = [ #0x41, 16 servos,  From #0 to #15
-                               (19,49),(23,53),(15,45),(14,44),(16,46),(16,46),(17,47),(22,52),
-                               (17,47),(22,52),(36,66),(12,42),(15,45),(21,51),(16,46),(27,57)
-                            ]         
             xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.2')
-            self.__robot_body_first = RobotBody('first robot', xyz_arm_serial_port_name, i2c_bus0, 0x41, on_off_angles)
+            self.__robot_body_first = RobotBody('first robot', xyz_arm_serial_port_name, i2c_bus0, 0x41)
 
-            on_off_angles = [
-                                # 0x40, 16 servos.  From #0 to #15. 
-                                (40,70),(24,54),(18,48),(15,45),(18,48),(18,48),(18,48),(29,59),
-                                (15,45),(22,52),(32,62),(4,34),(10,40),(35,65),(10,40),(30,60)
-                            ]
+
             xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.1')
-            self.__robot_body_second = RobotBody('second robot',xyz_arm_serial_port_name, i2c_bus0, 0x42, on_off_angles)  
+            self.__robot_body_second = RobotBody('second robot',xyz_arm_serial_port_name, i2c_bus0, 0x42)  
 
 
 
