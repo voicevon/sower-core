@@ -41,20 +41,35 @@ class SowerServoKit():
     # https://pypi.org/project/Jetson.GPIO/
     # https://www.jetsonhacks.com/2019/07/22/jetson-nano-using-i2c/
     # https://elinux.org/Jetson/I2C
-    def __init__(self, name, i2c_bus, kit_address, on_off_angles):
+    def __init__(self, name, i2c_bus, kit_address):
+        self.__gates_angle_0x41 = [(19,35,49),(23,35,53),(15,30,45),(14,30,44),(16,35,66),(16,30,46),(17,30,47),(22,40,52),
+                    (17,30,47),(22,35,52),(36,50,66),(12,30,42),(15,30,45),(21,40,51),(16,30,46),(27,40,57)]
+        self.__gates_angle_0x42 = [(40,45,70),(24,33,54),(18,22,48),(15,24,45),(18,24,48),(18,28,48),(18,27,48),(29,37,59),
+                    (15,25,45),(22,34,52),(32,42,62),(4,14,34),(10,20,40),(35,40,65),(10,18,40),(30,38,60)]
+
         self.__name = name
         self.__kit = ServoKit(channels=16, i2c=i2c_bus, address=kit_address)
-        self.__on_off_angles = on_off_angles
+
+        self.__on_off_angles = []
+        if kit_address == 0x41:
+            self.__on_off_angles = self.__gates_angle_0x41
+        elif kit_address == 0x42:
+            self.__on_off_angles = self.__gates_angle_0x42
+        else:
+            print('[WARN][SowerServoKit]::__init__() wrong kit_address = %i' %kit_address)
+
 
     def __set_single_servo_on_off(self, servo_id, action):
-        close_angle, oepn_angle = self.__on_off_angles[servo_id]
-        target_angle = close_angle
+        close_angle, idle_angle, oepn_angle = self.__on_off_angles[servo_id]
+        target_angle = idle_angle
         if action == 'OPEN':
             target_angle = oepn_angle
-        else:
-            print('wrong parameter at flag= %s' %action)
+        elif action =='CLOSE':
+            target_angle = close_angle
+        elif action != 'IDLE':
+            print('[WARN][SowerServoKit]::__set_single_servo_on_off(wrong action parameter) = %s' %action)
 
-        # print(servo_id, target_angle)
+        print('----------------', servo_id, target_angle)
         self.__kit.servo[servo_id].angle = target_angle
 
     def set_single_servo_on_off(self,row_id, col_id,action='CLOSE'):
@@ -64,18 +79,30 @@ class SowerServoKit():
                 
 if __name__ == "__main__":
     i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
-    gates_angle = [0x00, 0x00]
-    servos = SowerServoKit('first servo kit',i2c_bus0,0x42, gates_angle)
-    
-    test_id = 1  
+
+    # servos = SowerServoKit('second servo kit',i2c_bus0, 0x41)
+    servos = SowerServoKit('second servo kit',i2c_bus0, 0x42)
+    print('init is ok')
+    row = 0
+    col = 4
+
+    test_id = 2  
 
     while test_id == 1:
-        servos.set_single_servo_on_off(0,1,'CLOSE')
-        print('closed')
-        time.sleep(3)
+        for row in range(0,2):
+            for col in range(0,8):
+                servos.set_single_servo_on_off(row, col_id=col, action='CLOSE')
+                print('closed')
+                time.sleep(1)
 
-        servos.set_single_servo_on_off(0,1,'OPEN')
-        print('Opened ')
-        time.sleep(3)        
+                servos.set_single_servo_on_off(row, col_id=col, action='OPEN')
+                print('Opened ')
+                time.sleep(1)   
+
+    while test_id == 2:
+        for row in range(0,2):
+            for col in range(0,8):
+                servos.set_single_servo_on_off(row,col, action='IDLE')
+        time.sleep(1)
 
    
