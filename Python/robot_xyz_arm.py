@@ -137,7 +137,7 @@ class XyzArm(ReprapArm):
 if __name__ == "__main__":
     my_arm = XyzArm()
     # my_arm.set_echo_on(True)
-    my_arm.connect_and_init('/dev/ttyUSB0')
+    my_arm.connect_and_init('/dev/ttyUSB1')
     my_arm.home_y_x()
     
     if True:
