@@ -53,11 +53,11 @@ class RobotSower():
             helper.serial_port_list_all()
 
             i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
-            xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.2')
+            xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.1')
             self.__robot_body_first = RobotBody('first robot', xyz_arm_serial_port_name, i2c_bus0, 0x41)
 
 
-            xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.1')
+            xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.3')
             self.__robot_body_second = RobotBody('second robot',xyz_arm_serial_port_name, i2c_bus0, 0x42)  
 
 
