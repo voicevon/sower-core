@@ -4,16 +4,10 @@
 #           from: https://www.jetsonhacks.com/2020/05/04/spi-on-jetson-using-jetson-io/
 
 
-
-
-
 # List I2C devices
 #   ls /dev/i2c*
 # List I2C address on device 0
 #   i2cdetect -r -y 0
-
-
-
 
 #  https://learn.adafruit.com/16-channel-pwm-servo-driver/python-circuitpython
 import time

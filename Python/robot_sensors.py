@@ -11,7 +11,8 @@ import time
 import os
 class RobotSensors():
 
-    def __init__(self, on_new_plate_enter, on_new_row_enter):
+    # def __init__(self, on_new_plate_enter, on_new_row_enter):
+    def __init__(self, on_new_row_enter):
         self.__PIN_IR_SWITCH = 37    # confirmed 33
         self.__PIN_ENCODER_C = 33    # 29 or 37
  
@@ -20,21 +21,19 @@ class RobotSensors():
         self.__PIN_VACUUM_FAN = 13 
         self.__PIN_LIGHTER = 7
 
-        self.__on_new_plate_enter = on_new_plate_enter
+        # self.__on_new_plate_enter = on_new_plate_enter
         self.__on_new_row_enter = on_new_row_enter
 
         self.__encoder_distance = 0
         self.__current_plate_enter_point = 0
         self.__next_plate_enter_point = 0
-        self.coming_row_id_first  = -1
-        self.coming_row_id_second = -1
+        self.coming_row_id_to_first_robot_body  = -1
+        self.coming_row_id_to_second_robot_body = -1
         self.current_speed = 30
-        self.ir_count = 0
+        self.__debug_ir_count = 0
         '''
         unit is mm/second
         '''
-        self.__on_new_plate_enter = on_new_plate_enter
-        self.__on_new_row_enter = on_new_row_enter
 
 
     def setup(self):
@@ -61,43 +60,33 @@ class RobotSensors():
     def on_gpio_rising(self, channel):
         if channel == self.__PIN_ENCODER_C:
             # There are possible two plates in operation. We consider only one.
-            self.coming_row_id_first += 1
-            self.coming_row_id_second += 1
+            self.coming_row_id_to_first_robot_body += 1
+            self.coming_row_id_to_second_robot_body += 1
             self.__on_new_row_enter()
 
 
     def on_gpio_falling(self, channel):
         if channel == self.__PIN_IR_SWITCH :
-            print('IR_Falling  %d'  %self.ir_count)
             # self.__on_new_plate_enter()
-            self.ir_count += 1
-            self.coming_row_id_first = -int(280/32)
-            self.coming_row_id_second = -int(680/32)
+            print('IR_Falling  %d'  %self.__debug_ir_count)
+            self.__debug_ir_count += 1
+            self.coming_row_id_to_first_robot_body = -int(280/32)
+            self.coming_row_id_to_second_robot_body = -int(680/32)
  
 
     def update_current_plate(self):
         self.__current_plate_enter_point = self.__next_plate_enter_point
 
     def read_gpio_input(self):
-        # print(GPIO.input(self.__PIN_INPUT_TEST))
         print('IR= %i, ENCODER_B= %i' %(GPIO.input(self.__PIN_IR_SWITCH),GPIO.input(self.__PIN_ENCODER_C)))
-        # print(GPIO.input(self.__PIN_POWER_OFF))
-        # print(GPIO.input(self.__PIN_ENCODER_A))
-        # print()
-        # print('---------------------------------------')
 
         
-    # def on_gpio_falling(self, channel):
-    #     if channel == self.__PIN_IR_SWITCH:
-    #         self.coming_row_id = -1
 
-def test_a():
-    pass
 def test_b():
     pass
 
 if __name__ == "__main__":
-    tester = RobotSensors(test_a,test_b)
+    tester = RobotSensors(test_b)
     tester.setup()
     while False:
         tester.read_gpio_input()
