@@ -12,8 +12,8 @@ import os
 class RobotSensors():
 
     def __init__(self, on_new_plate_enter, on_new_row_enter):
-        self.__PIN_IR_SWITCH = 33    # confirmed 33
-        self.__PIN_ENCODER_C = 37    # 29 or 37
+        self.__PIN_IR_SWITCH = 37    # confirmed 33
+        self.__PIN_ENCODER_C = 33    # 29 or 37
  
 
         self.__PIN_CONVEYOR_MOTOR = 15
@@ -26,25 +26,30 @@ class RobotSensors():
         self.__encoder_distance = 0
         self.__current_plate_enter_point = 0
         self.__next_plate_enter_point = 0
-        self.coming_row_id  = -1
+        self.coming_row_id_first  = -1
+        self.coming_row_id_second = -1
         self.current_speed = 30
         self.ir_count = 0
         '''
         unit is mm/second
         '''
+        self.__on_new_plate_enter = on_new_plate_enter
+        self.__on_new_row_enter = on_new_row_enter
 
 
     def setup(self):
         GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.__PIN_ENCODER_C, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.__PIN_ENCODER_C, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.__PIN_LIGHTER, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.__PIN_VACUUM_FAN, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.__PIN_CONVEYOR_MOTOR, GPIO.OUT, initial=GPIO.LOW)
 
         GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.FALLING, callback=self.on_gpio_falling)
         GPIO.add_event_detect(self.__PIN_ENCODER_C, GPIO.RISING, callback=self.on_gpio_rising)
+        # GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.FALLING, callback=self.on_gpio_rising)
+        # GPIO.add_event_detect(self.__PIN_ENCODER_C, GPIO.RISING, callback=self.on_gpio_falling)
 
     def ouput_light(self, ON_OFF):
         GPIO.output(self.__PIN_LIGHTER, ON_OFF)
@@ -53,17 +58,22 @@ class RobotSensors():
     def output_conveyor_motor(self, ON_OFF):
         GPIO.output(self.__PIN_CONVEYOR_MOTOR, ON_OFF)
 
-    def on_gpio_falling(self, channel):
-        if channel == self.__PIN_IR_SWITCH:
-            # There are two plates in operation.
-            self.__next_plate_enter_point = self.__encoder_distance
-            print('IR_Falling  %d'  %self.ir_count)
-            self.ir_count += 1
-
     def on_gpio_rising(self, channel):
         if channel == self.__PIN_ENCODER_C:
-            self.__encoder_distance += 1
-            print(self.__encoder_distance)
+            # There are possible two plates in operation. We consider only one.
+            self.coming_row_id_first += 1
+            self.coming_row_id_second += 1
+            self.__on_new_row_enter()
+
+
+    def on_gpio_falling(self, channel):
+        if channel == self.__PIN_IR_SWITCH :
+            print('IR_Falling  %d'  %self.ir_count)
+            # self.__on_new_plate_enter()
+            self.ir_count += 1
+            self.coming_row_id_first = -int(280/32)
+            self.coming_row_id_second = -int(680/32)
+ 
 
     def update_current_plate(self):
         self.__current_plate_enter_point = self.__next_plate_enter_point

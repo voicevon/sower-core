@@ -25,7 +25,8 @@ class SowerManager():
         self.__connect_to_mqtt_broker()
         self.__eye = RobotEye()
         self.__planner = Planner()
-        self.__robot_sower = RobotSower(do_init_marlin=True, do_home=True)
+        # self.__robot_sower = RobotSower(do_init_marlin=True, do_home=True)
+        self.__robot_sower = RobotSower()
         self.__coming_row_id_of_current_plate = 0
 
         self.__goto = self.__on_state_begin

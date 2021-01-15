@@ -73,12 +73,21 @@ class RobotSower():
             self.__next_plate.from_map(plate_map)
 
     def __on_new_plate_enter(self):
+        '''
+        A new plate entered, we knew this from camera, not from IR sensor
+        '''
         map = self.__next_plate.get_plate_map()
+        print("RobotSower.__on_new_plate_enter()")
+        return
+
         self.__current_plate.from_map(map)
 
     def __on_new_row_enter(self):
+        # print("RobotSower.__on_new_row_enter()")
+        print("first robot: comming row_id = ", self.__sensors.coming_row_id_first, self.__sensors.coming_row_id_second)
+        return
         g_chessboard.execute_plan()
-        g_chessboard_need_a_new_plan = True
+        # g_chessboard_need_a_new_plan = True
         # reload plan from where??
         # g_chessboard.reload_plan()
 
@@ -106,6 +115,7 @@ class RobotSower():
             # self.__servos_minghao.update_chessmap_from_minghao_controller()
 
         if solution == 'xuming':
+            return
             if g_chessboard_need_a_new_plan:    
                 g_chessboard.loadplan()
                 g_chessboard_need_a_new_plan = False
