@@ -97,7 +97,7 @@ class RobotSower():
         self.__sensors.output_vacuum_fan(1)
         self.__sensors.ouput_light(1)
 
-    def spin_once(self):
+    def spin_once(self): 
         solution = AppConfig.robot_arms.servo_controller.solution
         if solution == 'minghao':
             row_id, col_id = self.__servos_minghao.get_first_empty_cell()
