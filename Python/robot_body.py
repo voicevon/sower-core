@@ -1,4 +1,4 @@
-
+import threading
 from robot_servo_kit import SowerServoKit
 from robot_xyz_arm import XyzArm
 
@@ -34,19 +34,17 @@ class RobotBody():
                 if self.seed_buffer[row_id] & 1<<col_id == 1:
                     return row_id, col_id
         return -1,-1
-    
-    def spin_once(self):
+
+
+    def __spin_once(self):
         row_id, col_id = self.get_first_empty_cell()
         if row_id >=0:
             self.xyz_arm.pickup_from_warehouse(row_id)
             self.xyz_arm.place_to_cell(row_id, col_id)
     
-    def __spin(self):
-        while True:
-            self.spin_once()
-
-    def spin(self):
-        '''
-        invoke spin_once() forever in new thread.
-        '''
-        self.__spin()
+    def spin_once(self, new_thread=True):
+        if new_thread:
+            t1 = threading.Thread(target=self.__spin_once)
+            t1.start()
+            return
+        self.__spin_once()

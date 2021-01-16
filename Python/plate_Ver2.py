@@ -5,46 +5,22 @@
 from enum import Enum
 
 
-class PlateRow():
-    '''
-    Composed by an list of cells
-    '''
-    def __init__(self):
-        # self.cells=list(PlateCell)
-        self.cells=[]
-        self.config_cols_lenth = 8
-
-
-    def from_row_map(self, row_map):
-        for i in range(0,len(row_map)):
-            cell = PlateCell()
-            cell.from_cell_map(row_map[i])
-            self.cells.append(cell)  
-    
-    def print_out(self, string_head, string_tail):
-        out = string_head
-        for cell in self.cells:
-            out += cell.to_string()
-        out += string_tail
-        print(out)
-
-
 class Plate_Ver2():
     '''
     A plate is composed by array of PlateRows
     '''
     def __init__(self):
-        # self.rows = list(PlateRow)
         self.__ROWS = 16
         self.__rows_range = range(0,self.__ROWS)
-        self.rows = [(PlateRow()) for i in self.__rows_range]
+        self.rows = [0x00,0x00,0x00,0x00,  0x00,0x00,0x00,0x00,  0x00,0x00,0x00,0x00,  0x00,0x00,0x00,0x00]
+        '''
+        bit defination: 0 = Empty,  1 = Occupied
+        '''
 
 
-    def from_map(self, cells_map): 
-        i = 0
-        for row in self.rows:
-            row.from_row_map(cells_map[i])
-            i += 1
+    def from_map(self, rows_map): 
+        for i in range(0,self.__ROWS):
+            self.rows[i] = rows_map[i]
 
     def to_map(self):
         map=[]
@@ -73,7 +49,9 @@ class Plate_Ver2():
         '''
         update plate_map after dropping
         '''
-        self.rows[row_id] |= dropped_map
+        self.rows[row_id] |= dropped_map[0]
+        self.rows[row_id+1] = dropped_map[1]
+
          
 
 

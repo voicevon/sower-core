@@ -78,11 +78,16 @@ class RobotSower():
         Should be a new thread.
         '''
         print("RobotSower.__on_new_row_enter()  comming row_id = ", self.__sensors.coming_row_id_to_first_robot_body, self.__sensors.coming_row_id_to_second_robot_body)
-        row_id = self.__sensors.coming_row_id_to_first_robot_body
-        thread.start_new_thread(self.__new_row_enter_first_robot_body, ("row_id",row_id))
-
-        row_id = self.__sensors.coming_row_id_to_second_robot_body
-        thread.start_new_thread(self.__new_row_enter_second_robot_body, ("row_id",row_id))
+        row_id_first = self.__sensors.coming_row_id_to_first_robot_body
+        row_id_second = self.__sensors.coming_row_id_to_second_robot_body
+        if AppConfig.multi_thread:
+            t1 = threading.Thread(target=self.__new_row_enter_first_robot_body, args=[row_id_first])
+            t2 = threading.Thread(target=self.__new_row_enter_second_robot_body, args=[row_id_second])
+            t1.start()
+            t2.start()
+        else:
+            self.__new_row_enter_first_robot_body(row_id_first)
+            self.__new_row_enter_second_robot_body(row_id_second)
 
         # can report the sower result here   
         
@@ -108,8 +113,8 @@ class RobotSower():
             # self.__servos_minghao.update_chessmap_from_minghao_controller()
 
         if solution == 'xuming':
-            self.__first_robot_body.spin_once()
-            self.__second_robot_body.spin_once()
+            self.__first_robot_body.spin_once(new_thread=AppConfig.multi_thread)
+            self.__second_robot_body.spin_once(new_thread=AppConfig.multi_thread)
             self.__eye.spin_once()
 
 
