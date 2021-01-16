@@ -10,8 +10,8 @@ sys.path.append('/home/xm/pylib')  # for custom's jetson nano
 class AppConfig:
     # class g:
     #     mqtt = MqttHelper()
-    pylib_path = '/home/xm/pylib'  # for custom's jetson nano
-        # text_color = '/home/xm/gitrepo/pylib'  # for xuming's jetson nano
+    # pylib_path = '/home/xm/pylib'  # for custom's jetson nano
+    pylib_path = '/home/xm/gitrepo/pylib'  # for xuming's jetson nano
 
     class server:
         class mqtt:

@@ -27,9 +27,9 @@ class RobotSensors():
         self.__encoder_distance = 0
         self.__current_plate_enter_point = 0
         self.__next_plate_enter_point = 0
-        self.coming_row_id_to_first_robot_body  = -1
-        self.coming_row_id_to_second_robot_body = -1
-        self.current_speed = 30
+        self.coming_row_id_to_first_robot_body  = -100_000
+        self.coming_row_id_to_second_robot_body = -100_000
+        self.__current_speed = 30
         self.__debug_ir_count = 0
         '''
         unit is mm/second

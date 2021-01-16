@@ -69,7 +69,7 @@ class Plate_Ver2():
             range_min = 0
         return range(range_min, range_max)
 
-    def executed_dropping(self,row_id,dropped_map):
+    def update_dropping(self,row_id,dropped_map):
         '''
         update plate_map after dropping
         '''
