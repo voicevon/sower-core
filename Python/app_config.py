@@ -42,18 +42,6 @@ class AppConfig:
                                 "sower/eye/inside/camera/soft_trigger": 11,
                                 }
 
-    class robot_arms:
-        class xyz_arm:
-            name = 'Cartisian'
-            port_name = 'dev/ttyUSB0'
-            baudrate = 115200
-        
-        class servo_controller:
-            solution = 'xuming'
-            # solution = 'minghao'
-            # port_name = 'dev/ttyUSB1'
-            # baudrate = 115200
-
     class robot_eye:
         camera_index = 0
 

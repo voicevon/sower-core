@@ -42,12 +42,6 @@ class SowerManager():
 
         print('MQTT subscription is done')
 
-        solution = AppConfig.robot_arms.servo_controller.solution 
-        if solution == 'minghao':
-            self.__eye.setup(self.__robot_sower.on_eye_got_new_plate)
-        # elif solution == 'xuming':
-        #     self.__eye.setup(self.__planner.update_next_plate_from_eye_result)
-
         print(self.__YELLOW + TerminalFont.Color.Background.blue)
         print('System is initialized. Now is working')
         print(self.__RESET)

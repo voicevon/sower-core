@@ -125,13 +125,6 @@ class XyzArm(ReprapArm):
         # x, y = (180,180)
         self.move_to_xyz(x, y, speed_mm_per_min=18000)
 
-    def test_minghao(self):
-        while True:
-            for row_id in range(0,3):
-                for col_id in range(0,8):
-                    self.pickup_from_warehouse(col_id)
-                    self.place_to_cell(row_id, col_id)    
-        
 
 
 if __name__ == "__main__":
