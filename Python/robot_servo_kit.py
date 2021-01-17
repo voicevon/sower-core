@@ -79,7 +79,12 @@ class SowerServoKit():
         for row_id in range(0,2):
             row_action = planned_drop_map[row_id]
             for col_id in range(0,8):
-                single_action = row_action & 1<<col_id
+                is_to_open = row_action & 1<<col_id
+                if is_to_open:
+                    single_action = 'OPEN'
+                else:
+                    single_action = 'CLOSE'
+
                 servos.set_single_servo_on_off(row_id=row_id, col_id=col_id, action=single_action)
                 
 if __name__ == "__main__":

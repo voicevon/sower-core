@@ -38,19 +38,18 @@ class Plate_Ver2():
             row.print_out(str_index + '--  ','')
             index += 1
 
-    def get_window_map(self, target_row):
-        range_max = target_row
-        range_min = target_row - 2
-        if range_min < 0:
-            range_min = 0
-        return range(range_min, range_max)
+    def get_window_map(self, start_row_id):
+        window = [0x00,0x00]
+        window[0] = self.rows[start_row_id]
+        window[1] = self.rows[start_row_id + 1]
+        return window
 
     def update_dropping(self,row_id,dropped_map):
         '''
         update plate_map after dropping
         '''
-        self.rows[row_id] |= dropped_map[0]
-        self.rows[row_id+1] = dropped_map[1]
+        self.rows[row_id]   |= dropped_map[0]
+        self.rows[row_id+1] |= dropped_map[1]
 
          
 

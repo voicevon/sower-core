@@ -9,3 +9,10 @@
 # VScode:
 - Sublime
 - Python (Mirosoft)
+
+
+# bit defination
+- Plate:         0 = Occupied, 1 = Empty,  
+- SeedBuffer:    0 = Empty,    1 = Occupied
+- DroppingPlan:  0 = Hold,     1 = Drop       #??
+- ServoGate:     0 = Closed,   1 = Opened 
