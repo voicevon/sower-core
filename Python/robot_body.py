@@ -33,7 +33,7 @@ class RobotBody():
         '''
         for row_id in range(0,2):
             for col_id in range(0,8):
-                if self.seed_buffer[row_id] & 1<<col_id == 1:
+                if self.seed_buffer[row_id] & 1<<col_id == 0:
                     return row_id, col_id
         return -1,-1
 
@@ -43,6 +43,7 @@ class RobotBody():
         if row_id >=0:
             self.xyz_arm.pickup_from_warehouse(row_id)
             self.xyz_arm.place_to_cell(row_id, col_id)
+            self.seed_buffer[row_id] += 1<<col_id
     
     def spin_once(self, new_thread=True):
         if new_thread:
