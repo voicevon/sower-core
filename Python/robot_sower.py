@@ -51,7 +51,7 @@ class RobotSower():
             plan = self.__current_plate.get_window_map(row_id)
             # execute the plan, This will update the plate map.
             action_map = self.__first_robot_body.execute_dropping(plan)
-            self.__current_plate.update_dropping(action_map)
+            self.__current_plate.update_dropping(row_id, action_map)
 
     def __new_row_enter_second_robot_body(self, row_id):
         if row_id >= 0:
@@ -59,7 +59,7 @@ class RobotSower():
             plan = self.__current_plate.get_window_map(row_id)
             # execute the plan, This will update the plate map.
             action_map = self.__second_robot_body.execute_dropping(plan)
-            self.__current_plate.update_dropping(action_map)
+            self.__current_plate.update_dropping(row_id,action_map)
 
     def __on_new_row_enter(self):
         '''

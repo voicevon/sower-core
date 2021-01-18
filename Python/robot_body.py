@@ -16,13 +16,15 @@ class RobotBody():
         '''
         
         '''
-        drop_plan=[0x00,0x00]   #bit defination: 0 = No drop,   1 = dropped
-        drop_plan[0] = self.seed_buffer & dropping_plan[0]
-        drop_plan[1] = self.seed_buffer & dropping_plan[1]
-        self.seed_buffer[0] &= drop_plan[0]
-        self.seed_buffer[1] &= drop_plan[1]
-        self.servos_kit.execute_dropping(drop_plan)
-        return drop_plan
+        # print('eeeeeeeeeeeeeeeeeeeeeeeeeee', dropping_plan)
+        drop_map=[0x00,0x00]   #bit defination: 0 = No drop,   1 = dropped
+        drop_map[0] = self.seed_buffer[0] & dropping_plan[0]
+        drop_map[1] = self.seed_buffer[1] & dropping_plan[1]
+        self.seed_buffer[0] &= drop_map[0]
+        self.seed_buffer[1] &= drop_map[1]
+        print('===================' , drop_map)
+        self.servos_kit.execute_dropping(drop_map)
+        return drop_map
 
     def get_first_empty_cell(self):
         '''

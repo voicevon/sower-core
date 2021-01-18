@@ -4,6 +4,8 @@
 #           from: https://www.jetsonhacks.com/2020/05/04/spi-on-jetson-using-jetson-io/
 
 
+# Length = 1440*2 + 100 = 2980
+# Expected = 93
 
 from enum import Enum
 import Jetson.GPIO as GPIO
@@ -36,7 +38,7 @@ class RobotSensors():
         '''
 
 
-    def setup(self):
+    def setup(self, calibrate_mode=False):
         GPIO.cleanup()
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.__PIN_IR_SWITCH, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
@@ -45,19 +47,34 @@ class RobotSensors():
         GPIO.setup(self.__PIN_VACUUM_FAN, GPIO.OUT, initial=GPIO.LOW)
         GPIO.setup(self.__PIN_CONVEYOR_MOTOR, GPIO.OUT, initial=GPIO.LOW)
 
-        GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.FALLING, callback=self.on_gpio_falling)
-        GPIO.add_event_detect(self.__PIN_ENCODER_C, GPIO.RISING, callback=self.on_gpio_rising)
-        # GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.FALLING, callback=self.on_gpio_rising)
-        # GPIO.add_event_detect(self.__PIN_ENCODER_C, GPIO.RISING, callback=self.on_gpio_falling)
+        if calibrate_mode:    
+            GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_gpio_falling_calibrate)
+            GPIO.add_event_detect(self.__PIN_ENCODER_C, GPIO.RISING, callback=self.on_gpio_falling_calibrate)
+        else:
+            GPIO.add_event_detect(self.__PIN_IR_SWITCH, GPIO.RISING, callback=self.on_gpio_falling)
+            GPIO.add_event_detect(self.__PIN_ENCODER_C, GPIO.RISING, callback=self.on_gpio_falling)
 
-    def ouput_light(self, ON_OFF):
-        GPIO.output(self.__PIN_LIGHTER, ON_OFF)
-    def output_vacuum_fan(self, ON_OFF):
-        GPIO.output(self.__PIN_VACUUM_FAN, ON_OFF)
-    def output_conveyor_motor(self, ON_OFF):
-        GPIO.output(self.__PIN_CONVEYOR_MOTOR, ON_OFF)
 
-    def on_gpio_rising(self, channel):
+    def on_gpio_falling(self, channel):
+        if channel == self.__PIN_IR_SWITCH:
+            # self.__on_new_plate_enter()
+            print('IR_Falling  %d'  %self.__debug_ir_count)
+            self.__debug_ir_count += 1
+            self.coming_row_id_to_first_robot_body = -int(280/32)
+            self.coming_row_id_to_second_robot_body = -int(680/32)
+
+        if channel == self.__PIN_ENCODER_C:
+            # There are possible two plates in operation. We consider only one.
+            self.coming_row_id_to_first_robot_body += 1
+            self.coming_row_id_to_second_robot_body += 1
+            self.__on_new_row_enter()
+
+    def on_gpio_falling_calibrate(self, channel):
+        if channel == self.__PIN_IR_SWITCH:
+            print( 'For this circle ==== ', self.__debug_ir_count,self.coming_row_id_to_first_robot_body)
+            self.coming_row_id_to_first_robot_body = 0
+            self.__debug_ir_count += 1
+
         if channel == self.__PIN_ENCODER_C:
             # There are possible two plates in operation. We consider only one.
             self.coming_row_id_to_first_robot_body += 1
@@ -65,35 +82,35 @@ class RobotSensors():
             self.__on_new_row_enter()
 
 
-    def on_gpio_falling(self, channel):
-        if channel == self.__PIN_IR_SWITCH :
-            # self.__on_new_plate_enter()
-            print('IR_Falling  %d'  %self.__debug_ir_count)
-            self.__debug_ir_count += 1
-            self.coming_row_id_to_first_robot_body = -int(280/32)
-            self.coming_row_id_to_second_robot_body = -int(680/32)
- 
-
     def update_current_plate(self):
         self.__current_plate_enter_point = self.__next_plate_enter_point
 
     def read_gpio_input(self):
         print('IR= %i, ENCODER_B= %i' %(GPIO.input(self.__PIN_IR_SWITCH),GPIO.input(self.__PIN_ENCODER_C)))
 
-        
+
+    def ouput_light(self, ON_OFF):
+        GPIO.output(self.__PIN_LIGHTER, ON_OFF)
+    def output_vacuum_fan(self, ON_OFF):
+        GPIO.output(self.__PIN_VACUUM_FAN, ON_OFF)
+    def output_conveyor_motor(self, ON_OFF):
+        GPIO.output(self.__PIN_CONVEYOR_MOTOR, ON_OFF)        
 
 def test_b():
     pass
 
 if __name__ == "__main__":
     tester = RobotSensors(test_b)
-    tester.setup()
-    while False:
-        tester.read_gpio_input()
-        time.sleep(0.3)
+    if False:
+        tester.setup()
+        while True:
+            tester.output_conveyor_motor(1)
+            tester.read_gpio_input()
+            time.sleep(0.3)
 
     while False:
         # turn off all
+        tester.setup()
         tester.ouput_light(0)
         tester.output_vacuum_fan(0)
         tester.output_conveyor_motor(0)
@@ -104,10 +121,16 @@ if __name__ == "__main__":
         tester.output_vacuum_fan(1)
         tester.output_conveyor_motor(1)
         time.sleep(5)
-    if True:
+
+    if False:
+        tester.setup()
         tester.ouput_light(0)
         tester.output_vacuum_fan(0)
         tester.output_conveyor_motor(1)
         
-    while True:
-        pass
+    if True:
+        tester.setup(calibrate_mode=True)
+        tester.output_conveyor_motor(1)
+        time.sleep(0.005)
+        while True:
+            pass

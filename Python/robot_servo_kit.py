@@ -85,7 +85,7 @@ class SowerServoKit():
                 else:
                     single_action = 'CLOSE'
 
-                servos.set_single_servo_on_off(row_id=row_id, col_id=col_id, action=single_action)
+                self.set_single_servo_on_off(row_id=row_id, col_id=col_id, action=single_action)
                 
 if __name__ == "__main__":
 
