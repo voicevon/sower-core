@@ -24,9 +24,9 @@ class RobotSower():
 
 
     def __init__(self):
+        self.__eye = RobotEye()
         helper = DevicesHelper()
         helper.serial_port_list_all()
-        self.__eye = RobotEye()
 
         self.__current_plate = Plate_Ver2()
         self.__next_plate = Plate_Ver2() # Current version , we don't apply this.
@@ -36,10 +36,10 @@ class RobotSower():
 
         i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
         xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.1')
-        self.__first_robot_body = RobotBody('first robot', xyz_arm_serial_port_name, i2c_bus0, 0x41)
+        self.__first_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x41)
 
         xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.3')
-        self.__second_robot_body = RobotBody('second robot',xyz_arm_serial_port_name, i2c_bus0, 0x42)  
+        self.__second_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x42)  
 
     def on_eye_got_new_plate(self, plate_map):
 

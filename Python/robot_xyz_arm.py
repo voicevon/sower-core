@@ -19,9 +19,17 @@ class XyzArm(ReprapArm):
     This robot arm is a human level robot.
     Warehouse postion: When idle, it's at bottom.
     '''
-    def __init__(self ):
+    def __init__(self, body_id):
         ReprapArm.__init__(self)
         self.__placed_counter = 0
+        if body_id==0x41:
+            self.__WAREHOUSE_X_POS = 180
+            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 70
+            self.__DISTANCE_Y_FROM_COL_7_TO_HOME = 10
+        if body_id==0x42:
+            self.__WAREHOUSE_X_POS = 180
+            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 70
+            self.__DISTANCE_Y_FROM_COL_7_TO_HOME = 15
 
     def connect_and_init(self, serial_port_name):
         ReprapArm.connect_reprap_controller(self, portname= serial_port_name, baudrate=115200)
@@ -47,10 +55,10 @@ class XyzArm(ReprapArm):
 
         From manual calibration:  col,row :(0,0)  maps to x,y (30,20)
         '''
-        x = 110 + row * 32
-        y = 15 + (7-col) * 32
+        x = self.__WAREHOUSE_X_POS - self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE + row * 32
+        y = self.__DISTANCE_Y_FROM_COL_7_TO_HOME + (7-col) * 32
         if row == -1:
-            x = 180
+            x = self.__WAREHOUSE_X_POS
         return x, y
 
     def lift_warehouse(self):
@@ -69,7 +77,7 @@ class XyzArm(ReprapArm):
         WAREHOUSE_MOVEMENT_TIME = 1.5   # when warehouse moves from bottom to top(or reverse), will cost some time. 
 
         # move_to_warehouse(col)
-        x, y = self.__get_xy_from_col_row(col, row=-1)
+        x, y = self.__get_xy_from_col_row(col=col, row=-1)
         self.move_to_xyz(x, y,speed_mm_per_min=18000)
         self.__current_y = y
 
@@ -83,15 +91,15 @@ class XyzArm(ReprapArm):
         A certain path, that based on cell position.
         Basically, The path looks like this, total composed from 3 segments
 
-         <-----------------------------
-        |
-        | 
-        |------------------------------>
+        (x,y+32)-------------------------->(WAREHOUSE_X_POS,y+32)
+          |
+          |
+        (x,y) <--------------------------- (WAREHOUSE_X_POS,y)
         '''
         x, y = self.__get_xy_from_col_row(col,row)
         self.move_to_xyz (x , y )
         self.move_to_xyz(x , y+32)
-        self.move_to_xyz(180, y+32)
+        self.move_to_xyz(self.__WAREHOUSE_X_POS, y+32)
 
         self.__placed_counter += 1
         g_mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)

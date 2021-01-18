@@ -4,12 +4,11 @@ from robot_xyz_arm import XyzArm
 
 class RobotBody():
 
-    def __init__(self, body_name, xyz_arm_serial_port_name, i2c_bus, kit_address):
-        self.__body_name = body_name
-        self.xyz_arm = XyzArm()
+    def __init__(self, xyz_arm_serial_port_name, i2c_bus, kit_address):
+        self.xyz_arm = XyzArm(kit_address)
         self.xyz_arm.connect_and_init(xyz_arm_serial_port_name)
         self.xyz_arm.home_y_x()
-        self.servos_kit = SowerServoKit(body_name, i2c_bus, kit_address)
+        self.servos_kit = SowerServoKit(i2c_bus, kit_address)
         self.seed_buffer = [0x00,0x00]   #bit defination: 0 = BLANK,  1 = OCCUPIED
         
     def execute_dropping(self, dropping_plan):
