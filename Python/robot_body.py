@@ -41,8 +41,8 @@ class RobotBody():
     def __spin_once(self):
         row_id, col_id = self.get_first_empty_cell()
         if row_id >=0:
-            self.xyz_arm.pickup_from_warehouse(row_id)
-            self.xyz_arm.place_to_cell(row_id, col_id)
+            self.xyz_arm.pickup_from_warehouse(col_id)
+            self.xyz_arm.place_to_cell(row=row_id, col=col_id)
             self.seed_buffer[row_id] += 1<<col_id
     
     def spin_once(self, new_thread=True):

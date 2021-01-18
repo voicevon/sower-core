@@ -33,7 +33,7 @@ class XyzArm(ReprapArm):
 
     def __get_xy_from_col_row(self, col, row):
         '''
-        Y
+        Y+
         ^
         |      col=0
         |      col=1
@@ -42,7 +42,7 @@ class XyzArm(ReprapArm):
         |      col=5
         |      col=6
         |      col=7
-        |----- row=0,  row=1 ... row=-1  ------------------> X
+        |----- row=0,  row=1 ... row=-1  ------------------> X+
         if row == -1, will return x position of warehouse
 
         From manual calibration:  col,row :(0,0)  maps to x,y (30,20)
