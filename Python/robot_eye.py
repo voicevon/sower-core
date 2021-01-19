@@ -251,7 +251,7 @@ class corn_detection(object):
                         #        y+ h > tray_rect[1] and tray_rect[1] + interval_h > y:
                         if rect[0] + rect[2] > tray_rect[0] and tray_rect[0] + interval_w >rect[0] and \
                                 rect[1] + rect[3] > tray_rect[1] and tray_rect[1] + interval_h > rect[1]:
-                            corn_result[row, col] = True
+                            corn_result[row, col] = False
                             break
             print('[Info] robot_eye.py: corn result = ', corn_result)
             corn_map = self.translate_map(corn_result)

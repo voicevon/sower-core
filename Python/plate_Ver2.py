@@ -41,7 +41,10 @@ class Plate_Ver2():
     def get_window_map(self, start_row_id):
         window = [0x00,0x00]
         window[0] = self.rows[start_row_id]
-        window[1] = self.rows[start_row_id + 1]
+        if start_row_id<15:
+            window[1] = self.rows[start_row_id + 1]
+        else:
+            window[1] = 0x00
         return window
 
     def update_dropping(self,row_id,dropped_map):
