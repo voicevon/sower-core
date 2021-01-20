@@ -35,10 +35,10 @@ class RobotSower():
         self.__sensors.setup()
 
         i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
-        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.1')
+        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.4.3')
         self.__first_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x41)
 
-        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.1.3')
+        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.4.4')
         self.__second_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x42)  
 
     def on_eye_got_new_plate(self, plate_map):
