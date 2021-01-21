@@ -11,7 +11,8 @@ class RobotBody():
         self.servos_kit = SowerServoKit(i2c_bus, kit_address)
         self.seed_buffer = [0xff,0xff]   #bit defination: 0 = BLANK,  1 = OCCUPIED
         self.__debug_kit_address = kit_address
-    def execute_dropping_from_window_map(self, window_map):
+        
+    def make_plan_and_execute(self, window_map):
         '''
         
         '''
