@@ -71,7 +71,7 @@ class SowerServoKit():
         self.__kit.servo[servo_id].angle = target_angle
 
     def set_single_servo_on_off(self,row_id, col_id,action='CLOSE'):
-        servo_id = row_id * 8 + col_id
+        servo_id = (1-row_id) * 8 + col_id
         self.__set_single_servo_on_off(servo_id,action)
 
     def execute_dropping(self, planned_drop_map):
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     test_address = 0x42
     i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
 
-    servos = SowerServoKit('second servo kit',i2c_bus0, test_address)
+    servos = SowerServoKit(i2c_bus0, test_address)
     print('init is ok')
     row = 0
     col = 4
