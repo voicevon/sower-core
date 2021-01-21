@@ -42,40 +42,47 @@ class RobotSower():
         self.__second_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x42)  
 
     def on_eye_got_new_plate(self, plate_map):
-
+        print('RobotSower().on_eye_got_new_plate()')
+        plate_map = [0xfe,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,
+                    0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
         self.__current_plate.from_map(plate_map)
+        self.__current_plate.print_out_map()
 
     def __new_row_enter_first_robot_body(self, row_id):
         if row_id >= 0:
             # get plan for the two rows of the first robot.
-            plan = self.__current_plate.get_window_map(row_id)
+            window = self.__current_plate.get_window_map(row_id)
             # execute the plan, This will update the plate map.
-            action_map = self.__first_robot_body.execute_dropping(plan)
-            self.__current_plate.update_dropping(row_id, action_map)
+            action_map = self.__first_robot_body.execute_dropping_from_window_map(window)
+            self.__current_plate.update_with_dropping(row_id, action_map)
 
     def __new_row_enter_second_robot_body(self, row_id):
         if row_id >= 0:
             # get plan for the two rows of the first robot.
             plan = self.__current_plate.get_window_map(row_id)
             # execute the plan, This will update the plate map.
-            action_map = self.__second_robot_body.execute_dropping(plan)
-            self.__current_plate.update_dropping(row_id,action_map)
+            action_map = self.__second_robot_body.execute_dropping_from_window_map(plan)
+            self.__current_plate.update_with_dropping(row_id,action_map)
 
     def __on_new_row_enter(self):
         '''
         Should be a new thread.
         '''
-        print("RobotSower.__on_new_row_enter()  comming row_id = ", self.__sensors.coming_row_id_to_first_robot_body, self.__sensors.coming_row_id_to_second_robot_body)
+        # print("RobotSower.__on_new_row_enter()  comming row_id = ", self.__sensors.coming_row_id_to_first_robot_body, self.__sensors.coming_row_id_to_second_robot_body)
         row_id_first = self.__sensors.coming_row_id_to_first_robot_body
         row_id_second = self.__sensors.coming_row_id_to_second_robot_body
         if AppConfig.multi_thread:
-            t1 = threading.Thread(target=self.__new_row_enter_first_robot_body, args=[row_id_first])
-            t2 = threading.Thread(target=self.__new_row_enter_second_robot_body, args=[row_id_second])
-            t1.start()
-            t2.start()
+            if row_id_first < 16:
+                t1 = threading.Thread(target=self.__new_row_enter_first_robot_body, args=[row_id_first])
+                t1.start()
+            if row_id_second < 16:
+                t2 = threading.Thread(target=self.__new_row_enter_second_robot_body, args=[row_id_second])
+                t2.start()
         else:
-            self.__new_row_enter_first_robot_body(row_id_first)
-            self.__new_row_enter_second_robot_body(row_id_second)
+            if row_id_first < 16:
+                self.__new_row_enter_first_robot_body(row_id_first)
+            if row_id_second < 16:
+                self.__new_row_enter_second_robot_body(row_id_second)
 
         # can report the sower result here   
         

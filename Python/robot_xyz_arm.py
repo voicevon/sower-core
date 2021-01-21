@@ -24,11 +24,11 @@ class XyzArm(ReprapArm):
         self.__placed_counter = 0
         if body_id==0x41:
             self.__WAREHOUSE_X_POS = 180
-            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 70
+            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 79
             self.__DISTANCE_Y_FROM_COL_7_TO_HOME = 10
         if body_id==0x42:
             self.__WAREHOUSE_X_POS = 180
-            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 70
+            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 80
             self.__DISTANCE_Y_FROM_COL_7_TO_HOME = 15
 
     def connect_and_init(self, serial_port_name):

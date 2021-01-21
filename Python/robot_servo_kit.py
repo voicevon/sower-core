@@ -67,7 +67,7 @@ class SowerServoKit():
         elif action != 'IDLE':
             print('[WARN][SowerServoKit]::__set_single_servo_on_off(wrong action parameter) = %s' %action)
 
-        print('----------------', servo_id, target_angle)
+        # print('SowerServoKit(). __set_single_servo_on_off() ', servo_id, target_angle)
         self.__kit.servo[servo_id].angle = target_angle
 
     def set_single_servo_on_off(self,row_id, col_id,action='CLOSE'):
