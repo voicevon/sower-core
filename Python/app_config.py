@@ -40,6 +40,12 @@ class AppConfig:
                                 "sower/eye/inside/detect/roi/width": 11,
                                 "sower/eye/inside/detect/roi/height": 11,
                                 "sower/eye/inside/camera/soft_trigger": 11,
+                                "sower/eye/inside/detect/threshold_h_l": 11,
+                                "sower/eye/inside/detect/threshold_h_h": 11,
+                                "sower/eye/inside/detect/threshold_s": 11,
+                                "sower/eye/inside/detect/threshold_v": 11,
+                                "sower/eye/inside/detect/threshold_size_rgb": 11,
+                                "sower/eye/inside/detect/threshold_size_hsv": 11
                                 }
 
     class robot_eye:

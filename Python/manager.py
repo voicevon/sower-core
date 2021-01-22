@@ -46,6 +46,8 @@ class SowerManager():
         print('System is initialized. Now is working')
         print(self.__RESET)
 
+        self.__robot_sower.start()
+
     def __on_state_begin(self):
         if self.__system_turn_on:
             self.__robot_sower.turn_on_light_fan_conveyor()

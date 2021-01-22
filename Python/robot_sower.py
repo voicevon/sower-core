@@ -25,7 +25,6 @@ class RobotSower():
 
     def __init__(self):
         self.__eye = RobotEye()
-        self.__eye.setup(self.on_eye_got_new_plate)
         helper = DevicesHelper()
         helper.serial_port_list_all()
 
@@ -42,28 +41,42 @@ class RobotSower():
         xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.4.4')
         self.__second_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x42)  
 
+
+    def start(self):
+        self.__eye.setup(self.on_eye_got_new_plate)
+
     def on_eye_got_new_plate(self, plate_map):
         print('RobotSower().on_eye_got_new_plate()')
-        plate_map = [0xfe,0xfe,0xfe,0xff,  0xff,0xff,0xff,0xff,
-                    0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
+        # plate_map = [0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,
+        #             0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
         self.__current_plate.from_map(plate_map)
         self.__current_plate.print_out_map()
 
     def __new_row_enter_first_robot_body(self, row_id):
-        if row_id >= 0 and row_id <= 15:
+        if row_id >= 0 and row_id <= 16:
             # get plan for the two rows of the first robot.
             window = self.__current_plate.get_window_map(row_id)
+            self.__first_robot_body.print_out_drop_plan('first body window   ' + str(row_id),window,'W')
+
             # execute the plan, This will update the plate map.
             action_map = self.__first_robot_body.make_plan_and_execute(window)
+            self.__first_robot_body.print_out_drop_plan('action_map',action_map,'P')
             self.__current_plate.update_with_dropping(row_id, action_map)
+            if action_map[0] > 0 or action_map[1] > 0:
+                # self.__first_robot_body.print_out_drop_plan('action_map',action_map,'P')
+                self.__current_plate.print_out_map()
 
     def __new_row_enter_second_robot_body(self, row_id):
-        if row_id >= 0 and row_id <= 15:
+        return
+        if row_id >= 0 and row_id <= 16:
             # get plan for the two rows of the second robot.
             window = self.__current_plate.get_window_map(row_id)
             # execute the plan, This will update the plate map.
             action_map = self.__second_robot_body.make_plan_and_execute(window)
             self.__current_plate.update_with_dropping(row_id,action_map)
+            # if action_map[0] > 0 or action_map[1]>0:
+            #     self.__first_robot_body.print_out_drop_plan(action_map)
+            #     self.__current_plate.print_out_map()
 
     def __on_new_row_enter(self):
         '''
@@ -74,7 +87,7 @@ class RobotSower():
         row_id_second = self.__sensors.coming_row_id_to_second_robot_body
         if row_id_first==0 or row_id_second==0:
             print("RobotSower.__on_new_row_enter()  comming row_id = ", self.__sensors.coming_row_id_to_first_robot_body, self.__sensors.coming_row_id_to_second_robot_body)
-            
+
         if AppConfig.multi_thread:
             t1 = threading.Thread(target=self.__new_row_enter_first_robot_body, args=[row_id_first])
             t1.start()
@@ -97,11 +110,20 @@ class RobotSower():
         self.__second_robot_body.spin_once(new_thread=AppConfig.multi_thread)
         self.__eye.spin_once()
 
+    def start_all_thread_spin(self):
+        self.__eye.spin()   # do not block main thread
+        
+
+
 
 
 if __name__ == "__main__":
-    GPIO.cleanup()
-    GPIO.setmode(GPIO.BOARD)
+    # GPIO.cleanup()
+    # GPIO.setmode(GPIO.BOARD)
 
     t = RobotSower()
-    t.turn_on_light_fan_conveyor()
+    # t.turn_on_light_fan_conveyor()
+    plate_map = [0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,
+                    0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
+    t.on_eye_got_new_plate(plate_map)
+    t.__new_row_enter_first_robot_body(0)

@@ -38,26 +38,36 @@ class Plate_Ver2():
                 if (byte & (1<<col_id)) == 0:
                     col_map += ' .'
                 else:
-                    col_map += ' X'
+                    col_map += ' O'
             print (col_map)        
 
     def get_window_map(self, start_row_id):
         window = [0x00,0x00]
         # print('Plate_Ver2.get_window_map(): start_row_id= ', start_row_id)
-        window[0] = self.rows[start_row_id]
-        if start_row_id<15:
-            window[1] = self.rows[start_row_id + 1]
+        if start_row_id == 0:   # window[0] is at the right side
+            window[0] = 0xff
+            window[1] = self.rows[start_row_id]
+        elif start_row_id == 16:
+            window[1] = 0xff   # 1 is occupied   Window[1] is at the left side.
+            window[0] = self.rows[start_row_id - 1]
         else:
-            window[1] = 0xff   # 1 is occupied
+            window[1] = self.rows[start_row_id]
+            window[0] = self.rows[start_row_id -1]
+            
         return window
 
-    def update_with_dropping(self,row_id,dropped_map):
+    def update_with_dropping(self,plate_row_id,dropped_map):
         '''
         update plate_map after dropping
         '''
-        self.rows[row_id] |= dropped_map[0]
-        if row_id <15:
-            self.rows[row_id+1] |= dropped_map[1]
+        if plate_row_id == 0:
+            self.rows[plate_row_id] |= dropped_map[1]
+        elif plate_row_id == 16:
+            self.rows[plate_row_id-1] |= dropped_map[0]
+        else:
+            self.rows[plate_row_id] |= dropped_map[1]
+        # if row_id <15:
+            self.rows[plate_row_id-1] |= dropped_map[0]
 
          
 

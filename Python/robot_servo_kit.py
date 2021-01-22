@@ -71,7 +71,7 @@ class SowerServoKit():
         self.__kit.servo[servo_id].angle = target_angle
 
     def set_single_servo_on_off(self,row_id, col_id,action='CLOSE'):
-        servo_id = (1-row_id) * 8 + col_id
+        servo_id = row_id * 8 + col_id
         self.__set_single_servo_on_off(servo_id,action)
 
     def execute_dropping(self, planned_drop_map):

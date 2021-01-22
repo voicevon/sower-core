@@ -177,6 +177,95 @@ class corn_detection(object):
         cont_max = contour[np.argmax(areas)]
         self.ROI = cv2.boundingRect(cont_max)  # 提取矩形坐标
         return self.ROI
+    
+    def preprocessing(self, img, ROI=None, threshold_R=100, threshold_G=100, threshold_B=100,
+    					threshold_H_L=15,threshold_H_H=50, threshold_S=40, threshold_V=45):
+        if img.shape[2]!=3:
+            raise Exception('invalid image type, it should be 3 channels!')
+        
+        if ROI is not None:
+            self.ROI = ROI
+
+        self.ROI_img = img[self.ROI[1]:(self.ROI[1] + self.ROI[3]), self.ROI[0]:(self.ROI[0] + self.ROI[2])]  #extract ROI
+        self.corn_img = cv2.resize(self.ROI_img, (int(self.ROI[2]/2), int(self.ROI[3]/2)))
+        self.HSV_img = cv2.cvtColor(self.corn_img,cv2.COLOR_RGB2HSV) # convert to HSV space
+        self.RGB_img = self.corn_img.copy()
+
+        #threshold HSV
+        yellow_min = np.array([threshold_H_L, threshold_S, threshold_V], np.uint8)
+        yellow_max = np.array([threshold_H_H, 255, 255], np.uint8)
+        self.HSV_th_img = cv2.inRange(self.HSV_img, yellow_min, yellow_max)
+        # cv2.imwrite('HSV.jpg', self.HSV_th_img)
+        #threshold RGB
+        yellow_min = np.array([threshold_R, threshold_G, 0], np.uint8)
+        yellow_max = np.array([255, 255, threshold_B], np.uint8)
+        self.RGB_th_img = cv2.inRange(self.RGB_img, yellow_min, yellow_max)
+        # cv2.imwrite('RGB.jpg', self.RGB_th_img)
+
+        #median blur
+        self.HSV_th_img = cv2.medianBlur(self.HSV_th_img,7)
+        self.RGB_th_img = cv2.medianBlur(self.RGB_th_img,3)
+        # cv2.imwrite('HSV_filter.jpg', self.HSV_th_img)
+        # cv2.imwrite('RGB_filter.jpg', self.RGB_th_img)
+
+        #morphology 
+        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+        self.HSV_th_img = cv2.morphologyEx(self.HSV_th_img, cv2.MORPH_OPEN, element)
+        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10,10))
+        self.HSV_th_img = cv2.morphologyEx(self.HSV_th_img, cv2.MORPH_CLOSE, element)
+
+        self.RGB_th_img = cv2.morphologyEx(self.RGB_th_img, cv2.MORPH_CLOSE, element)
+        # cv2.imwrite('HSV_morph.jpg', self.HSV_th_img)
+        # cv2.imwrite('RGB_morph.jpg', self.RGB_th_img)
+        #cv2.imwrite('test3.png', self.HSV_th_img)
+        #cv2.imwrite('test4.png', self.BGR_th_img)
+
+    def detect(self, display=False, theshold_size_rgb=15, theshold_size_hsv=25):
+        cell_width = int (self.corn_img.shape[1]/self.tray_width)
+        cell_height = int (self.corn_img.shape[0]/self.tray_height)
+        corn_result = np.zeros((self.tray_height, self.tray_width)).astype(bool)
+        for row in range(self.tray_height):
+            for col in range(self.tray_width):
+                cell_HSV_img = self.HSV_th_img[row*cell_height:(row+1)*cell_height,col*cell_width:(col+1)*cell_width]
+                cell_RGB_img = self.RGB_th_img[row*cell_height:(row+1)*cell_height,col*cell_width:(col+1)*cell_width]
+                # cv2.imwrite('cell_hsv_{}_{}.jpg'.format(row,col), cell_HSV_img)
+                # cv2.imwrite('cell_rgb_{}_{}.jpg'.format(row,col), cell_RGB_img)
+
+
+                contours_HSV,hierarchy_HSV = cv2.findContours(cell_HSV_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                contours_RGB,hierarchy_BGR = cv2.findContours(cell_RGB_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                areas = []
+                for cont in contours_HSV:
+                    # area_cont = cv2.contourArea(cont)
+                    area_cont = cont.size
+                    areas.append(area_cont)
+                if len(areas) > 0:
+                    if np.max(areas) > theshold_size_hsv:
+                    	corn_result[row, col] = True
+                    	if display:
+                    	    max_area_id = np.argmax(areas)
+                    	    cont_max_HSV = contours_HSV[max_area_id]
+                    	    rect = cv2.boundingRect(cont_max_HSV)
+                    	    cv2.rectangle(self.corn_img, (rect[0]+col*cell_width, rect[1]+row*cell_height, rect[2], rect[3]), (0,0,255),5)
+
+                areas = []
+                for cont in contours_RGB:
+                    # area_cont = cv2.contourArea(cont)
+                    area_cont = cont.size
+                    areas.append(area_cont)
+                if len(areas) > 0:
+                    if np.max(areas) > theshold_size_rgb:
+                    	corn_result[row, col] = True
+                    	if display:
+                    	    max_area_id = np.argmax(areas)
+                    	    cont_max_RGB = contours_RGB[max_area_id]
+                    	    rect = cv2.boundingRect(cont_max_RGB)
+                    	    cv2.rectangle(self.corn_img, (rect[0]+col*cell_width, rect[1]+row*cell_height, rect[2], rect[3]), (0,255,0),5)
+        print('[Info] robot_eye.py: corn result = ', corn_result)
+        corn_map = self.translate_map(corn_result)
+        print('[Info] robot_eye.py: corn map = ', corn_map)
+        return corn_map
 
     def corn_recognition(self, raw_img, ROI=None, display=False, theshold_R=200, theshold_G=200, theshold_B=150,
                          theshold_size=8):
@@ -251,11 +340,11 @@ class corn_detection(object):
                         #        y+ h > tray_rect[1] and tray_rect[1] + interval_h > y:
                         if rect[0] + rect[2] > tray_rect[0] and tray_rect[0] + interval_w >rect[0] and \
                                 rect[1] + rect[3] > tray_rect[1] and tray_rect[1] + interval_h > rect[1]:
-                            corn_result[row, col] = False
+                            corn_result[row, col] = True
                             break
-            print('[Info] robot_eye.py: corn result = ', corn_result)
+            # print('[Info] robot_eye.py: corn result = ', corn_result)
             corn_map = self.translate_map(corn_result)
-            print('[Info] robot_eye.py: corn map = ', corn_map)
+            # print('[Info] robot_eye.py: corn map = ', corn_map)
             return corn_map
     
     def translate_map(self, corn_result):
@@ -334,8 +423,15 @@ class RobotEye(object):
         while True:
             # self.__running_on_my_own_thread = False
             self.spin_once()
-
+            
+    # def spin_once_demo(self, new_thread=True):
+    #     if new_thread:
+    #         t1 = threading.Thread(target=self.__spin_once)
+    #         t1.start()
+    #         return
+    #     self.__spin_once()
     def spin_once(self):
+
         # Try to get a plate map, When it happened, invoke the callback
         # last_frame_id = 0
         if self.__camera.isopen:
@@ -343,6 +439,8 @@ class RobotEye(object):
             # while True:   #TODO
                 if self.__camera.frame_id != self.__last_frame_id:
                     self.__last_frame_id = self.__camera.frame_id
+                    M = cv2.getRotationMatrix2D((self.__camera.frame.shape[1]/2,self.__camera.frame.shape[0]/2),90,1.0)
+                    self.__camera.frame = cv2.warpAffine(self.__camera.frame,M,(self.__camera.frame.shape[0],self.__camera.frame.shape[1]))
                     if self.__detect_config.get('ROI', []):
                         if len(self.__detect_config['ROI']) == 4 and self.__detect_config['ROI'][0] != 0 \
                                 and self.__detect_config['ROI'][1] !=0 and self.__detect_config['ROI'][2] !=0 and self.__detect_config['ROI'][3] != 0:
@@ -352,22 +450,41 @@ class RobotEye(object):
                             # continue
                             return
                     else:
-                        cap_img = self.__camera.frame.copy()
+                        # cap_img = self.__camera.frame.copy()
                         roi = self.__corn_detect.extractROI(self.__camera.frame)
                         if roi is None:
                             print("[Warning] robot_eye.py line [363]: extract tray contour failed!")
                             # continue
                             return
                     #print('roi:', roi)
-                    thres_R = self.__detect_config.get('threshold_R', 190)
-                    thres_G = self.__detect_config.get('threshold_G', 190)
-                    thres_B = self.__detect_config.get('threshold_B', 150)
-                    thres_size = self.__detect_config.get('threshold_size', 8)
-                    display = self.__detect_config.get('display', False)
+                    # thres_R = self.__detect_config.get('threshold_R', 190)
+                    # thres_G = self.__detect_config.get('threshold_G', 190)
+                    # thres_B = self.__detect_config.get('threshold_B', 150)
+                    # thres_size = self.__detect_config.get('threshold_size', 8)
+                    # display = self.__detect_config.get('display', False)
                     # print('[Info] robot_eye.py: start detect.................')
+
+                    #***********************for rgb hsv buy light*****************************
+                    thres_R = self.__detect_config.get('threshold_R', 100)
+                    thres_G = self.__detect_config.get('threshold_G', 100)
+                    thres_B = self.__detect_config.get('threshold_B', 100)
+                    thres_H_L = self.__detect_config.get('threshold_H_L', 15)
+                    thres_H_H = self.__detect_config.get('threshold_H_H', 50)
+                    thres_S = self.__detect_config.get('threshold_S', 40)
+                    thres_V = self.__detect_config.get('threshold_V', 45)
+                    thres_size_rgb = self.__detect_config.get('threshold_size_rgb', 15)
+                    thres_size_hsv = self.__detect_config.get('threshold_size_hsv', 25)
+                    # *************************************************************************
+                    display = self.__detect_config.get('display', False)
                     start_time = time.perf_counter()
-                    result = self.__corn_detect.corn_recognition(self.__camera.frame, roi, display, thres_R, thres_G,
-                                                                 thres_B, thres_size)
+                    # result = self.__corn_detect.corn_recognition(self.__camera.frame, roi, display, thres_R, thres_G,
+                                                                #  thres_B, thres_size)
+                    
+                    #***********************for rgb hsv buy light*****************************
+                    self.__corn_detect.preprocessing(self.__camera.frame, roi, thres_R, thres_G, thres_B, 
+                    												thres_H_L, thres_H_H, thres_S, thres_V)
+                    result =self.__corn_detect.detect(display, thres_size_rgb, thres_size_hsv)
+                    # *************************************************************************
                     end_time = time.perf_counter()
                     self.__on_got_new_plate_callback(result)
                     # for callback in self.__on_got_new_plate_callback:
@@ -401,6 +518,18 @@ class RobotEye(object):
             self.__detect_config['threshold_G'] = int(payload)
         elif topic == "sower/eye/inside/detect/threshold_b":
             self.__detect_config['threshold_B'] = int(payload)
+        elif topic == "sower/eye/inside/detect/threshold_h_l":
+            self.__detect_config['threshold_H_L'] = int(payload)
+        elif topic == "sower/eye/inside/detect/threshold_h_h":
+            self.__detect_config['threshold_H_H'] = int(payload)
+        elif topic == "sower/eye/inside/detect/threshold_s":
+            self.__detect_config['threshold_S'] = int(payload)
+        elif topic == "sower/eye/inside/detect/threshold_v":
+            self.__detect_config['threshold_V'] = int(payload)
+        elif topic == "sower/eye/inside/detect/threshold_size_rgb":
+            self.__detect_config['threshold_size_rgb'] = int(payload)
+        elif topic == "sower/eye/inside/detect/threshold_size_hsv":
+            self.__detect_config['threshold_size_hsv'] = int(payload)
         elif topic == "sower/eye/inside/detect/threshold_size":
             self.__detect_config['threshold_size'] = int(payload)
         elif topic == "sower/eye/inside/detect/display":
