@@ -47,8 +47,8 @@ class RobotSower():
 
     def on_eye_got_new_plate(self, plate_map):
         print('RobotSower().on_eye_got_new_plate()')
-        # plate_map = [0xff,0xff,0xff,0xff,  0xff,0xff,0xff,0xff,
-        #             0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff]
+        plate_map = [0xff,0xff,0xfe,0xff,  0xff,0xff,0xff,0xff,
+                    0xff,0xff,0xff,0xff, 0xfe,0xfe,0xfe,0xfe]
         self.__current_plate.from_map(plate_map)
         self.__current_plate.print_out_map()
 
@@ -56,18 +56,16 @@ class RobotSower():
         if row_id >= 0 and row_id <= 16:
             # get plan for the two rows of the first robot.
             window = self.__current_plate.get_window_map(row_id)
-            self.__first_robot_body.print_out_drop_plan('first body window   ' + str(row_id),window,'W')
 
             # execute the plan, This will update the plate map.
             action_map = self.__first_robot_body.make_plan_and_execute(window)
-            self.__first_robot_body.print_out_drop_plan('action_map',action_map,'P')
             self.__current_plate.update_with_dropping(row_id, action_map)
             if action_map[0] > 0 or action_map[1] > 0:
-                # self.__first_robot_body.print_out_drop_plan('action_map',action_map,'P')
+                self.__first_robot_body.print_out_window_buffer_plan('first body window   ' + str(row_id),window,'W')
+                self.__first_robot_body.print_out_window_buffer_plan('first body action_map',action_map,'A')
                 self.__current_plate.print_out_map()
 
     def __new_row_enter_second_robot_body(self, row_id):
-        return
         if row_id >= 0 and row_id <= 16:
             # get plan for the two rows of the second robot.
             window = self.__current_plate.get_window_map(row_id)
@@ -75,7 +73,7 @@ class RobotSower():
             action_map = self.__second_robot_body.make_plan_and_execute(window)
             self.__current_plate.update_with_dropping(row_id,action_map)
             # if action_map[0] > 0 or action_map[1]>0:
-            #     self.__first_robot_body.print_out_drop_plan(action_map)
+            #     self.__first_robot_body.print_out_window_buffer_plan(action_map)
             #     self.__current_plate.print_out_map()
 
     def __on_new_row_enter(self):

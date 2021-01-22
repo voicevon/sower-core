@@ -24,11 +24,11 @@ class XyzArm(ReprapArm):
         self.__placed_counter = 0
         if body_id==0x41:
             self.__WAREHOUSE_X_POS = 180
-            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 79
+            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 132
             self.__DISTANCE_Y_FROM_COL_7_TO_HOME = 10
         if body_id==0x42:
             self.__WAREHOUSE_X_POS = 180
-            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 80
+            self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE = 132
             self.__DISTANCE_Y_FROM_COL_7_TO_HOME = 15
 
     def connect_and_init(self, serial_port_name):
@@ -50,12 +50,12 @@ class XyzArm(ReprapArm):
         |      col=5
         |      col=6
         |      col=7
-        |----- row=0,  row=1 ... row=-1  ------------------> X+
+        |----- row=1,  row=0 ... ---------------> X+
         if row == -1, will return x position of warehouse
 
         From manual calibration:  col,row :(0,0)  maps to x,y (30,20)
         '''
-        x = self.__WAREHOUSE_X_POS - self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE + row * 32
+        x = self.__DISTANCE_X_FROM_ROW_0_TO_WAREHOUSE - row * 32
         y = self.__DISTANCE_Y_FROM_COL_7_TO_HOME + (7-col) * 32
         if row == -1:
             x = self.__WAREHOUSE_X_POS
@@ -136,13 +136,13 @@ class XyzArm(ReprapArm):
 
 
 if __name__ == "__main__":
-    my_arm = XyzArm()
+    my_arm = XyzArm(0x41)
     # my_arm.set_echo_on(True)
     my_arm.connect_and_init('/dev/ttyUSB1')
     my_arm.home_y_x()
     
     if True:
-        my_arm.calibrate_col_row(7,0)
+        my_arm.calibrate_col_row(0,0)
 
     if False:
         # moves a big squre/
@@ -161,7 +161,7 @@ if __name__ == "__main__":
             my_arm.drop_warehouse()
             time.sleep(3)
 
-    if True:
+    if False:
         while True:
             for col_id in range(7,-1,-1):
                 for row_id in range(0,2):
