@@ -60,8 +60,8 @@ class RobotSensors():
             # self.__on_new_plate_enter()
             print('IR_Falling  %d'  %self.__debug_ir_count)
             self.__debug_ir_count += 1
-            self.coming_row_id_to_first_robot_body = -int(280/32)
-            self.coming_row_id_to_second_robot_body = -int(680/32)
+            self.coming_row_id_to_first_robot_body = -int(220/32)
+            self.coming_row_id_to_second_robot_body = -int(384/32)
 
         if channel == self.__PIN_ENCODER_C:
             # There are possible two plates in operation. We consider only one.

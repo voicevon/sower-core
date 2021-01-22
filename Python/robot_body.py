@@ -12,6 +12,17 @@ class RobotBody():
         self.seed_buffer = [0xff,0xff]   #bit defination: 0 = BLANK,  1 = OCCUPIED
         self.__debug_kit_address = kit_address
         
+    def print_out_drop_plan(self, drop_plan):
+        for col_id in range(0,8):
+            col_map = ''
+            for row_id in range(1,-1,-1):
+                byte = drop_plan[row_id]
+                if (byte & (1<<col_id)) == 1:
+                    col_map += ' .'
+                else:
+                    col_map += ' D'
+            print (col_map) 
+
     def make_plan_and_execute(self, window_map):
         '''
         
@@ -22,6 +33,8 @@ class RobotBody():
         self.servos_kit.execute_dropping(drop_plan)
         self.seed_buffer[0] &= ~drop_plan[0]
         self.seed_buffer[1] &= ~drop_plan[1]
+        if drop_plan[0] > 0 or drop_plan[1]>0:
+            self.print_out_drop_plan(drop_plan)
         return drop_plan
 
     def get_first_empty_cell(self):

@@ -69,9 +69,12 @@ class RobotSower():
         '''
         Should be a new thread.
         '''
-        print("RobotSower.__on_new_row_enter()  comming row_id = ", self.__sensors.coming_row_id_to_first_robot_body, self.__sensors.coming_row_id_to_second_robot_body)
+        
         row_id_first = self.__sensors.coming_row_id_to_first_robot_body
         row_id_second = self.__sensors.coming_row_id_to_second_robot_body
+        if row_id_first==0 or row_id_second==0:
+            print("RobotSower.__on_new_row_enter()  comming row_id = ", self.__sensors.coming_row_id_to_first_robot_body, self.__sensors.coming_row_id_to_second_robot_body)
+            
         if AppConfig.multi_thread:
             t1 = threading.Thread(target=self.__new_row_enter_first_robot_body, args=[row_id_first])
             t1.start()
