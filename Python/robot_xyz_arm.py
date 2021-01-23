@@ -34,6 +34,10 @@ class XyzArm(ReprapArm):
     def connect_and_init(self, serial_port_name):
         ReprapArm.connect_reprap_controller(self, portname= serial_port_name, baudrate=115200)
         self.allow_cold_extrusion()
+    
+    # TODO: Check whether or not can remove this wrapper.
+    def wait_for_movement_finsished_wrapper(self):
+        self.wait_for_movement_finsished()
 
     def home_y_x(self):
         self.home(home_y=True)

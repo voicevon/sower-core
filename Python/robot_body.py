@@ -57,7 +57,7 @@ class RobotBody():
             self.xyz_arm.pickup_from_warehouse(col_id)
             self.xyz_arm.place_to_cell(row=row_id, col=col_id)
             # TODO: sync until all the movements are really be done.  
-            time.sleep(2)
+            self.xyz_arm.wait_for_movement_finsished()
             self.seed_buffer[row_id] += 1<<col_id
             print('seed_buffer_appended seed at ', self.__debug_kit_address, row_id,col_id )
     
