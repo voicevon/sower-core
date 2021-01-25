@@ -102,8 +102,8 @@ class XyzArm(ReprapArm):
         '''
         x, y = self.__get_xy_from_col_row(col,row)
         self.move_to_xyz (x , y )
-        self.move_to_xyz(x , y+32)
-        self.move_to_xyz(self.__WAREHOUSE_X_POS, y+32)
+        self.move_to_xyz(x , y+32,speed_mm_per_min= 3500)
+        self.move_to_xyz(self.__WAREHOUSE_X_POS, y+32,speed_mm_per_min=15000)
 
         self.__placed_counter += 1
         g_mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)

@@ -237,8 +237,8 @@ class corn_detection(object):
 
                 areas = []
                 for cont in contours_HSV:
-                    # area_cont = cv2.contourArea(cont)
-                    area_cont = cont.size
+                    area_cont = cv2.contourArea(cont)
+                    # area_cont = cont.size
                     areas.append(area_cont)
                 if len(areas) > 0:
                     if np.max(areas) > theshold_size_hsv:
@@ -251,8 +251,8 @@ class corn_detection(object):
 
                 areas = []
                 for cont in contours_RGB:
-                    # area_cont = cv2.contourArea(cont)
-                    area_cont = cont.size
+                    area_cont = cv2.contourArea(cont)
+                    # area_cont = cont.size
                     areas.append(area_cont)
                 if len(areas) > 0:
                     if np.max(areas) > theshold_size_rgb:
