@@ -50,6 +50,9 @@ class Plate_Ver2():
         elif start_row_id == 16:
             window[1] = 0xff   # 1 is occupied   Window[1] is at the left side.
             window[0] = self.rows[start_row_id - 1]
+        elif start_row_id == 17:
+            window[0] = 0xff
+            window[1] = 0xff
         else:
             window[1] = self.rows[start_row_id]
             window[0] = self.rows[start_row_id -1]
@@ -64,6 +67,8 @@ class Plate_Ver2():
             self.rows[plate_row_id] |= dropped_map[1]
         elif plate_row_id == 16:
             self.rows[plate_row_id-1] |= dropped_map[0]
+        elif plate_row_id == 17:
+            pass
         else:
             self.rows[plate_row_id] |= dropped_map[1]
         # if row_id <15:

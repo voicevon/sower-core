@@ -53,7 +53,7 @@ class RobotSower():
         self.__current_plate.print_out_map()
 
     def __new_row_enter_first_robot_body(self, row_id):
-        if row_id >= 0 and row_id <= 16:
+        if row_id >= 0 and row_id <= 17:
             # get plan for the two rows of the first robot.
             window = self.__current_plate.get_window_map(row_id)
 
@@ -61,12 +61,12 @@ class RobotSower():
             action_map = self.__first_robot_body.make_plan_and_execute(window)
             self.__current_plate.update_with_dropping(row_id, action_map)
             if action_map[0] > 0 or action_map[1] > 0:
-                self.__first_robot_body.print_out_window_buffer_plan('first body window   ' + str(row_id),window,'W')
-                self.__first_robot_body.print_out_window_buffer_plan('first body action_map',action_map,'A')
+                # self.__first_robot_body.print_out_window_buffer_plan('first body window   ' + str(row_id),window,'W')
+                # self.__first_robot_body.print_out_window_buffer_plan('first body action_map',action_map,'A')
                 self.__current_plate.print_out_map()
 
     def __new_row_enter_second_robot_body(self, row_id):
-        if row_id >= 0 and row_id <= 16:
+        if row_id >= 0 and row_id <= 17:
             # get plan for the two rows of the second robot.
             window = self.__current_plate.get_window_map(row_id)
             # execute the plan, This will update the plate map.

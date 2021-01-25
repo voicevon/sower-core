@@ -14,7 +14,7 @@ import time
 import board  # pip3 install adafruit-blinka
 import busio
 from adafruit_servokit import ServoKit  # pip3 install adafruit-circuitpython-servokit
-
+from terminal_font import TerminalFont
 # To Install
 #   $ git clone https://github.com/JetsonHacksNano/ServoKit
 #   $ cd ServoKit
@@ -36,6 +36,10 @@ class SowerServoKit():
     # https://www.jetsonhacks.com/2019/07/22/jetson-nano-using-i2c/
     # https://elinux.org/Jetson/I2C
     def __init__(self, i2c_bus, kit_address):
+        self.__YELLOW = TerminalFont.Color.Fore.yellow
+        self.__GREEN = TerminalFont.Color.Fore.yellow
+        self.__RESET = TerminalFont.Color.Control.reset
+
         self.__gates_angle_0x41 = [(19,35,49),(23,35,53),(15,30,45),(14,30,44),(16,35,66),(16,30,46),(17,30,47),(22,40,52),
                     (17,30,47),(22,35,52),(36,50,66),(12,30,42),(15,30,45),(21,40,51),(16,30,46),(27,40,57)]
         self.__gates_angle_0x42 = [(40,45,70),(24,33,54),(18,22,48),(10,24,45),(18,24,48),(18,28,48),(18,27,48),(29,37,59),
@@ -49,7 +53,7 @@ class SowerServoKit():
         elif kit_address == 0x42:
             self.__on_off_angles = self.__gates_angle_0x42
         else:
-            print('[WARN][SowerServoKit]::__init__() wrong kit_address = %i' %kit_address)
+            print(self.__YELLOW + '[WARN][SowerServoKit]::__init__() wrong kit_address = %i' %kit_address + SELF.__RESET)
 
 
     def __set_single_servo_on_off(self, servo_id, action):
@@ -58,6 +62,8 @@ class SowerServoKit():
             Need try exception. to avoid hardware "OSError: [Error 121] Remote I/O error"
 
         '''
+        if servo_id > 15:
+            print(self.__YELLOW + '[WARN][RobotServoKit]::.__set_single_servo_on_off() servo_id=', servo_id + self.__RESET)
         close_angle, idle_angle, oepn_angle = self.__on_off_angles[servo_id]
         target_angle = idle_angle
         if action == 'OPEN':
@@ -65,7 +71,7 @@ class SowerServoKit():
         elif action =='CLOSE':
             target_angle = close_angle
         elif action != 'IDLE':
-            print('[WARN][SowerServoKit]::__set_single_servo_on_off(wrong action parameter) = %s' %action)
+            print(self.__YELLOW + '[WARN][SowerServoKit]::__set_single_servo_on_off(wrong action parameter) = %s' %action + self.__RESET)
 
         # print('SowerServoKit(). __set_single_servo_on_off() ', servo_id, target_angle)
         self.__kit.servo[servo_id].angle = target_angle
