@@ -61,13 +61,13 @@ class RobotSensors():
             print('IR_Falling  %d'  %self.__debug_ir_count)
             self.__debug_ir_count += 1
             self.coming_row_id_to_first_robot_body = -int(240/32)
-            self.coming_row_id_to_second_robot_body = -int(384/32)
+            self.coming_row_id_to_second_robot_body = -int((240+384)/32)
 
         if channel == self.__PIN_ENCODER_C:
             # There are possible two plates in operation. We consider only one.
+            self.__on_new_row_enter()
             self.coming_row_id_to_first_robot_body += 1
             self.coming_row_id_to_second_robot_body += 1
-            self.__on_new_row_enter()
 
     def on_gpio_falling_calibrate(self, channel):
         if channel == self.__PIN_IR_SWITCH:
@@ -79,7 +79,7 @@ class RobotSensors():
             # There are possible two plates in operation. We consider only one.
             self.coming_row_id_to_first_robot_body += 1
             self.coming_row_id_to_second_robot_body += 1
-            self.__on_new_row_enter()
+            print(self.coming_row_id_to_first_robot_body)
 
 
     def update_current_plate(self):
