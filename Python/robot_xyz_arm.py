@@ -102,8 +102,18 @@ class XyzArm(ReprapArm):
         '''
         x, y = self.__get_xy_from_col_row(col,row)
         self.move_to_xyz (x , y )
-        self.move_to_xyz(x , y+32,speed_mm_per_min= 3500)
-        self.move_to_xyz(self.__WAREHOUSE_X_POS, y+32,speed_mm_per_min=15000)
+        # close the air gate.
+        ReprapArm.wait_for_movement_finsished(self)
+        print("set angle to 10")
+        ReprapArm.set_servo_position(self,0,10)
+        time.sleep(1)
+        # reopen the air gate.
+        print("set angle to 160")
+        ReprapArm.set_servo_position(self,0,160)
+        ReprapArm.wait_for_movement_finsished(self)
+
+        # self.move_to_xyz(x , y+32,speed_mm_per_min= 3500)
+        # self.move_to_xyz(self.__WAREHOUSE_X_POS, y+32,speed_mm_per_min=15000)
 
         self.__placed_counter += 1
         g_mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)
@@ -145,7 +155,7 @@ if __name__ == "__main__":
     my_arm.connect_and_init('/dev/ttyUSB1')
     my_arm.home_y_x()
     
-    if True:
+    if False:
         my_arm.calibrate_col_row(0,0)
 
     if False:
@@ -172,7 +182,12 @@ if __name__ == "__main__":
                     my_arm.pickup_from_warehouse(col_id)
                     my_arm.place_to_cell(col_id, row=row_id)
 
+    while True:
+      my_arm.place_to_cell(0,0)      
+      time.sleep(5)
+      print("drop seed test")
 
+        
 
     # my_arm.Init_Marlin()
     # my_arm.Test2_home_sensor()
