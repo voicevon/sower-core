@@ -104,16 +104,16 @@ class XyzArm(ReprapArm):
         self.move_to_xyz (x , y )
         # close the air gate.
         ReprapArm.wait_for_movement_finsished(self)
-        print("set angle to 10")
-        ReprapArm.set_servo_position(self,0,10)
-        time.sleep(1)
-        # reopen the air gate.
         print("set angle to 160")
         ReprapArm.set_servo_position(self,0,160)
-        ReprapArm.wait_for_movement_finsished(self)
+        time.sleep(1)
+        # reopen the air gate.
+        print("set angle to 10")
+        ReprapArm.set_servo_position(self,0,10)
+        # ReprapArm.wait_for_movement_finsished(self)
 
         # self.move_to_xyz(x , y+32,speed_mm_per_min= 3500)
-        # self.move_to_xyz(self.__WAREHOUSE_X_POS, y+32,speed_mm_per_min=15000)
+        self.move_to_xyz(self.__WAREHOUSE_X_POS, y,speed_mm_per_min=15000)
 
         self.__placed_counter += 1
         g_mqtt.publish('sower/xyzarm/placed_counter', self.__placed_counter)
@@ -175,14 +175,13 @@ if __name__ == "__main__":
             my_arm.drop_warehouse()
             time.sleep(3)
 
-    if False:
-        while True:
-            for col_id in range(7,-1,-1):
-                for row_id in range(0,2):
-                    my_arm.pickup_from_warehouse(col_id)
-                    my_arm.place_to_cell(col_id, row=row_id)
-
     while True:
+        for col_id in range(7,-1,-1):
+            for row_id in range(0,2):
+                my_arm.pickup_from_warehouse(col_id)
+                my_arm.place_to_cell(col_id, row=row_id)
+
+    while False:
       my_arm.place_to_cell(0,0)      
       time.sleep(5)
       print("drop seed test")
