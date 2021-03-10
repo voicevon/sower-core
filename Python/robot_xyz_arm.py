@@ -104,11 +104,9 @@ class XyzArm(ReprapArm):
         self.move_to_xyz (x , y )
         # close the air gate.
         ReprapArm.wait_for_movement_finsished(self)
-        print("set angle to 160")
         ReprapArm.set_servo_position(self,0,160)
         time.sleep(1)
         # reopen the air gate.
-        print("set angle to 10")
         ReprapArm.set_servo_position(self,0,10)
         # ReprapArm.wait_for_movement_finsished(self)
 
@@ -152,7 +150,7 @@ class XyzArm(ReprapArm):
 if __name__ == "__main__":
     my_arm = XyzArm(0x41)
     # my_arm.set_echo_on(True)
-    my_arm.connect_and_init('/dev/ttyUSB1')
+    my_arm.connect_and_init('/dev/ttyUSB0')
     my_arm.home_y_x()
     
     if False:
@@ -175,13 +173,13 @@ if __name__ == "__main__":
             my_arm.drop_warehouse()
             time.sleep(3)
 
-    while True:
+    while False:
         for col_id in range(7,-1,-1):
             for row_id in range(0,2):
                 my_arm.pickup_from_warehouse(col_id)
                 my_arm.place_to_cell(col_id, row=row_id)
 
-    while False:
+    while True:
       my_arm.place_to_cell(0,0)      
       time.sleep(5)
       print("drop seed test")
