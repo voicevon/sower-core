@@ -5,4 +5,5 @@ Python/__pycache__/*
 *.pyc
 *.json
 *.mvdat
+*.jpg
 error_*.*

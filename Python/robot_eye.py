@@ -178,7 +178,7 @@ class corn_detection(object):
         self.ROI = cv2.boundingRect(cont_max)  # 提取矩形坐标
         return self.ROI
     
-    def preprocessing(self, img, ROI=None, threshold_R=100, threshold_G=100, threshold_B=100,
+    def preprocessing(self, img, img_id, ROI=None, threshold_R=100, threshold_G=100, threshold_B=100,
     					threshold_H_L=15,threshold_H_H=50, threshold_S=40, threshold_V=45):
         if img.shape[2]!=3:
             raise Exception('invalid image type, it should be 3 channels!')
@@ -187,6 +187,7 @@ class corn_detection(object):
             self.ROI = ROI
 
         self.ROI_img = img[self.ROI[1]:(self.ROI[1] + self.ROI[3]), self.ROI[0]:(self.ROI[0] + self.ROI[2])]  #extract ROI
+        # cv2.imwrite('{}.jpg'.format(img_id),self.ROI_img)
         self.corn_img = cv2.resize(self.ROI_img, (int(self.ROI[2]/2), int(self.ROI[3]/2)))
         self.HSV_img = cv2.cvtColor(self.corn_img,cv2.COLOR_RGB2HSV) # convert to HSV space
         self.RGB_img = self.corn_img.copy()
@@ -375,6 +376,7 @@ class RobotEye(object):
         self.__tray_config = dict()
         g_mqtt.append_on_message_callback(self.on_mqtt_message, do_debug_print_out=False)
         self.__last_frame_id = 0
+        self.img_rotate = None
 
     def spin(self, mqtt):
         self.__running_on_my_own_thread = True
@@ -440,7 +442,7 @@ class RobotEye(object):
                 if self.__camera.frame_id != self.__last_frame_id:
                     self.__last_frame_id = self.__camera.frame_id
                     M = cv2.getRotationMatrix2D((self.__camera.frame.shape[1]/2,self.__camera.frame.shape[0]/2),90,1.0)
-                    self.__camera.frame = cv2.warpAffine(self.__camera.frame,M,(self.__camera.frame.shape[0],self.__camera.frame.shape[1]))
+                    self.img_rotate  = cv2.warpAffine(self.__camera.frame,M,(self.__camera.frame.shape[0],self.__camera.frame.shape[1]))
                     if self.__detect_config.get('ROI', []):
                         if len(self.__detect_config['ROI']) == 4 and self.__detect_config['ROI'][0] != 0 \
                                 and self.__detect_config['ROI'][1] !=0 and self.__detect_config['ROI'][2] !=0 and self.__detect_config['ROI'][3] != 0:
@@ -451,7 +453,7 @@ class RobotEye(object):
                             return
                     else:
                         # cap_img = self.__camera.frame.copy()
-                        roi = self.__corn_detect.extractROI(self.__camera.frame)
+                        roi = self.__corn_detect.extractROI(self.img_rotate)
                         if roi is None:
                             print("[Warning] robot_eye.py line [363]: extract tray contour failed!")
                             # continue
@@ -481,9 +483,10 @@ class RobotEye(object):
                                                                 #  thres_B, thres_size)
                     
                     #***********************for rgb hsv buy light*****************************
-                    self.__corn_detect.preprocessing(self.__camera.frame, roi, thres_R, thres_G, thres_B, 
+                    self.__corn_detect.preprocessing( self.img_rotate, self.__camera.frame_id, roi, thres_R, thres_G, thres_B, 
                     												thres_H_L, thres_H_H, thres_S, thres_V)
                     result =self.__corn_detect.detect(display, thres_size_rgb, thres_size_hsv)
+                    # cv2.imwrite('{}_result.jpg'.format(self.__camera.frame_id),self.__corn_detect.corn_img)
                     # *************************************************************************
                     end_time = time.perf_counter()
                     self.__on_got_new_plate_callback(result)
