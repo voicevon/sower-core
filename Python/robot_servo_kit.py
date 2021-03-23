@@ -14,6 +14,10 @@ import time
 import board  # pip3 install adafruit-blinka
 import busio
 from adafruit_servokit import ServoKit  # pip3 install adafruit-circuitpython-servokit
+from app_config import AppConfig
+
+import sys
+sys.path.append(AppConfig.pylib_path)
 from terminal_font import TerminalFont
 # To Install
 #   $ git clone https://github.com/JetsonHacksNano/ServoKit
@@ -42,8 +46,8 @@ class SowerServoKit():
 
         self.__gates_angle_0x41 = [(19,35,49),(23,35,53),(15,30,45),(14,30,44),(16,35,66),(16,30,46),(17,30,47),(22,40,52),
                     (17,30,47),(22,35,52),(36,50,66),(12,30,42),(15,30,45),(21,40,51),(16,30,46),(27,40,57)]
-        self.__gates_angle_0x42 = [(40,45,70),(24,33,54),(18,22,48),(10,24,45),(18,24,48),(18,28,48),(18,27,48),(29,37,59),
-                    (15,25,45),(22,34,52),(32,42,62),(4,14,34),(10,20,40),(35,40,65),(10,18,40),(30,38,60)]
+        self.__gates_angle_0x42 = [(35,45,70),(24,33,54),(15,22,48),(10,24,45),(12,24,48),(12,28,48),(12,27,48),(25,37,59),
+                    (12,25,45),(18,34,52),(30,42,62),(0,14,34),(8,20,40),(30,40,65),(8,18,40),(28,38,60)]
 
         self.__kit = ServoKit(channels=16, i2c=i2c_bus, address=kit_address)
 
@@ -94,7 +98,7 @@ class SowerServoKit():
                 
 if __name__ == "__main__":
 
-    test_id = 2
+    test_id = 1
     test_address = 0x42
     i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
 
@@ -107,12 +111,12 @@ if __name__ == "__main__":
     while test_id == 1:
         for row in range(0,2):
             for col in range(0,8):
-                servos.set_single_servo_on_off(row, col_id=col, action='CLOSE')
-                print('closed')
+                servos.set_single_servo_on_off(row, col_id=col, action='OPEN')
+                print('opened')
                 time.sleep(1)
 
-                servos.set_single_servo_on_off(row, col_id=col, action='OPEN')
-                print('Opened ')
+                servos.set_single_servo_on_off(row, col_id=col, action='CLOSE')
+                print('closed ')
                 time.sleep(1)   
 
     while test_id == 2:
