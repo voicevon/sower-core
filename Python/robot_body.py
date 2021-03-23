@@ -11,6 +11,7 @@ class RobotBody():
         self.servos_kit = SowerServoKit(i2c_bus, kit_address)
         self.seed_buffer = [0xff,0xff]   #bit defination: 0 = BLANK,  1 = OCCUPIED
         self.__debug_kit_address = kit_address
+        self.__busy = False
         
     def print_out_window_buffer_plan(self, title, window_buffer_plan, the_letter):
         print(title, window_buffer_plan[1], window_buffer_plan[0] )
@@ -60,9 +61,13 @@ class RobotBody():
             self.xyz_arm.wait_for_movement_finsished()
             self.seed_buffer[row_id] += 1<<col_id
             print('seed_buffer_appended seed at ', self.__debug_kit_address, row_id,col_id )
-    
+        self.__busy = False
+
     def spin_once(self, new_thread=True):
         if new_thread:
+            if self.__busy:
+                return
+            self.__busy = True
             t1 = threading.Thread(target=self.__spin_once)
             t1.start()
             return

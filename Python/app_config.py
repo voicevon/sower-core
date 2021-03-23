@@ -12,7 +12,7 @@ class AppConfig:
     #     mqtt = MqttHelper()
     # pylib_path = '/home/xm/pylib'  # for custom's jetson nano
     pylib_path = '/home/xm/gitrepo/pylib'  # for xuming's jetson nano
-    multi_thread = False
+    multi_thread = True
     class server:
         class mqtt:
             broker_addr = 'voicevon.vicp.io'
