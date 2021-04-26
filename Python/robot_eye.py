@@ -189,6 +189,8 @@ class corn_detection(object):
         self.ROI_img = img[self.ROI[1]:(self.ROI[1] + self.ROI[3]), self.ROI[0]:(self.ROI[0] + self.ROI[2])]  #extract ROI
         # cv2.imwrite('{}.jpg'.format(img_id),self.ROI_img)
         self.corn_img = cv2.resize(self.ROI_img, (int(self.ROI[2]/2), int(self.ROI[3]/2)))
+        # print(self.corn_img)
+        # cv2.imwrite('{}.jpg'.format(img_id),self.corn_img)
         self.HSV_img = cv2.cvtColor(self.corn_img,cv2.COLOR_RGB2HSV) # convert to HSV space
         self.RGB_img = self.corn_img.copy()
 
@@ -198,21 +200,21 @@ class corn_detection(object):
         self.HSV_th_img = cv2.inRange(self.HSV_img, yellow_min, yellow_max)
         # cv2.imwrite('HSV.jpg', self.HSV_th_img)
         #threshold RGB
-        yellow_min = np.array([threshold_R, threshold_G, 0], np.uint8)
-        yellow_max = np.array([255, 255, threshold_B], np.uint8)
+        yellow_min = np.array([threshold_R, threshold_G, threshold_B], np.uint8)
+        yellow_max = np.array([255, 255, 255], np.uint8)
         self.RGB_th_img = cv2.inRange(self.RGB_img, yellow_min, yellow_max)
         # cv2.imwrite('RGB.jpg', self.RGB_th_img)
 
         #median blur
-        self.HSV_th_img = cv2.medianBlur(self.HSV_th_img,7)
+        self.HSV_th_img = cv2.medianBlur(self.HSV_th_img,3)
         self.RGB_th_img = cv2.medianBlur(self.RGB_th_img,3)
         # cv2.imwrite('HSV_filter.jpg', self.HSV_th_img)
         # cv2.imwrite('RGB_filter.jpg', self.RGB_th_img)
 
         #morphology 
+        # element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
+        # self.HSV_th_img = cv2.morphologyEx(self.HSV_th_img, cv2.MORPH_OPEN, element)
         element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5,5))
-        self.HSV_th_img = cv2.morphologyEx(self.HSV_th_img, cv2.MORPH_OPEN, element)
-        element = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10,10))
         self.HSV_th_img = cv2.morphologyEx(self.HSV_th_img, cv2.MORPH_CLOSE, element)
 
         self.RGB_th_img = cv2.morphologyEx(self.RGB_th_img, cv2.MORPH_CLOSE, element)
@@ -227,8 +229,8 @@ class corn_detection(object):
         corn_result = np.zeros((self.tray_height, self.tray_width)).astype(bool)
         for row in range(self.tray_height):
             for col in range(self.tray_width):
-                cell_HSV_img = self.HSV_th_img[row*cell_height:(row+1)*cell_height,col*cell_width:(col+1)*cell_width]
-                cell_RGB_img = self.RGB_th_img[row*cell_height:(row+1)*cell_height,col*cell_width:(col+1)*cell_width]
+                cell_HSV_img = self.HSV_th_img[row*cell_height+2:(row+1)*cell_height+5,col*cell_width+2:(col+1)*cell_width+5]
+                cell_RGB_img = self.RGB_th_img[row*cell_height+2:(row+1)*cell_height+5,col*cell_width+2:(col+1)*cell_width+5]
                 # cv2.imwrite('cell_hsv_{}_{}.jpg'.format(row,col), cell_HSV_img)
                 # cv2.imwrite('cell_rgb_{}_{}.jpg'.format(row,col), cell_RGB_img)
 
@@ -248,7 +250,7 @@ class corn_detection(object):
                     	    max_area_id = np.argmax(areas)
                     	    cont_max_HSV = contours_HSV[max_area_id]
                     	    rect = cv2.boundingRect(cont_max_HSV)
-                    	    cv2.rectangle(self.corn_img, (rect[0]+col*cell_width, rect[1]+row*cell_height, rect[2], rect[3]), (0,0,255),5)
+                    	    cv2.rectangle(self.corn_img, (rect[0]+col*cell_width, rect[1]+row*cell_height, rect[2], rect[3]), (0,0,255),2)
 
                 areas = []
                 for cont in contours_RGB:
@@ -262,7 +264,7 @@ class corn_detection(object):
                     	    max_area_id = np.argmax(areas)
                     	    cont_max_RGB = contours_RGB[max_area_id]
                     	    rect = cv2.boundingRect(cont_max_RGB)
-                    	    cv2.rectangle(self.corn_img, (rect[0]+col*cell_width, rect[1]+row*cell_height, rect[2], rect[3]), (0,255,0),5)
+                    	    cv2.rectangle(self.corn_img, (rect[0]+col*cell_width, rect[1]+row*cell_height, rect[2], rect[3]), (0,255,0),2)
         print('[Info] robot_eye.py: corn result = ', corn_result)
         corn_map = self.translate_map(corn_result)
         print('[Info] robot_eye.py: corn map = ', corn_map)
@@ -469,11 +471,11 @@ class RobotEye(object):
                     #***********************for rgb hsv buy light*****************************
                     thres_R = self.__detect_config.get('threshold_R', 100)
                     thres_G = self.__detect_config.get('threshold_G', 100)
-                    thres_B = self.__detect_config.get('threshold_B', 100)
-                    thres_H_L = self.__detect_config.get('threshold_H_L', 15)
-                    thres_H_H = self.__detect_config.get('threshold_H_H', 50)
-                    thres_S = self.__detect_config.get('threshold_S', 40)
-                    thres_V = self.__detect_config.get('threshold_V', 45)
+                    thres_B = self.__detect_config.get('threshold_B', 50)
+                    thres_H_L = self.__detect_config.get('threshold_H_L', 18)
+                    thres_H_H = self.__detect_config.get('threshold_H_H', 70)
+                    thres_S = self.__detect_config.get('threshold_S', 0)
+                    thres_V = self.__detect_config.get('threshold_V', 50)
                     thres_size_rgb = self.__detect_config.get('threshold_size_rgb', 15)
                     thres_size_hsv = self.__detect_config.get('threshold_size_hsv', 25)
                     # *************************************************************************

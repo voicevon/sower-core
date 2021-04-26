@@ -35,10 +35,12 @@ class RobotSower():
         self.__sensors.setup()
 
         i2c_bus0=(busio.I2C(board.SCL_1, board.SDA_1,frequency=400000))
-        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.4.3')
+        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.4')
+        print('Serial port name =',xyz_arm_serial_port_name)
+
         self.__first_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x41)
 
-        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.4.4')
+        xyz_arm_serial_port_name = helper.serial_port_from_location('1-2.3')
         self.__second_robot_body = RobotBody(xyz_arm_serial_port_name, i2c_bus0, 0x42)  
 
 
@@ -49,8 +51,8 @@ class RobotSower():
         print('RobotSower().on_eye_got_new_plate()')
         # plate_map = [0xfe,0xfd,0xfb,0xf7,  0xef,0xdf,0xbf,0x7f,
         #             0x7f,0xbf,0xdf,0xef, 0xf7,0xfb,0xfd,0xfe]
-        plate_map = [0xee,0xdd,0xbb,0x77,  0x77,0xbb,0xdd,0xee,
-                     0xee,0xdd,0xbb,0x77,  0x77,0xbb,0xdd,0xee]
+        # plate_map = [0xee,0xdd,0xbb,0x77,  0x77,0xbb,0xdd,0xee,
+        #             0xee,0xdd,0xbb,0x77,  0x77,0xbb,0xdd,0xee]
         self.__current_plate.from_map(plate_map)
         self.__current_plate.print_out_map()
 
